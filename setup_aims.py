@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from ase import Atoms
 import ase.io
 from ase.calculators.aims import Aims
@@ -264,7 +263,6 @@ if __name__ == "__main__":
         write_submit_t3000(args)
     elif args.cluster == "taurus":
         write_submit_taurus(args)
-=======
 from ase import Atoms
 import ase.io
 from ase.calculators.aims import Aims
@@ -530,4 +528,3 @@ if __name__ == "__main__":
         write_submit_t3000(args)
     elif args.cluster == "taurus":
         write_submit_taurus(args)
->>>>>>> a81894f55b2a444765ab6824b492a47998392be1

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # -*- coding: utf-8 -*-
 """
 Created on Thu Oct 10 17:25:27 2019
@@ -437,7 +436,6 @@ if __name__ == "__main__":
     else:
         plt.show(block=True)
 
-=======
 # -*- coding: utf-8 -*-
 """
 Created on Thu Oct 10 17:25:27 2019
@@ -876,4 +874,3 @@ if __name__ == "__main__":
     else:
         plt.show(block=True)
 
->>>>>>> a81894f55b2a444765ab6824b492a47998392be1
