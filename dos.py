@@ -41,6 +41,10 @@ class DOS:
             atomic_dos = self.__sum_dosfiles(atomic_dos)
             dos_per_atom.append(atomic_dos)
         self.dos_per_atom = dict(zip(self.species.keys(), dos_per_atom))
+        for atom in self.dos_per_atom.keys():
+            self.dos_per_atom[atom][:, 1:] = (
+                self.dos_per_atom[atom][:, 1:] * self.species[atom]
+            )
         self.shift_to("middle")
 
         self.total_dos = self.__get_total_dos(self.dos_per_atom)
@@ -200,7 +204,7 @@ class DOS:
         axes.set_xlim([0, np.max(xy[:, 1]) + 0.1])
         axes.set_ylim([lower_ylimit, upper_ylimit])
         axes.set_xticks([])
-        axes.set_xlabel("DOS/atom")
+        axes.set_xlabel("DOS")
         axes.set_ylabel("E-E$_\mathrm{F}$ [eV]")
         axes.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
         axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")
