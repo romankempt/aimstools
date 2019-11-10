@@ -805,126 +805,65 @@ class fatbandstructure(bandstructure):
 
 
 ###### General utilities
-def plot_ZORA_and_SOC(
-    path,
-    fig=None,
-    axes=None,
-    title="",
-    ZORA_color="k",
-    SOC_color="crimson",
-    var_energy_limits=1.0,
-    fix_energy_limits=[],
-    zorakwargs={},
-    sockwargs={"linestyle": "--"},
-):
-    """ A specialised function to overlay ZORA and SOC band structure.
-        Returns axes object.
 
-    path: str (path to outputfile)
-    ZORA_color, SOC_color: str
-    var_energy_limits : int (window above and below the band gap)
-    fix_energy_limits : list (fixed y-limits)
-    zorakwargs and sockkwargs are passed to the respective matplotlib plotting functions.
- """
-    ZORA = bandstructure(path, get_SOC=False)
-    if fig == None:
-        fig = plt.figure(figsize=(len(ZORA.kpath) / 2, 3))
-    if axes != None:
-        axes = plt.gca()
-    else:
-        axes = plt.subplot2grid((1, 1), (0, 0), fig=fig)
-    ZORA.plot(
-        fig=fig,
-        axes=axes,
-        color=ZORA_color,
-        label="ZORA",
-        var_energy_limits=var_energy_limits,
-        fix_energy_limits=fix_energy_limits,
-        kwargs=zorakwargs,
-    )
-    ZORA_line = Line2D([0], [0], color=ZORA_color, label="ZORA", lw=1.5)
-    SOC = bandstructure(path, get_SOC=True)
-    SOC.properties()
-    SOC.plot(
-        fig=fig,
-        axes=axes,
-        color=SOC_color,
-        label="ZORA+SOC",
-        var_energy_limits=var_energy_limits,
-        fix_energy_limits=fix_energy_limits,
-        kwargs=sockwargs,
-    )
-    SOC_line = Line2D([0], [0], color=SOC_color, label="ZORA+SOC", lw=1.5)
-    axes.legend(
-        handles=[ZORA_line, SOC_line],
-        frameon=True,
-        fancybox=False,
-        borderpad=0.4,
-        ncol=2,
-        loc="upper right",
-    )
-    fig.suptitle(title)
-    return axes
+ #### in-line execution
+# def parseArguments():
+#     # Create argument parser
+#     parser = argparse.ArgumentParser()
+
+#     # Positional mandatory arguments
+#     parser.add_argument("path", help="Path to directory", type=str)
+#     parser.add_argument("title", help="Name of the file", type=str)
+
+#     # Optional arguments
+#     parser.add_argument(
+#         "--ZORA_color", help="ZORA bands color", type=str, default="black"
+#     )
+#     parser.add_argument(
+#         "--SOC_color", help="SOC bands color", type=str, default="crimson"
+#     )
+#     parser.add_argument(
+#         "-i",
+#         "--interactive",
+#         help="interactive plotting mode",
+#         type=bool,
+#         default=False,
+#     )
+#     parser.add_argument(
+#         "-yl",
+#         "--ylimits",
+#         nargs="+",
+#         help="list of upper and lower y-axis limits",
+#         type=float,
+#         default=[],
+#     )
+#     # Parse arguments
+#     args = parser.parse_args()
+#     return args
 
 
-#### in-line execution
-def parseArguments():
-    # Create argument parser
-    parser = argparse.ArgumentParser()
+# if __name__ == "__main__":
+#     # Parse the arguments
+#     args = parseArguments()
+#     if args.interactive == True:
+#         plt.ion()
+#     else:
+#         plt.ioff()
 
-    # Positional mandatory arguments
-    parser.add_argument("path", help="Path to directory", type=str)
-    parser.add_argument("title", help="Name of the file", type=str)
-
-    # Optional arguments
-    parser.add_argument(
-        "--ZORA_color", help="ZORA bands color", type=str, default="black"
-    )
-    parser.add_argument(
-        "--SOC_color", help="SOC bands color", type=str, default="crimson"
-    )
-    parser.add_argument(
-        "-i",
-        "--interactive",
-        help="interactive plotting mode",
-        type=bool,
-        default=False,
-    )
-    parser.add_argument(
-        "-yl",
-        "--ylimits",
-        nargs="+",
-        help="list of upper and lower y-axis limits",
-        type=float,
-        default=[],
-    )
-    # Parse arguments
-    args = parser.parse_args()
-    return args
-
-
-if __name__ == "__main__":
-    # Parse the arguments
-    args = parseArguments()
-    if args.interactive == True:
-        plt.ion()
-    else:
-        plt.ioff()
-
-    ZORA = bandstructure(args.path, get_SOC=False)
-    if ZORA.active_SOC == True:
-        plot_ZORA_and_SOC(
-            args.path,
-            fix_energy_limits=args.ylimits,
-            ZORA_color=args.ZORA_color,
-            SOC_color=args.SOC_color,
-        )
-    else:
-        ZORA.plot(
-            title=args.title, fix_energy_limits=args.ylimits, color=args.ZORA_color
-        )
-        ZORA.properties()
-    if args.interactive == False:
-        plt.savefig(os.path.basename(args.title) + ".png", dpi=300, bbox_inches="tight")
-    else:
-        plt.show(block=True)
+#     ZORA = bandstructure(args.path, get_SOC=False)
+#     if ZORA.active_SOC == True:
+#         plot_ZORA_and_SOC(
+#             args.path,
+#             fix_energy_limits=args.ylimits,
+#             ZORA_color=args.ZORA_color,
+#             SOC_color=args.SOC_color,
+#         )
+#     else:
+#         ZORA.plot(
+#             title=args.title, fix_energy_limits=args.ylimits, color=args.ZORA_color
+#         )
+#         ZORA.properties()
+#     if args.interactive == False:
+#         plt.savefig(os.path.basename(args.title) + ".png", dpi=300, bbox_inches="tight")
+#     else:
+#         plt.show(block=True)
