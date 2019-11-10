@@ -387,9 +387,6 @@ class DOS:
         return axes
 
 
-#########################################
-
-
 #### in-line execution
 # def parseArguments():
 #     # Create argument parser

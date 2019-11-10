@@ -804,9 +804,7 @@ class fatbandstructure(bandstructure):
         return axes
 
 
-###### General utilities
 
- #### in-line execution
 # def parseArguments():
 #     # Create argument parser
 #     parser = argparse.ArgumentParser()

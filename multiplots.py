@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from AIMS_tools import bandstructure, dos
 from pathlib import Path as Path
+from matplotlib.lines import Line2D
 
 # plt.rcParams["legend.handlelength"] = 1.0
 plt.rcParams["legend.framealpha"] = 0.8
