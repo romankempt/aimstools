@@ -1,0 +1,359 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>bandstructure module &mdash; AIMS_tools 0.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dos module" href="dos.html" />
+    <link rel="prev" title="AIMS_tools" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> AIMS_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">AIMS_tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">bandstructure module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dos.html">dos module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multiplots.html">multiplots module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AIMS_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">AIMS_tools</a> &raquo;</li>
+        
+      <li>bandstructure module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/bandstructure.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-bandstructure">
+<span id="bandstructure-module"></span><h1>bandstructure module<a class="headerlink" href="#module-bandstructure" title="Permalink to this headline">¶</a></h1>
+<p>Created on Fri Mar 15 17:11:40 2019</p>
+<p>&#64;author: Roman Kempt</p>
+<dl class="class">
+<dt id="bandstructure.bandstructure">
+<em class="property">class </em><code class="sig-prename descclassname">bandstructure.</code><code class="sig-name descname">bandstructure</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">custom_path=''</em>, <em class="sig-param">shift_to='middle'</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.bandstructure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Contains all information about a single band structure instance,
+such as band gaps and fermi level.</p>
+<p>The input to the class is the outputfile to retrieve information from.
+outputfile : path to outputfile
+get_SOC: True or False</p>
+<dl class="method">
+<dt id="bandstructure.bandstructure.concat_bandfiles">
+<code class="sig-name descname">concat_bandfiles</code><span class="sig-paren">(</span><em class="sig-param">bandfiles</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.bandstructure.concat_bandfiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concatenates bandfiles and produces array of x-Axis with eigenvalues.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bandstructure.bandstructure.custom_path">
+<code class="sig-name descname">custom_path</code><span class="sig-paren">(</span><em class="sig-param">custompath</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.bandstructure.custom_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function takes in a custom path of form K1-K2-K3 for plotting.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bandstructure.bandstructure.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">title=''</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">axes=None</em>, <em class="sig-param">color='k'</em>, <em class="sig-param">label=''</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">mark_gap='lightgray'</em>, <em class="sig-param">kwargs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.bandstructure.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots a band structure instance. Returns an axes object.</p>
+<p>var_energy_limits : int (window above and below the band gap)
+fix_energy_limits : list (fixed energy limits)
+mark_gap : str or none (fills the gap with color str)
+<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs are passed to the matplotlib plotting function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bandstructure.bandstructure.properties">
+<code class="sig-name descname">properties</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.bandstructure.properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints out key properties of the band structure.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bandstructure.bandstructure.shift_to">
+<code class="sig-name descname">shift_to</code><span class="sig-paren">(</span><em class="sig-param">spectrum</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.bandstructure.shift_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shifts Fermi level.</p>
+<p>shift_type = “middle” to shift to middle of band gap
+shift_type = “VBM” to shift to valence band maximum”
+shift_type = None to add internal Fermi-level. This is the default for metallic systems.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="bandstructure.fatbandstructure">
+<em class="property">class </em><code class="sig-prename descclassname">bandstructure.</code><code class="sig-name descname">fatbandstructure</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">custom_path=''</em>, <em class="sig-param">shift_to='middle'</em>, <em class="sig-param">filter=[]</em>, <em class="sig-param">parallel=False</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.fatbandstructure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bandstructure.bandstructure" title="bandstructure.bandstructure"><code class="xref py py-class docutils literal notranslate"><span class="pre">bandstructure.bandstructure</span></code></a></p>
+<p>Fatbands inherit from bandstructure class. 
+filter : list (default: []) –&gt; list of atom labels, e.g., [“W”, “S”] to process.
+parallel : boolean (default: False)</p>
+<blockquote>
+<div><p>Employs multiprocessing to speed up the data input. Especially useful for systems
+above 20 atoms.
+This requires your execution script to be safeguarded with:
+&gt;&gt; if __name__ == “__main__”: &lt;&lt; 
+Hence, this option can not be invoked interactively.</p>
+</div></blockquote>
+<dl class="method">
+<dt id="bandstructure.fatbandstructure.concat_atom">
+<code class="sig-name descname">concat_atom</code><span class="sig-paren">(</span><em class="sig-param">atom</em>, <em class="sig-param">mlk_bandfiles</em>, <em class="sig-param">return_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.fatbandstructure.concat_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the function to be parallelised.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bandstructure.fatbandstructure.concat_mlk_bandfiles">
+<code class="sig-name descname">concat_mlk_bandfiles</code><span class="sig-paren">(</span><em class="sig-param">mlk_bandfiles</em>, <em class="sig-param">filter</em>, <em class="sig-param">parallel=False</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.fatbandstructure.concat_mlk_bandfiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concatenates contributions and energies for every single k-point, atom, and band.
+Can be quite a heavy computation for a large number of atoms. In this case, invoking the filter
+option can speed up the calculation to only obtain contributions of certain species.
+filter : list of atom labels (e.g., [“W”, “Se”])</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bandstructure.fatbandstructure.custom_path">
+<code class="sig-name descname">custom_path</code><span class="sig-paren">(</span><em class="sig-param">custompath</em>, <em class="sig-param">parallel=False</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.fatbandstructure.custom_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function takes in a custom path of form K1-K2-K3 for plotting.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bandstructure.fatbandstructure.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">contribution</em>, <em class="sig-param">title=''</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">axes=None</em>, <em class="sig-param">cmap='Blues'</em>, <em class="sig-param">label=''</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">nbands=False</em>, <em class="sig-param">interpolation_step=False</em>, <em class="sig-param">kwargs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.fatbandstructure.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots a fat band structure instance. Cmap must
+be a sequential matplotlib colormap instance. Returns an axes object.</p>
+<p>contribution : array (e.g., self.tot_contribution[atom_number] for total of atom)
+var_energy_limits : int (window above and below the band gap)
+fix_energy_limits : list (fixed energy limits)</p>
+<dl class="simple">
+<dt>nbands<span class="classifier">int or False</span></dt><dd><p>Only highlights n bands above and below the Fermi level.</p>
+</dd>
+<dt>interpolation_step<span class="classifier">float or False</span></dt><dd><p>If != False, this performs a 1D interpolation of every band with the specified
+step size (e.g, 0.001). However, this corresponds to quite some computational effort
+and might take a long while to render. It is recommended to choose a small value
+for nbands in this case.</p>
+</dd>
+</dl>
+<p><a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs are currently not used.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bandstructure.fatbandstructure.plot_all_orbitals">
+<code class="sig-name descname">plot_all_orbitals</code><span class="sig-paren">(</span><em class="sig-param">axes=None</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">nbands=False</em>, <em class="sig-param">interpolation_step=False</em>, <em class="sig-param">kwargs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.fatbandstructure.plot_all_orbitals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots a beautiful figure with all orbital characters overlaid.
+Shares attributes with the in-built plot function.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bandstructure.fatbandstructure.plot_all_species">
+<code class="sig-name descname">plot_all_species</code><span class="sig-paren">(</span><em class="sig-param">axes=None</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">sum=True</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">nbands=False</em>, <em class="sig-param">interpolation_step=False</em>, <em class="sig-param">kwargs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.fatbandstructure.plot_all_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots a beautiful figure with all species overlaid.
+Shares attributes with the in-built plot function.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bandstructure.fatbandstructure.sum_contributions">
+<code class="sig-name descname">sum_contributions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.fatbandstructure.sum_contributions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sums (normalized) atomic contributions for the same species.
+This is optional, since the atoms are not always symmetry equivalent.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="bandstructure.parseArguments">
+<code class="sig-prename descclassname">bandstructure.</code><code class="sig-name descname">parseArguments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.parseArguments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="bandstructure.plot_ZORA_and_SOC">
+<code class="sig-prename descclassname">bandstructure.</code><code class="sig-name descname">plot_ZORA_and_SOC</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">axes=None</em>, <em class="sig-param">title=''</em>, <em class="sig-param">ZORA_color='k'</em>, <em class="sig-param">SOC_color='crimson'</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">zorakwargs={}</em>, <em class="sig-param">sockwargs={'linestyle': '--'}</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.plot_ZORA_and_SOC" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>A specialised function to overlay ZORA and SOC band structure.</dt><dd><p>Returns axes object.</p>
+</dd>
+</dl>
+<p>path: str (path to outputfile)
+ZORA_color, SOC_color: str
+var_energy_limits : int (window above and below the band gap)
+fix_energy_limits : list (fixed y-limits)
+zorakwargs and sockkwargs are passed to the respective matplotlib plotting functions.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="dos.html" class="btn btn-neutral float-right" title="dos module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="modules.html" class="btn btn-neutral float-left" title="AIMS_tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Roman Kempt
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -21,7 +21,7 @@ Then run:
 Set the path to the aims species (basis sets) in your environment variables (e.g., in the .bashrc):
 export AIMS_SPECIES_DIR="path/to/directory"
 - On t3000, this one is "/chemsoft/FHI-aims/stable/species_defaults/"
-- on taurus, this one is "/projects/m_chemie/FHI-aims/FHI-aims_4_Roman/aimsfiles-master/species_defaults/"
+- On taurus, this one is "/projects/m_chemie/FHI-aims/FHI-aims_4_Roman/aimsfiles-master/species_defaults/"
 
 
 ## Requirements:
