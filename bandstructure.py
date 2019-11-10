@@ -28,9 +28,10 @@ class bandstructure:
     """ Contains all information about a single band structure instance,
     such as band gaps and fermi level. 
     
-    The input to the class is the outputfile to retrieve information from.
-    outputfile : path to outputfile
-    get_SOC: True or False
+    :param outputfile: path to outputfile
+    :type outputfile: str
+    :param get_SOC: retrieve spectrum with or without spin-orbit coupling (True/False)
+    :type get_SOC: bool   
     """
 
     def __init__(self, outputfile, get_SOC=True, custom_path="", shift_to="middle"):
