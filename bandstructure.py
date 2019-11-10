@@ -266,7 +266,7 @@ class bandstructure:
 
     def __get_output_information(self, outputfile):
         """ Retrieve information such as Fermi level and band gap from output file."""
-        self.smallest_direct_gap = "Not determined."
+        self.smallest_direct_gap = "Direct gap not determined. This usually happens if the fundamental gap is direct."
         with open(outputfile, "r") as file:
             for line in file:
                 if "Chemical potential (Fermi level) in eV" in line:
