@@ -1,5 +1,5 @@
 # AIMS_tools
-This library contains a personal collection of scripts to handle AIMS calculations. It's mainly meant for private use or to be shared with students and colleagues. Once it runs efficiently and contains all necessary features, it might also be shared with the AIMS club.
+This library contains a personal collection of scripts to handle AIMS calculations. It's mainly meant for private use or to be shared with students and colleagues.
 
 ## Currently implemented features:
 - **Running AIMS:** prepare_aims.py can set up the files for different tasks employing the ASE (single point, geometry optimisation, band structure calculation, atom-projected density of states)
@@ -22,6 +22,10 @@ Set the path to the aims species (basis sets) in your environment variables (e.g
 export AIMS_SPECIES_DIR="path/to/directory"
 - On t3000, this one is "/chemsoft/FHI-aims/stable/species_defaults/"
 - On taurus, this one is "/projects/m_chemie/FHI-aims/FHI-aims_4_Roman/aimsfiles-master/species_defaults/"
+
+
+# Documentation
+I'm working on the documentation.
 
 
 ## Requirements:
