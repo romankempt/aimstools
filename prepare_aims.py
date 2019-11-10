@@ -228,31 +228,15 @@ srun aims.190319.mpi.x > {name}.out
 
 
 if __name__ == "__main__":
+    import os
+
     global species_dir
+    species_dir = os.getenv("AIMS_SPECIES_DIR")
     args = parseArguments()
+    cwd = Path.cwd()
+    species_dir = str(cwd.joinpath(Path(species_dir, args.basis)))
     if args.SOC != False:
         args.SOC = True
-    cwd = Path.cwd()
-    if args.cluster == "t3000":
-        species_dir = str(
-            cwd.joinpath(
-                Path(r"/chemsoft/FHI-aims/171221_1/species_defaults/" + args.basis)
-            )
-        )
-    elif args.cluster == "taurus":
-        species_dir = cwd.joinpath(
-            str(
-                Path(
-                    r"/projects/m_chemie/FHI-aims/aims/aimsfiles-master/species_defaults/"
-                    + args.basis
-                )
-            )
-        )
-    else:
-        species_dir = str(
-            cwd.joinpath(Path(r"AIMS_tools\species"))
-        )  ### This path is my personal one for testing.
-
     atoms = setup_calculator(args)
     if "BS" in args.task:
         output_bands = setup_bandpath()
