@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Preparing AIMS calculations &mdash; AIMS_tools 0.01 documentation</title>
+  <title>Preparing AIMS calculations &mdash; AIMS_tools 0.02 documentation</title>
   
 
   
@@ -85,7 +85,6 @@
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Preparing AIMS calculations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">AIMS_tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 </ul>
 
             
@@ -207,16 +206,18 @@ optional arguments:
 </div>
 <p>The script will automatically generate the geometry.in, control.in and a submission file for the Taurus or T3000 cluster with a couple of senseful default options, but please refer to the AIMS manual for detailed options.
 Don’t forget that every AIMS calculation needs to be in its own separate directory. If you have a directory with a lot of structures, this can easily be done with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> d in *.xyz<span class="p">;</span> <span class="k">do</span> <span class="o">(</span>mkdir <span class="si">${</span><span class="nv">d</span><span class="p">%.xyz</span><span class="si">}</span> <span class="o">&amp;&amp;</span> mv <span class="nv">$d</span> <span class="si">${</span><span class="nv">d</span><span class="p">%.xyz</span><span class="si">}</span>/<span class="o">)</span><span class="p">;</span> <span class="k">done</span><span class="o">)</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> d in *.xyz<span class="p">;</span> <span class="k">do</span> <span class="o">(</span>mkdir <span class="si">${</span><span class="nv">d</span><span class="p">%.xyz</span><span class="si">}</span> <span class="o">&amp;&amp;</span> mv <span class="nv">$d</span> <span class="si">${</span><span class="nv">d</span><span class="p">%.xyz</span><span class="si">}</span>/<span class="o">)</span><span class="p">;</span> <span class="k">done</span>
 </pre></div>
 </div>
 <p>An example would look like this:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python prepare_aims.py MoS2.cif -cluster t3000 -m <span class="m">63</span> -n <span class="m">4</span> -wt <span class="m">72</span> -xc hse06 -tier <span class="m">2</span> -basis tight -k_grid <span class="m">6</span> <span class="m">6</span> <span class="m">1</span> -pbc 2D -vdw MBD -SOC True -task BS DOS
 </pre></div>
 </div>
-<p>This will set up a band structure calculation following AFLOW conventions for the t3000 cluster with spin-orbit coupling and atom-projected densities of states on a 6x6x1 k-grid. Because .cif files are always three-dimensional,
-the -pbc 2D option is used to remove the third lattice vector for setting up the band structure path, but not for the geometry. Note that AIMS does not support 2D boundary conditions, but simply uses a large lattice vector in
-the z-direction (for example 100 Angström). This option fails for systems where the c-axis is not orthogonal to a and b, since then the alpha and beta angle need to be removed first.</p>
+<p>This will set up a band structure calculation following AFLOW conventions for the t3000 cluster with spin-orbit coupling and atom-projected densities of states on a 6x6x1 k-grid.
+It employs the hse06 functional and adds the necessary options for functionals including exact HF exchange in AIMS.
+Because .cif files are always three-dimensional, the -pbc 2D option is used to remove the third lattice vector for setting up the band structure path, but not for the geometry.
+Note that AIMS does not support 2D boundary conditions, but simply uses a large lattice vector in the z-direction (for example 100 Angström).
+This option fails for systems where the c-axis is not orthogonal to a and b, since then the alpha and beta angle need to be removed first.</p>
 <p>The job can then simply be submitted via qsub on the *.sh script (t3000) or sbatch on the *.sh script (taurus). See taurus node limitations <a class="reference external" href="https://doc.zih.tu-dresden.de/hpc-wiki/bin/view/Compendium/SystemTaurus">here</a>.</p>
 </div>
 

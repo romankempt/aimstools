@@ -13,7 +13,6 @@ AIMS_tools's documentation
    intro
    preparing_aims
    modules
-   examples
 
 Indices and tables
 ==================

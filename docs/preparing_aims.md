@@ -62,7 +62,7 @@ The script will automatically generate the geometry.in, control.in and a submiss
 Don't forget that every AIMS calculation needs to be in its own separate directory. If you have a directory with a lot of structures, this can easily be done with:
 
 ```bash
-for d in *.xyz; do (mkdir ${d%.xyz} && mv $d ${d%.xyz}/); done)
+for d in *.xyz; do (mkdir ${d%.xyz} && mv $d ${d%.xyz}/); done
 ```
 
 An example would look like this:

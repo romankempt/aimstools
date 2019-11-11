@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="AIMS_tools-Roman-Kempt",  # Replace with your own username
-    version="0.0.1",
+    version="0.0.2",
     author="Roman Kempt",
     author_email="roman.kempt@tu-dresden.de",
     description="A small toolbox to handle AIMS calculations.",

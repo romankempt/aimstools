@@ -62,7 +62,7 @@ The script will automatically generate the geometry.in, control.in and a submiss
 Don't forget that every AIMS calculation needs to be in its own separate directory. If you have a directory with a lot of structures, this can easily be done with:
 
 ```bash
-for d in *.xyz; do (mkdir ${d%.xyz} && mv $d ${d%.xyz}/); done)
+for d in *.xyz; do (mkdir ${d%.xyz} && mv $d ${d%.xyz}/); done
 ```
 
 An example would look like this:
@@ -70,8 +70,10 @@ An example would look like this:
 python prepare_aims.py MoS2.cif -cluster t3000 -m 63 -n 4 -wt 72 -xc hse06 -tier 2 -basis tight -k_grid 6 6 1 -pbc 2D -vdw MBD -SOC True -task BS DOS
 ```
 
-This will set up a band structure calculation following AFLOW conventions for the t3000 cluster with spin-orbit coupling and atom-projected densities of states on a 6x6x1 k-grid. Because .cif files are always three-dimensional,
-the -pbc 2D option is used to remove the third lattice vector for setting up the band structure path, but not for the geometry. Note that AIMS does not support 2D boundary conditions, but simply uses a large lattice vector in
-the z-direction (for example 100 Angström). This option fails for systems where the c-axis is not orthogonal to a and b, since then the alpha and beta angle need to be removed first.
+This will set up a band structure calculation following AFLOW conventions for the t3000 cluster with spin-orbit coupling and atom-projected densities of states on a 6x6x1 k-grid.
+It employs the hse06 functional and adds the necessary options for functionals including exact HF exchange in AIMS.
+Because .cif files are always three-dimensional, the -pbc 2D option is used to remove the third lattice vector for setting up the band structure path, but not for the geometry.
+Note that AIMS does not support 2D boundary conditions, but simply uses a large lattice vector in the z-direction (for example 100 Angström).
+This option fails for systems where the c-axis is not orthogonal to a and b, since then the alpha and beta angle need to be removed first.
 
 The job can then simply be submitted via qsub on the *.sh script (t3000) or sbatch on the *.sh script (taurus). See taurus node limitations [here](https://doc.zih.tu-dresden.de/hpc-wiki/bin/view/Compendium/SystemTaurus).

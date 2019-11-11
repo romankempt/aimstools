@@ -29,6 +29,15 @@ class bandstructure:
     
     Contains all information about a single band structure instance, such as the energy spectrum, the band gap, Fermi level etc.
 
+    Example:    
+        >>> from AIMS_tools import bandstructure
+        >>> import matplotlib.pyplot as plt
+        >>> import numpy as np
+        >>> bs = bandstructure.fatbandstructure("outputfile", parallel=True)
+        >>> bs.plot()
+        >>> plt.show()
+        >>> plt.savefig("Name.png", dpi=300, transparent=False, bbox_inches="tight", facecolor="white")
+
     Args:    
         outputfile (str): Path to outputfile.
         get_SOC (bool): Retrieve spectrum with or without spin-orbit coupling (True/False), if calculated.
@@ -46,6 +55,7 @@ class bandstructure:
         kvectors (dict): Dictionary of k-point labels and fractional coordinates.
         klabel_coords (list): List of x-positions of the k-path labels.
         fermi_level (float): Fermi level energy value in eV.
+        band_gap (float): Band gap energy in eV.
         smallest_direct_gap (str): Smallest direct gap from outputfile.
         spectrum (numpy array): Array of k-values and eigenvalues.
         atoms (dict): Dictionary of atom index and label.
@@ -99,7 +109,7 @@ class bandstructure:
                 axes (matplotlib axes): Axes to draw the plot on.
                 color (str): Color of the lines.
                 var_energy_limits (int): Variable energy range above and below the band gap to show.
-                fix_energy_limits (list): List of lower and upper energy limit to show.
+                fix_energy_limits (list): List of lower and upper energy limits to show.
                 mark_gap (str): Color to fill the band gap with or None.
                 **kwargs (dict): Passed to matplotlib plotting function.
 
@@ -316,9 +326,9 @@ class bandstructure:
         """ Shifts Fermi level of spectrum according to shift_type attribute.
         
         Returns:
-            array: spectrum.
+            array: spectrum attribute
 
-        """               
+        """
         VBM = np.max(spectrum[:, 1:][spectrum[:, 1:] < 0])
         CBM = np.min(spectrum[:, 1:][spectrum[:, 1:] > 0])
         self.band_gap = CBM - VBM
@@ -332,18 +342,50 @@ class bandstructure:
 
 
 class fatbandstructure(bandstructure):
-    """ Fatbands inherit from bandstructure class. 
-    filter : list (default: []) --> list of atom labels, e.g., ["W", "S"] to process.
-    parallel : boolean (default: False) 
-        Employs multiprocessing to speed up the data input. Especially useful for systems
-        above 20 atoms.
-        This requires your execution script to be safeguarded with:
-        >> if __name__ == "__main__": << 
+    """ Band structure object. Inherits from bandstructure class. 
+
+    Example:    
+        >>> from AIMS_tools import bandstructure
+        >>> import matplotlib.pyplot as plt
+        >>> import numpy as np
+        >>> if __name__ == "main":
+        >>>     bs = bandstructure.fatbandstructure("outputfile", parallel=True)
+        >>>     bs.plot_all_orbitals()
+        >>>     plt.show()
+        >>>     plt.savefig("Name.png", dpi=300, transparent=False, bbox_inches="tight", facecolor="white")
+    
+    Args:
+        filter (list): Only processes list of atom labels, e.g., ["W", "S"].
+        parallel (bool) : Employs multiprocessing to speed up the data input. Especially useful for systems above 20 atoms.
+
+    
+    Attributes:
+        filter (list): List of atom labels.
+        tot_contributions (dict): Dictionary of numpy arrays per atom containing total contributions.
+        s_contributions (dict): Dictionary of numpy arrays per atom containing s-orbital contributions.
+        p_contributions (dict): Dictionary of numpy arrays per atom containing p-orbital contributions.
+        d_contributions (dict): Dictionary of numpy arrays per atom containing d-orbital contributions.
+        mlk_bandfiles (list): List of pathlib objects pointing to the mulliken band output files.
+
+    Note:
+        Invoking the parallel option strictly requires your execution script to be safeguarded with the statement: \n
+        if __name__ == "__main__": \n
         Hence, this option can not be invoked interactively.
+
+    Todo:
+        * Invoking the class easier by looking for outputfiles automatically.
+        * Improving fatband plots.
+        * Adding a scatter option.
     """
 
     def __init__(
-        self, outputfile, get_SOC=True, custom_path="", shift_to="middle", filter=[], parallel=False
+        self,
+        outputfile,
+        get_SOC=True,
+        custom_path="",
+        shift_to="middle",
+        filter=[],
+        parallel=False,
     ):
         super().__init__(
             outputfile, get_SOC=get_SOC, custom_path=custom_path, shift_to=shift_to
@@ -360,7 +402,9 @@ class fatbandstructure(bandstructure):
         self.ksections = dict(zip(self.ksections, self.mlk_bandfiles))
         if custom_path != "":
             self.custom_path(custom_path, parallel=parallel)
-        self.concat_mlk_bandfiles(self.mlk_bandfiles, filter=self.filter, parallel=parallel)
+        self.concat_mlk_bandfiles(
+            self.mlk_bandfiles, filter=self.filter, parallel=parallel
+        )
 
     def __get_mlk_bandfiles(self, get_SOC):
         """Sort bandfiles that have mulliken information.
@@ -440,7 +484,9 @@ class fatbandstructure(bandstructure):
             kx, ky, kz = [float(i) for i in content.pop(0)[2:5]]
             kpoints.append([kx, ky, kz])
             empty = np.zeros([len(content), 13])
-            for i, j in enumerate(content): #this circumvenes that there are different amounts of columns
+            for i, j in enumerate(
+                content
+            ):  # this circumvenes that there are different amounts of columns
                 empty[i][0 : len(j)] = j
             content = np.array(empty, dtype=float)
             content = content[content[:, 3] == atom_number]  # filter by atom
@@ -472,10 +518,10 @@ class fatbandstructure(bandstructure):
         klength = np.linspace(0, klength, num=len(kpoints)) + kstep
         new_kmax = np.max(klength)
 
-        energy_spectrum = np.insert(np.array(energies), 0, klength, axis=1)
+        spectrum = np.insert(np.array(energies), 0, klength, axis=1)
         return (
             new_kmax,
-            energy_spectrum,
+            spectrum,
             tot_contributions,
             s_contributions,
             p_contributions,
@@ -483,48 +529,53 @@ class fatbandstructure(bandstructure):
         )
 
     def concat_atom(self, atom, mlk_bandfiles, return_dict):
-                """ This is the function to be parallelised. """
-                kstep = 0
-                energies = []
-                tot_contributions = []
-                s_contributions = []
-                p_contributions = []
-                d_contributions = []
-                klabel_coords = [kstep]
-                for bandfile in mlk_bandfiles:
-                    kstep, energy, tot_contribution, s_contribution, p_contribution, d_contribution = self.__read_mlk_bandfile(
-                        bandfile, kstep, atom
-                    )
-                    klabel_coords.append(kstep)
-                    energies.append(energy)
-                    tot_contributions.append(tot_contribution)
-                    s_contributions.append(s_contribution)
-                    p_contributions.append(p_contribution)
-                    d_contributions.append(d_contribution)
-                    print(
-                        "Processed {} for atom {} Nr. {} .".format(
-                            bandfile, self.atoms[atom], atom
-                        )
-                    )
-                tot, s, p, d = {}, {}, {}, {}
-                tot[atom] = np.concatenate(tot_contributions, axis=0)
-                s[atom] = np.concatenate(s_contributions, axis=0)
-                p[atom] = np.concatenate(p_contributions, axis=0)
-                d[atom] = np.concatenate(d_contributions, axis=0)
-                if atom == list(self.atoms.keys())[0]:
-                    energy_spectrum = np.concatenate(energies, axis=0)
-                    energy_spectrum = self.shift_to(energy_spectrum)
-                    return_dict[atom] = [klabel_coords, energy_spectrum, tot[atom], s[atom], p[atom], d[atom]]
-                else:
-                    return_dict[atom] = [None, None, tot[atom], s[atom], p[atom], d[atom]]
+        """ This is a helper function for parallelisation."""
+        kstep = 0
+        energies = []
+        tot_contributions = []
+        s_contributions = []
+        p_contributions = []
+        d_contributions = []
+        klabel_coords = [kstep]
+        for bandfile in mlk_bandfiles:
+            kstep, energy, tot_contribution, s_contribution, p_contribution, d_contribution = self.__read_mlk_bandfile(
+                bandfile, kstep, atom
+            )
+            klabel_coords.append(kstep)
+            energies.append(energy)
+            tot_contributions.append(tot_contribution)
+            s_contributions.append(s_contribution)
+            p_contributions.append(p_contribution)
+            d_contributions.append(d_contribution)
+            print(
+                "Processed {} for atom {} Nr. {} .".format(
+                    bandfile, self.atoms[atom], atom
+                )
+            )
+        tot, s, p, d = {}, {}, {}, {}
+        tot[atom] = np.concatenate(tot_contributions, axis=0)
+        s[atom] = np.concatenate(s_contributions, axis=0)
+        p[atom] = np.concatenate(p_contributions, axis=0)
+        d[atom] = np.concatenate(d_contributions, axis=0)
+        if atom == list(self.atoms.keys())[0]:
+            spectrum = np.concatenate(energies, axis=0)
+            spectrum = self.shift_to(spectrum)
+            return_dict[atom] = [
+                klabel_coords,
+                spectrum,
+                tot[atom],
+                s[atom],
+                p[atom],
+                d[atom],
+            ]
+        else:
+            return_dict[atom] = [None, None, tot[atom], s[atom], p[atom], d[atom]]
 
     def concat_mlk_bandfiles(self, mlk_bandfiles, filter, parallel=False):
-        """Concatenates contributions and energies for every single k-point, atom, and band.
-        Can be quite a heavy computation for a large number of atoms. In this case, invoking the filter
-        option can speed up the calculation to only obtain contributions of certain species.
-        filter : list of atom labels (e.g., ["W", "Se"]) """
+        """Concatenates contributions and energies for every single k-point, atom, and band."""
         import multiprocessing
         from multiprocessing import Process
+
         if parallel == False:
             print("Reading in mulliken band files in serial...")
             return_dict = dict()
@@ -533,24 +584,33 @@ class fatbandstructure(bandstructure):
         if parallel == True:
             print("Reading in mulliken band files in parallel.")
             manager = multiprocessing.Manager()
-            return_dict = manager.dict()       
+            return_dict = manager.dict()
             processes = []
             for atom in self.atoms.keys():
-                p = Process(target=self.concat_atom, args=[atom, mlk_bandfiles, return_dict])
+                p = Process(
+                    target=self.concat_atom, args=[atom, mlk_bandfiles, return_dict]
+                )
                 p.start()
-                processes.append(p)            
+                processes.append(p)
             for p in processes:
                 p.join()
         self.klabel_coords = return_dict[list(self.atoms.keys())[0]][0]
-        self.energy_spectrum = return_dict[list(self.atoms.keys())[0]][1]
+        self.spectrum = return_dict[list(self.atoms.keys())[0]][1]
         for atom in self.atoms.keys():
             self.tot_contributions[atom] = return_dict[atom][2]
             self.s_contributions[atom] = return_dict[atom][3]
             self.p_contributions[atom] = return_dict[atom][4]
             self.d_contributions[atom] = return_dict[atom][5]
-       
+
     def custom_path(self, custompath, parallel=False):
-        """ This function takes in a custom path of form K1-K2-K3 for plotting. """
+        """ This function takes in a custom path of form K1-K2-K3 for plotting.
+
+        Args:
+            custompath (str): Hyphen-separated string of path labels, e.g., "G-M-X".
+
+        Note:
+            Only the paths that have been calculated in the control.in can be plotted.
+         """
         newpath = custompath.split("-")
         check = [(newpath[i], newpath[i + 1]) for i in range(len(newpath) - 1)]
         for pair in check:
@@ -572,36 +632,35 @@ class fatbandstructure(bandstructure):
         fig=None,
         axes=None,
         cmap="Blues",
-        label="",
         var_energy_limits=1.0,
         fix_energy_limits=[],
         nbands=False,
         interpolation_step=False,
         kwargs={},
     ):
-        """ Plots a fat band structure instance. Cmap must
-        be a sequential matplotlib colormap instance. Returns an axes object.
+        """ Plots a fat band structure instance.
         
-        contribution : array (e.g., self.tot_contribution[atom_number] for total of atom)
-        var_energy_limits : int (window above and below the band gap)
-        fix_energy_limits : list (fixed energy limits)
-
-        nbands : int or False
-            Only highlights n bands above and below the Fermi level.
-
-        interpolation_step : float or False
-            If != False, this performs a 1D interpolation of every band with the specified
-            step size (e.g, 0.001). However, this corresponds to quite some computational effort
-            and might take a long while to render. It is recommended to choose a small value
-            for nbands in this case.
-    
-        **kwargs are currently not used."""
+        Args:
+            contribution (numpy array): Atomic contribution attribute, e.g., tot_contribution["C"].
+            title (str): Title of the plot.
+            fig (matplotlib figure): Figure to draw the plot on.
+            axes (matplotlib axes): Axes to draw the plot on.
+            cmap (str): Matplotlib colormap instance.
+            var_energy_limits (int): Variable energy range above and below the band gap to show.
+            fix_energy_limits (list): List of lower and upper energy limit to show.
+            nbands (int): False or integer. Number of bands above and below the Fermi level to colorize.
+            interpolation_step (float): False or float. Performs 1D interpolation of every band with the specified
+            step size (e.g., 0.001). May cause substantial computational effort.
+            **kwargs (dict): Currently not used.
+        
+        Returns:
+            axes: matplotlib axes object"""
         if fig == None:
             fig = plt.figure(figsize=(len(self.kpath) / 2, 3))
         if axes == None:
             axes = plt.gca()
-        x = self.energy_spectrum[:, 0]
-        y = self.energy_spectrum[:, 1:]
+        x = self.spectrum[:, 0]
+        y = self.spectrum[:, 1:]
         VBM = np.max(y[y < 0])
         CBM = np.min(y[y > 0])
 
@@ -619,11 +678,13 @@ class fatbandstructure(bandstructure):
                 r1 = [i for i in range(col[0] - nbands, col[0] + nbands + 1)]
                 r2 = [i for i in range(col[1] - nbands, col[1] + nbands + 1)]
                 y = y[:, r1 + r2]
-                contribution = contribution[:, [i -1 for i in r1] + [i -1 for i in r1]] #contributions have no k-values, hence one column less
+                contribution = contribution[
+                    :, [i - 1 for i in r1] + [i - 1 for i in r1]
+                ]  # contributions have no k-values, hence one column less
             else:
                 col = index[1][0]
                 y = y[:, col - nbands : col + nbands + 1]
-                contribution = contribution[:, col - nbands -1 : col + nbands ]
+                contribution = contribution[:, col - nbands - 1 : col + nbands]
 
         for band in range(y.shape[1]):
             band_x = x
@@ -675,7 +736,9 @@ class fatbandstructure(bandstructure):
 
     def sum_contributions(self):
         """ Sums (normalized) atomic contributions for the same species.
-        This is optional, since the atoms are not always symmetry equivalent. 
+
+        This method is optional, since the atoms are not always symmetry equivalent.
+        Atoms attribute will be modified and ordered by heaviest atoms.
         """
         atoms = self.atoms
         reverse_atoms = {}
@@ -695,17 +758,138 @@ class fatbandstructure(bandstructure):
             new_contribution = new_contribution
             self.tot_contributions[new_key] = new_contribution
         ## reordering atoms dictionary
-        pse = {'H': 117, 'He': 116, 'Li': 115, 'Be': 114, 'B': 113, 'C': 112, 'N': 111, 'O': 110, 'F': 109, 'Ne': 108, 'Na': 107, 'Mg': 106, 'Al': 105, 'Si': 104, 'P': 103, 'S': 102, 'Cl': 101, 'Ar': 100, 'K': 99, 'Ca': 98, 'Sc': 97, 'Ti': 96, 'V': 95, 'Cr': 94, 'Mn': 93, 'Fe': 92, 'Co': 91, 'Ni': 90, 'Cu': 89, 'Zn': 88, 'Ga': 87, 'Ge': 86, 'As': 85, 'Se': 84, 'Br': 83, 'Kr': 82, 'Rb': 81, 'Sr': 80, 'Y': 79, 'Zr': 78, 'Nb': 77, 'Mo': 76, 'Tc': 75, 'Ru': 74, 'Rh': 73, 'Pd': 72, 'Ag': 71, 'Cd': 70, 'In': 69, 'Sn': 68, 'Sb': 67, 'Te': 66, 'I': 65, 'Xe': 64, 'Cs': 63, 'Ba': 62, 'La': 61, 'Ce': 60, 'Pr': 59, 'Nd': 58, 'Pm': 57, 'Sm': 56, 'Eu': 55, 'Gd': 54, 'Tb': 53, 'Dy': 52, 'Ho': 51, 'Er': 50, 'Tm': 49, 'Yb': 48, 'Lu': 47, 'Hf': 46, 'Ta': 45, 'W': 44, 'Re': 43, 'Os': 42, 'Ir': 41, 'Pt': 40, 'Au': 39, 'Hg': 38, 'Tl': 37, 'Pb': 36, 'Bi': 35, 'Po': 34, 'At': 33, 'Rn': 32, 'Fr': 31, 'Ra': 30, 'Ac': 29, 'Th': 28, 'Pa': 27, 'U': 26, 'Np': 25, 'Pu': 24, 'Am': 23, 'Cm': 22, 'Bk': 21, 'Cf': 20, 'Es': 19, 'Fm': 18, 'Md': 17, 'No': 16, 'Lr': 15, 'Rf': 14, 'Db': 13, 'Sg': 12, 'Bh': 11, 'Hs': 10, 'Mt': 9, 'Ds': 8, 'Rg': 7, 'Cn': 6, 'Nh': 5, 'Fl': 4, 'Mc': 3, 'Lv': 2, 'Ts': 1}
+        pse = {
+            "H": 117,
+            "He": 116,
+            "Li": 115,
+            "Be": 114,
+            "B": 113,
+            "C": 112,
+            "N": 111,
+            "O": 110,
+            "F": 109,
+            "Ne": 108,
+            "Na": 107,
+            "Mg": 106,
+            "Al": 105,
+            "Si": 104,
+            "P": 103,
+            "S": 102,
+            "Cl": 101,
+            "Ar": 100,
+            "K": 99,
+            "Ca": 98,
+            "Sc": 97,
+            "Ti": 96,
+            "V": 95,
+            "Cr": 94,
+            "Mn": 93,
+            "Fe": 92,
+            "Co": 91,
+            "Ni": 90,
+            "Cu": 89,
+            "Zn": 88,
+            "Ga": 87,
+            "Ge": 86,
+            "As": 85,
+            "Se": 84,
+            "Br": 83,
+            "Kr": 82,
+            "Rb": 81,
+            "Sr": 80,
+            "Y": 79,
+            "Zr": 78,
+            "Nb": 77,
+            "Mo": 76,
+            "Tc": 75,
+            "Ru": 74,
+            "Rh": 73,
+            "Pd": 72,
+            "Ag": 71,
+            "Cd": 70,
+            "In": 69,
+            "Sn": 68,
+            "Sb": 67,
+            "Te": 66,
+            "I": 65,
+            "Xe": 64,
+            "Cs": 63,
+            "Ba": 62,
+            "La": 61,
+            "Ce": 60,
+            "Pr": 59,
+            "Nd": 58,
+            "Pm": 57,
+            "Sm": 56,
+            "Eu": 55,
+            "Gd": 54,
+            "Tb": 53,
+            "Dy": 52,
+            "Ho": 51,
+            "Er": 50,
+            "Tm": 49,
+            "Yb": 48,
+            "Lu": 47,
+            "Hf": 46,
+            "Ta": 45,
+            "W": 44,
+            "Re": 43,
+            "Os": 42,
+            "Ir": 41,
+            "Pt": 40,
+            "Au": 39,
+            "Hg": 38,
+            "Tl": 37,
+            "Pb": 36,
+            "Bi": 35,
+            "Po": 34,
+            "At": 33,
+            "Rn": 32,
+            "Fr": 31,
+            "Ra": 30,
+            "Ac": 29,
+            "Th": 28,
+            "Pa": 27,
+            "U": 26,
+            "Np": 25,
+            "Pu": 24,
+            "Am": 23,
+            "Cm": 22,
+            "Bk": 21,
+            "Cf": 20,
+            "Es": 19,
+            "Fm": 18,
+            "Md": 17,
+            "No": 16,
+            "Lr": 15,
+            "Rf": 14,
+            "Db": 13,
+            "Sg": 12,
+            "Bh": 11,
+            "Hs": 10,
+            "Mt": 9,
+            "Ds": 8,
+            "Rg": 7,
+            "Cn": 6,
+            "Nh": 5,
+            "Fl": 4,
+            "Mc": 3,
+            "Lv": 2,
+            "Ts": 1,
+        }
         keys = list(self.atoms.keys())
         vals = list(self.atoms.values())
         pse_vals = [pse[val] for val in vals]
-        sorted_keys = [x for _, x in sorted(zip(pse_vals, keys), key=lambda pair: pair[0])]
-        self.atoms = {key:self.atoms[key] for key in sorted_keys}
-    
+        sorted_keys = [
+            x for _, x in sorted(zip(pse_vals, keys), key=lambda pair: pair[0])
+        ]
+        self.atoms = {key: self.atoms[key] for key in sorted_keys}
+
     def plot_all_species(
         self,
         axes=None,
         fig=None,
+        title="",
         sum=True,
         var_energy_limits=1.0,
         fix_energy_limits=[],
@@ -713,8 +897,21 @@ class fatbandstructure(bandstructure):
         interpolation_step=False,
         kwargs={},
     ):
-        """ Plots a beautiful figure with all species overlaid.
-        Shares attributes with the in-built plot function. """
+        """ Plots a fatbandstructure instance with all species overlaid.
+        
+        Shares attributes with the in-built plot function. Gives an error if invoked with more than 5 species.
+
+        .. image:: ../pictures/MoSe2_fatband_species.png
+            :width: 220px
+            :align: center
+            :height: 250px
+        
+        Args:
+            sum (bool): True or False. Invokes sum_contribution() method.
+            **kwargs (dict): Keyword arguments are passed to the plot() method.
+        
+        Returns:
+            axes: matplotlib axes object"""
         if fig == None:
             fig = plt.figure(figsize=(len(self.kpath) / 2, 4))
         if axes != None:
@@ -746,7 +943,7 @@ class fatbandstructure(bandstructure):
                 cmap=cmaps[i],
                 axes=axes,
                 fig=fig,
-                label=label,
+                title=title,
                 var_energy_limits=var_energy_limits,
                 fix_energy_limits=fix_energy_limits,
                 nbands=nbands,
@@ -769,14 +966,27 @@ class fatbandstructure(bandstructure):
         self,
         axes=None,
         fig=None,
+        title="",
         var_energy_limits=1.0,
         fix_energy_limits=[],
         nbands=False,
         interpolation_step=False,
         kwargs={},
     ):
-        """ Plots a beautiful figure with all orbital characters overlaid.
-        Shares attributes with the in-built plot function. """
+        """ Plots a fatbandstructure instance with all orbital characters overlaid.
+        
+        Shares attributes with the in-built plot function.
+
+        .. image:: ../pictures/MoSe2_fatband_orbitals.png
+            :width: 220px
+            :align: center
+            :height: 250px
+
+        Args:
+            **kwargs (dict): Keyword arguments are passed to the plot() method.
+                
+        Returns:
+            axes: matplotlib axes object """
         if fig == None:
             fig = plt.figure(figsize=(len(self.kpath) / 2, 4))
         if axes != None:
@@ -823,7 +1033,7 @@ class fatbandstructure(bandstructure):
                 cmap=cmaps[i],
                 axes=axes,
                 fig=fig,
-                label=orbital,
+                title=title,
                 var_energy_limits=var_energy_limits,
                 fix_energy_limits=fix_energy_limits,
                 nbands=nbands,
@@ -841,7 +1051,6 @@ class fatbandstructure(bandstructure):
             bbox_to_anchor=(1, 1),
         )
         return axes
-
 
 
 # def parseArguments():

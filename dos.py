@@ -18,13 +18,47 @@ import argparse
 
 
 class DOS:
-    """ Contains all DOS information. """
+    """ Density-of-states object.
+    
+    Contains all information about a DOS instance, such as the DOS per atom. 
+    
+    Example:    
+        >>> from AIMS_tools import dos
+        >>> import matplotlib.pyplot as plt
+        >>> import numpy as np
+        >>> dosplot = dos.DOS("outputfile")
+        >>> dosplot.plot_all_atomic_dos()
+        >>> plt.show()
+        >>> plt.savefig("Name.png", dpi=300, transparent=False, bbox_inches="tight", facecolor="white")
+
+    Args:
+        outputfile (str): Path to outputfile.
+        get_SOC (bool): Retrieve DOS with or without spin-orbit coupling (True/False), if calculated.
+
+    Attributes:
+        path (pathlib object): Directory of outputfile.
+        active_SOC (bool): If spin-orbit coupling was included in the control.in file.
+        DOS_type (str): Type of DOS calculation, typicaly atom_proj_dos.
+        shift_type (str): Argument of shift_to.
+        ksections (dict): Dictionary of path segments and corresponding band file.
+        bandfiles (list): List of path objects to band files.
+        kpath (list): K-path labels following AFLOW conventions.
+        kvectors (dict): Dictionary of k-point labels and fractional coordinates.
+        klabel_coords (list): List of x-positions of the k-path labels.
+        VBM (float): Valence band maximum energy in eV.
+        CBM (float): Conduction band minimum energy in eV.
+        fermi_level (float): Fermi level energy value in eV.
+        band_gap (float): Band gap energy in eV.
+        species (dict): Dictionary of atom labels and counts.
+        dos_per_atom (dict): Dictionary of atom labels and density of states as numpy array of energy vs. DOS.
+        total_dos (numpy array): Array of energy vs. DOS.
+        color_dict (dict): Dictionary of atom labels and JMOL color tuples.
+    
+    Todo:
+        - provide a function to plot orbital-resolved DOS of atom.
+    """
 
     def __init__(self, outputfile, get_SOC=True):
-        """
-        outputfile :  str (path to DOS outputfile)
-        get_SOC : True or False to evaluate SOC data.
-        """
         cwd = Path.cwd()
         self.path = cwd.joinpath(
             Path(outputfile).parent
@@ -238,11 +272,7 @@ class DOS:
         return VBM, CBM, fermi_level
 
     def shift_to(self, shift_type):
-        """ Shifts Fermi level.
-                
-            shift_type = "middle" to shift to middle of band gap
-            shift_type = "VBM" to shift to valence band maximum"
-            shift_type = None to add internal Fermi-level. This is the default for metallic systems."""
+        """ Shifts Fermi level of DOS spectrum according to shift_type attribute. """
         if self.band_gap < 0.1:
             shift_type = None
             for atom in self.dos_per_atom.keys():
@@ -267,19 +297,24 @@ class DOS:
         fix_energy_limits=[],
         kwargs={},
     ):
-        """ Plot total DOS of input species.
-            ToDo: write angular momentum dependency
-
-            var_energy_limits = 1.0 are variable y-limits, which scale y above and below band gap.
-            fix_energy_limits is a list of fixed y-limits.
-            fill : "gradient", "constant", or None
-            orbital:    None --> Total DOS
-                        s    --> l = 0
-                        p    --> l = 1
-                        d    --> l = 2
-                        f    --> l = 3 etc.
-            **kwargs are passed to matplotlib plotting function.
-            Returns axes object."""
+        """ Plots the DOS of a single species.
+            
+        Args:
+            atom (str): Species label.
+            color (str): Color for plotting.
+            orbital (int): None --> total DOS; 0 --> s, 1 --> p, 2 --> d, 3 --> f etc.
+            fig (matplotlib figure): Figure to draw the plot on.
+            axes (matplotlib axes): Axes to draw the plot on.
+            var_energy_limits (int): Variable energy range above and below the band gap to show.
+            fix_energy_limits (list): List of lower and upper energy limit to show.
+            fill (str): Supported fill methods are None, "gradient", or "constant". Gradient is still a bit wonky.
+            **kwargs (dict): Passed to matplotlib plotting function.
+        
+        Todo:
+            - Improve gradient plot.
+        
+        Returns:
+            axes: matplotlib axes object"""
         orbitals = {None: "", "s": 2, "p": 3, "d": 4, "f": 5}
         if fig == None:
             fig = plt.figure(figsize=(2, 4))
@@ -353,8 +388,15 @@ class DOS:
         fix_energy_limits=[],
         kwargs={},
     ):
-        """ In-built function to get DOS plot of all atomic species
-        with default JMOL colors. """
+        """ Plot the DOS of all species colored by color_dict.
+        
+        Shares attributes with the plot_single_atomic_dos() method.
+        
+        Args:
+            **kwargs (dict): Keyword arguments are passed to plot_single_atomic_dos() method.
+        
+        Returns:
+            axes: matplotlib axes object"""
         if fig == None:
             fig = plt.figure(figsize=(2, 4))
         if axes != None:
@@ -363,8 +405,6 @@ class DOS:
             axes = plt.subplot2grid((1, 1), (0, 0), fig=fig)
         handles = []
         xmax = []
-        # color_dict["P"] = "red"
-        # color_dict["Pt"] = "royalblue"
         atoms = list(self.species.keys())
         atoms.sort()
         for atom in atoms:
