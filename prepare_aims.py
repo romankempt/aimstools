@@ -13,11 +13,25 @@ def parseArguments():
     parser.add_argument("geometry", help="Path to geometry", type=str)
 
     # Optional arguments
-    parser.add_argument("-cluster", help="t3000 or taurus", type=str, default="t3000")
-    parser.add_argument("-m", "--memory", help="memory in GB", type=str, default="63")
-    parser.add_argument("-n", "--nodes", help="number of nodes", type=int, default=4)
-    parser.add_argument("-ppn", help="processors per node", type=int, default=20)
-    parser.add_argument("-wt", "--walltime", help="walltime in h", type=int, default=72)
+    parser.add_argument(
+        "-cluster", help="t3000 or taurus (default: t3000)", type=str, default="t3000"
+    )
+    parser.add_argument(
+        "-m", "--memory", help="memory in GB (default: 63)", type=str, default="63"
+    )
+    parser.add_argument(
+        "-n", "--nodes", help="number of nodes (default: 4)", type=int, default=4
+    )
+    parser.add_argument(
+        "-ppn", help="processors per node (default: 20)", type=int, default=20
+    )
+    parser.add_argument(
+        "-wt",
+        "--walltime",
+        help="walltime in hours (default: 72)",
+        type=int,
+        default=72,
+    )
     parser.add_argument(
         "-xc",
         help="exchange correlation functional (default pbe)",
@@ -33,7 +47,7 @@ def parseArguments():
     )
     parser.add_argument(
         "-k_grid",
-        help="k points per reciprocal lattice direction for x, y, z",
+        help="k-points per reciprocal lattice direction for x, y, z (default: 6 6 6)",
         nargs="+",
         type=int,
         default=[6, 6, 6],
@@ -49,8 +63,8 @@ def parseArguments():
         nargs="+",
         help="""list of task(s) to perform:
         None (default) = single point;
-        BS = band structure calculation;
-        DOS = (atom-projected) density of states calculation;
+        BS = band structure;
+        DOS = (atom-projected) density of states;
         GO = geometry optimisation""",
         type=str,
         default=[],
@@ -65,7 +79,7 @@ def parseArguments():
     parser.add_argument(
         "-vdw",
         help="""Add vdW correction, e.g., TS for vdw_correction_hirshfeld
-    or MBD for many_body_dispersion. Default: None""",
+    or MBD for many_body_dispersion (default: None).""",
         type=str,
         default=None,
     )

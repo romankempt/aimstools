@@ -14,7 +14,9 @@ The plotting modules are designed for combinatorial plotting with a lot of flexi
     > **To do:** instead of making every module in-line executable, I will provide a superscript that automatically detects the calculation type and provides an easy plotting functionality.
 
 ## Installation
-Simply download the zip from github and unpack it. I recommend using a conda environment to handle the package dependencies.
+I recommend using Anaconda to manage package dependencies and updates. See [here](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html).
+
+Simply download the zip from github and unpack it.
 Then run:
 
 ```bash
@@ -32,7 +34,7 @@ export AIMS_SPECIES_DIR="path/to/directory"
 
 
 ## Requirements
-- Atomic Simulation Environment ase 3.18.1 or higher
-- Space Group libary spglib
-- scipy
-- seaborn
+- [Atomic Simulation Environment](https://wiki.fysik.dtu.dk/ase/) ase 3.18.1 or higher
+- [Space Group Libary](https://atztogo.github.io/spglib/python-spglib.html) spglib
+- [scipy](https://www.scipy.org/)
+- [seaborn](https://seaborn.pydata.org/)

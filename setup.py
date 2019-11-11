@@ -23,10 +23,5 @@ setuptools.setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     install_requires=["ase", "spglib", "numpy", "matplotlib", "seaborn"],
-    dependency_links=[
-        "https://github.com/atztogo/spglib",
-        "https://gitlab.com/ase/ase.git",
-        "https://github.com/mwaskom/seaborn",
-    ],
     python_requires=">=3.6",
 )

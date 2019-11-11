@@ -440,7 +440,7 @@ class fatbandstructure(bandstructure):
             kx, ky, kz = [float(i) for i in content.pop(0)[2:5]]
             kpoints.append([kx, ky, kz])
             empty = np.zeros([len(content), 13])
-            for i, j in enumerate(content):
+            for i, j in enumerate(content): #this circumvenes that there are different amounts of columns
                 empty[i][0 : len(j)] = j
             content = np.array(empty, dtype=float)
             content = content[content[:, 3] == atom_number]  # filter by atom

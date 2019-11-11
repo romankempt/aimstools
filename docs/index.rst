@@ -11,6 +11,7 @@ AIMS_tools's documentation
    :caption: Contents:
 
    intro
+   preparing_aims
    modules
    examples
 
