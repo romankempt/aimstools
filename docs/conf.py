@@ -14,7 +14,8 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
-
+import recommonmark
+from recommonmark.transform import AutoStructify
 # -- Project information -----------------------------------------------------
 
 project = 'AIMS_tools'
@@ -34,6 +35,8 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.todo',
     'sphinx.ext.githubpages',
+    "recommonmark",
+    "sphinxcontrib.napoleon"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -60,7 +63,37 @@ html_static_path = ['_static']
 
 # -- Extension configuration -------------------------------------------------
 
+source_suffix = {
+    '.rst': 'restructuredtext',
+        '.txt': 'restructuredtext',
+            '.md': 'markdown',
+            }
+
+# Napoleon settings
+napoleon_google_docstring = True
+napoleon_numpy_docstring = True
+napoleon_include_init_with_doc = False
+napoleon_include_private_with_doc = False
+napoleon_include_special_with_doc = False
+napoleon_use_admonition_for_examples = True
+napoleon_use_admonition_for_notes = True
+napoleon_use_admonition_for_references = False
+napoleon_use_ivar = True
+napoleon_use_param = True
+napoleon_use_rtype = False
 # -- Options for todo extension ----------------------------------------------
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+
+# At the bottom of conf.py
+def setup(app):
+    app.add_config_value(
+                'recommonmark_config', 
+                {
+                'url_resolver': lambda url: github_doc_root + url,
+                'auto_toc_tree_section': 'Contents',
+                }, 
+                True)
+    app.add_transform(AutoStructify)

@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="AIMS_tools" href="modules.html" />
-    <link rel="prev" title="Welcome to AIMS_tools’s documentation!" href="index.html" /> 
+    <link rel="prev" title="AIMS_tools’s documentation" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -83,8 +83,9 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#motivation">Motivation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#limitations">Limitations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#currently-implemented-features">Currently implemented features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">AIMS_tools</a></li>
@@ -140,7 +141,7 @@
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/intro.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/intro.md.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -155,11 +156,52 @@
             
   <div class="section" id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="motivation">
-<h2>Motivation<a class="headerlink" href="#motivation" title="Permalink to this headline">¶</a></h2>
+<p>This library contains a personal collection of scripts to handle AIMS calculations. It’s mainly meant for private use or to be shared with students and colleagues.</p>
+<div class="section" id="currently-implemented-features">
+<h2>Currently implemented features<a class="headerlink" href="#currently-implemented-features" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p><strong>Running AIMS:</strong> prepare_aims.py can set up the files for different tasks employing the ASE (single point, geometry optimisation, band structure calculation, atom-projected density of states)</p></li>
+<li><p><strong>Plotting functionalities:</strong>
+The plotting modules are designed for combinatorial plotting with a lot of flexibility. It’s very easy to overlay, compare and arrange plots in different fashions with the in-built classes.</p>
+<blockquote>
+<div><p><strong>bandstructure.py</strong> can handle band structure plots with scalar relativity, SOC, and mulliken-projection (“fatbands”). <strong>To do:</strong> improve fatband projections, include plotting with spin</p>
+</div></blockquote>
+<blockquote>
+<div><p><strong>dos.py</strong> handles atom-projected densities of states. Summing up different DOS contributions or to get the total DOS is easily done.</p>
+</div></blockquote>
+<blockquote>
+<div><p><strong>multiplots.py</strong> contains exemplary functions to combine plots in different fashions, for example overlaying ZORA and ZORA+SOC bandstructures or bandstructures and DOS.</p>
+</div></blockquote>
+<blockquote>
+<div><p><strong>To do:</strong> instead of making every module in-line executable, I will provide a superscript that automatically detects the calculation type and provides an easy plotting functionality.</p>
+</div></blockquote>
+</li>
+</ul>
 </div>
-<div class="section" id="limitations">
-<h2>Limitations<a class="headerlink" href="#limitations" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>Simply download the zip from github and unpack it. I recommend using a conda environment to handle the package dependencies.
+Then run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python setup.py install
+</pre></div>
+</div>
+<p>Set the path to the aims species (basis sets) in your environment variables (e.g., in the .bashrc):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">AIMS_SPECIES_DIR</span><span class="o">=</span><span class="s2">&quot;path/to/directory&quot;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>On t3000, this one is “/chemsoft/FHI-aims/stable/species_defaults/”</p></li>
+<li><p>On taurus, this one is “/projects/m_chemie/FHI-aims/FHI-aims_4_Roman/aimsfiles-master/species_defaults/”</p></li>
+</ul>
+</div>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Atomic Simulation Environment ase 3.18.1 or higher</p></li>
+<li><p>Space Group libary spglib</p></li>
+<li><p>scipy</p></li>
+<li><p>seaborn</p></li>
+</ul>
 </div>
 </div>
 
@@ -174,7 +216,7 @@
         <a href="modules.html" class="btn btn-neutral float-right" title="AIMS_tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to AIMS_tools’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="AIMS_tools’s documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

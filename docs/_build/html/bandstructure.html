@@ -164,31 +164,81 @@
 <dt id="bandstructure.bandstructure">
 <em class="property">class </em><code class="sig-prename descclassname">bandstructure.</code><code class="sig-name descname">bandstructure</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">custom_path=''</em>, <em class="sig-param">shift_to='middle'</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.bandstructure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Contains all information about a single band structure instance,
-such as band gaps and fermi level.</p>
-<p>The input to the class is the outputfile to retrieve information from.
-outputfile : path to outputfile
-get_SOC: True or False</p>
-<dl class="method">
-<dt id="bandstructure.bandstructure.concat_bandfiles">
-<code class="sig-name descname">concat_bandfiles</code><span class="sig-paren">(</span><em class="sig-param">bandfiles</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.bandstructure.concat_bandfiles" title="Permalink to this definition">¶</a></dt>
-<dd><p>Concatenates bandfiles and produces array of x-Axis with eigenvalues.</p>
-</dd></dl>
-
+<p>Band structure object.</p>
+<p>Contains all information about a single band structure instance, such as the energy spectrum, the band gap, Fermi level etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputfile</strong> (<em>str</em>) – Path to outputfile.</p></li>
+<li><p><strong>get_SOC</strong> (<em>bool</em>) – Retrieve spectrum with or without spin-orbit coupling (True/False), if calculated.</p></li>
+<li><p><strong>custom_path</strong> (<em>str</em>) – Custom high-symmetry path for plotting, e.g., “G-X-M”.</p></li>
+<li><p><strong>shift_to</strong> (<em>str</em>) – Shifts Fermi level. Options are None (default for metallic systems), “middle” for middle of band gap, and “VBM” for valence band maximum.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>path</strong> (<em>pathlib object</em>) – Directory of outputfile.</p></li>
+<li><p><strong>active_SOC</strong> (<em>bool</em>) – If spin-orbit coupling was included in the control.in file.</p></li>
+<li><p><strong>active_GW</strong> (<em>bool</em>) – If GW was included in the control.in file.</p></li>
+<li><p><strong>shift_type</strong> (<em>str</em>) – Argument of shift_to.</p></li>
+<li><p><strong>ksections</strong> (<em>dict</em>) – Dictionary of path segments and corresponding band file.</p></li>
+<li><p><strong>bandfiles</strong> (<em>list</em>) – List of path objects to band files.</p></li>
+<li><p><strong>kpath</strong> (<em>list</em>) – K-path labels following AFLOW conventions.</p></li>
+<li><p><strong>kvectors</strong> (<em>dict</em>) – Dictionary of k-point labels and fractional coordinates.</p></li>
+<li><p><strong>klabel_coords</strong> (<em>list</em>) – List of x-positions of the k-path labels.</p></li>
+<li><p><strong>fermi_level</strong> (<em>float</em>) – Fermi level energy value in eV.</p></li>
+<li><p><strong>smallest_direct_gap</strong> (<em>str</em>) – Smallest direct gap from outputfile.</p></li>
+<li><p><strong>spectrum</strong> (<em>numpy array</em>) – Array of k-values and eigenvalues.</p></li>
+<li><p><strong>atoms</strong> (<em>dict</em>) – Dictionary of atom index and label.</p></li>
+<li><p><strong>cell</strong> (<em>Atoms</em>) – ASE atoms object of the geometry.</p></li>
+<li><p><strong>rec_cell_lengths</strong> (<em>numpy array</em>) – Reciprocal lattice vector lengths in 2 pi/bohr.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Input coordinates are assumed to be in Angström. Units are converted to atomic units.</p>
+</div>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Invoking the class easier by looking for outputfiles automatically.</p>
+</div>
 <dl class="method">
 <dt id="bandstructure.bandstructure.custom_path">
 <code class="sig-name descname">custom_path</code><span class="sig-paren">(</span><em class="sig-param">custompath</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.bandstructure.custom_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function takes in a custom path of form K1-K2-K3 for plotting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>custompath</strong> (<em>str</em>) – Hyphen-separated string of path labels, e.g., “G-M-X”.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Only the paths that have been calculated in the control.in can be plotted.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="bandstructure.bandstructure.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">title=''</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">axes=None</em>, <em class="sig-param">color='k'</em>, <em class="sig-param">label=''</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">mark_gap='lightgray'</em>, <em class="sig-param">kwargs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.bandstructure.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots a band structure instance. Returns an axes object.</p>
-<p>var_energy_limits : int (window above and below the band gap)
-fix_energy_limits : list (fixed energy limits)
-mark_gap : str or none (fills the gap with color str)
-<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs are passed to the matplotlib plotting function</p>
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">title=''</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">axes=None</em>, <em class="sig-param">color='k'</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">mark_gap='lightgray'</em>, <em class="sig-param">kwargs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.bandstructure.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots a band structure instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>title</strong> (<em>str</em>) – Title of the plot.</p></li>
+<li><p><strong>fig</strong> (<em>matplotlib figure</em>) – Figure to draw the plot on.</p></li>
+<li><p><strong>axes</strong> (<em>matplotlib axes</em>) – Axes to draw the plot on.</p></li>
+<li><p><strong>color</strong> (<em>str</em>) – Color of the lines.</p></li>
+<li><p><strong>var_energy_limits</strong> (<em>int</em>) – Variable energy range above and below the band gap to show.</p></li>
+<li><p><strong>fix_energy_limits</strong> (<em>list</em>) – List of lower and upper energy limit to show.</p></li>
+<li><p><strong>mark_gap</strong> (<em>str</em>) – Color to fill the band gap with or None.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Passed to matplotlib plotting function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>axes</em> – matplotlib axes object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -200,10 +250,12 @@ mark_gap : str or none (fills the gap with color str)
 <dl class="method">
 <dt id="bandstructure.bandstructure.shift_to">
 <code class="sig-name descname">shift_to</code><span class="sig-paren">(</span><em class="sig-param">spectrum</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.bandstructure.shift_to" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shifts Fermi level.</p>
-<p>shift_type = “middle” to shift to middle of band gap
-shift_type = “VBM” to shift to valence band maximum”
-shift_type = None to add internal Fermi-level. This is the default for metallic systems.</p>
+<dd><p>Shifts Fermi level of spectrum according to shift_type attribute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><em>array</em> – spectrum.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -212,14 +264,14 @@ shift_type = None to add internal Fermi-level. This is the default for metallic 
 <dt id="bandstructure.fatbandstructure">
 <em class="property">class </em><code class="sig-prename descclassname">bandstructure.</code><code class="sig-name descname">fatbandstructure</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">custom_path=''</em>, <em class="sig-param">shift_to='middle'</em>, <em class="sig-param">filter=[]</em>, <em class="sig-param">parallel=False</em><span class="sig-paren">)</span><a class="headerlink" href="#bandstructure.fatbandstructure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#bandstructure.bandstructure" title="bandstructure.bandstructure"><code class="xref py py-class docutils literal notranslate"><span class="pre">bandstructure.bandstructure</span></code></a></p>
-<p>Fatbands inherit from bandstructure class. 
+<p>Fatbands inherit from bandstructure class.
 filter : list (default: []) –&gt; list of atom labels, e.g., [“W”, “S”] to process.
 parallel : boolean (default: False)</p>
 <blockquote>
 <div><p>Employs multiprocessing to speed up the data input. Especially useful for systems
 above 20 atoms.
 This requires your execution script to be safeguarded with:
-&gt;&gt; if __name__ == “__main__”: &lt;&lt; 
+&gt;&gt; if __name__ == “__main__”: &lt;&lt;
 Hence, this option can not be invoked interactively.</p>
 </div></blockquote>
 <dl class="method">
@@ -260,7 +312,7 @@ and might take a long while to render. It is recommended to choose a small value
 for nbands in this case.</p>
 </dd>
 </dl>
-<p><a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs are currently not used.</p>
+<p><a href="#id2"><span class="problematic" id="id3">**</span></a>kwargs are currently not used.</p>
 </dd></dl>
 
 <dl class="method">

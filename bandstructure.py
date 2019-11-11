@@ -25,19 +25,42 @@ Angstroem_to_bohr = 1.889725989
 
 
 class bandstructure:
-    """ Contains all information about a single band structure instance,
-    such as band gaps and fermi level. 
+    """ Band structure object.
     
-    :param outputfile: path to outputfile
-    :type outputfile: str
-    :param get_SOC: retrieve spectrum with or without spin-orbit coupling (True/False)
-    :type get_SOC: bool   
+    Contains all information about a single band structure instance, such as the energy spectrum, the band gap, Fermi level etc.
+
+    Args:    
+        outputfile (str): Path to outputfile.
+        get_SOC (bool): Retrieve spectrum with or without spin-orbit coupling (True/False), if calculated.
+        custom_path (str): Custom high-symmetry path for plotting, e.g., "G-X-M".
+        shift_to (str): Shifts Fermi level. Options are None (default for metallic systems), "middle" for middle of band gap, and "VBM" for valence band maximum.
+    
+    Attributes:
+        path (pathlib object): Directory of outputfile.
+        active_SOC (bool): If spin-orbit coupling was included in the control.in file.
+        active_GW (bool): If GW was included in the control.in file.
+        shift_type (str): Argument of shift_to.
+        ksections (dict): Dictionary of path segments and corresponding band file.
+        bandfiles (list): List of path objects to band files.
+        kpath (list): K-path labels following AFLOW conventions.
+        kvectors (dict): Dictionary of k-point labels and fractional coordinates.
+        klabel_coords (list): List of x-positions of the k-path labels.
+        fermi_level (float): Fermi level energy value in eV.
+        smallest_direct_gap (str): Smallest direct gap from outputfile.
+        spectrum (numpy array): Array of k-values and eigenvalues.
+        atoms (dict): Dictionary of atom index and label.
+        cell (Atoms): ASE atoms object of the geometry.
+        rec_cell_lengths (numpy array): Reciprocal lattice vector lengths in 2 pi/bohr.
+    
+    Note:
+        Input coordinates are assumed to be in Angström. Units are converted to atomic units.
+
+    Todo:
+        Invoking the class easier by looking for outputfiles automatically.
     """
 
     def __init__(self, outputfile, get_SOC=True, custom_path="", shift_to="middle"):
-        """ Creates band structure instance.
-        shift_to : str (none, VBM, middle)
-        custom_path : str (e.g., "G-X-M") """
+        """ Creates band structure instance. """
         cwd = Path.cwd()
         self.path = cwd.joinpath(
             Path(outputfile).parent
@@ -54,7 +77,7 @@ class bandstructure:
         ]  # retrieves the endpoint of the path
         if custom_path != "":
             self.custom_path(custom_path)
-        self.concat_bandfiles(self.bandfiles)
+        self.__concat_bandfiles(self.bandfiles)
         self.spectrum = self.shift_to(self.spectrum)
 
     def plot(
@@ -63,18 +86,25 @@ class bandstructure:
         fig=None,
         axes=None,
         color="k",
-        label="",
         var_energy_limits=1.0,
         fix_energy_limits=[],
         mark_gap="lightgray",
         kwargs={},
     ):
-        """ Plots a band structure instance. Returns an axes object.
+        """Plots a band structure instance.
+            
+            Args:
+                title (str): Title of the plot.
+                fig (matplotlib figure): Figure to draw the plot on.
+                axes (matplotlib axes): Axes to draw the plot on.
+                color (str): Color of the lines.
+                var_energy_limits (int): Variable energy range above and below the band gap to show.
+                fix_energy_limits (list): List of lower and upper energy limit to show.
+                mark_gap (str): Color to fill the band gap with or None.
+                **kwargs (dict): Passed to matplotlib plotting function.
 
-            var_energy_limits : int (window above and below the band gap)
-            fix_energy_limits : list (fixed energy limits)
-            mark_gap : str or none (fills the gap with color str)
-            **kwargs are passed to the matplotlib plotting function"""
+            Returns:
+                axes: matplotlib axes object"""
         if fig == None:
             fig = plt.figure(figsize=(len(self.kpath) / 2, 3))
         if axes == None:
@@ -137,7 +167,7 @@ class bandstructure:
         array = np.insert(array, 0, klength, axis=1)
         return array, new_kmax
 
-    def concat_bandfiles(self, bandfiles):
+    def __concat_bandfiles(self, bandfiles):
         """ Concatenates bandfiles and produces array of x-Axis with eigenvalues."""
         kstep = 0
         klabel_coords = [0.0]  # positions of x-ticks
@@ -195,7 +225,14 @@ class bandstructure:
             )
 
     def custom_path(self, custompath):
-        """ This function takes in a custom path of form K1-K2-K3 for plotting. """
+        """ This function takes in a custom path of form K1-K2-K3 for plotting.
+
+        Args:
+            custompath (str): Hyphen-separated string of path labels, e.g., "G-M-X".
+
+        Note:
+            Only the paths that have been calculated in the control.in can be plotted.
+         """
         newpath = custompath.split("-")
         check = [(newpath[i], newpath[i + 1]) for i in range(len(newpath) - 1)]
         for pair in check:
@@ -208,7 +245,7 @@ class bandstructure:
                 break
         self.kpath = newpath
         self.bandfiles = [self.ksections[i] for i in check]
-        self.concat_bandfiles(self.bandfiles)
+        self.__concat_bandfiles(self.bandfiles)
 
     def __get_bandfiles(self, get_SOC):
         """Sort bandfiles according to k-path, SOC and GW.
@@ -276,11 +313,12 @@ class bandstructure:
                     self.smallest_direct_gap = line
 
     def shift_to(self, spectrum):
-        """ Shifts Fermi level.
-                
-            shift_type = "middle" to shift to middle of band gap
-            shift_type = "VBM" to shift to valence band maximum"
-            shift_type = None to add internal Fermi-level. This is the default for metallic systems."""
+        """ Shifts Fermi level of spectrum according to shift_type attribute.
+        
+        Returns:
+            array: spectrum.
+
+        """               
         VBM = np.max(spectrum[:, 1:][spectrum[:, 1:] < 0])
         CBM = np.min(spectrum[:, 1:][spectrum[:, 1:] > 0])
         self.band_gap = CBM - VBM
