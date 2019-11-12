@@ -15,6 +15,7 @@ The plotting modules are designed for combinatorial plotting with a lot of flexi
 
 ## Installation
 I recommend using Anaconda to manage package dependencies and updates. See [here](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html).
+For simplicity, download my [ase-env](https://anaconda.org/romankempt/ase-env/files) from the anaconda cloud. This should contain all necessary libraries and a couple more.
 
 Simply download the zip from github and unpack it.
 Then run:

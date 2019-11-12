@@ -9,12 +9,13 @@ The plotting modules are designed for combinatorial plotting with a lot of flexi
 
     > **dos.py** handles atom-projected densities of states. Summing up different DOS contributions or to get the total DOS is easily done.
 
-    > **multiplots.py** contains exemplary functions to combine plots in different fashions, for example overlaying ZORA and ZORA+SOC bandstructures or bandstructures and DOS.
+    > **multiplots.py** contains exemplary functions to combine plots in different fashions, for example overlaying ZORA and ZORA+SOC bandstructures or combining bandstructures and DOS.
 
     > **To do:** instead of making every module in-line executable, I will provide a superscript that automatically detects the calculation type and provides an easy plotting functionality.
 
 ## Installation
 I recommend using Anaconda to manage package dependencies and updates. See [here](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html).
+For simplicity, download my [ase-env](https://anaconda.org/romankempt/ase-env/files) from the anaconda cloud. This should contain all necessary libraries and a couple more.
 
 Simply download the zip from github and unpack it.
 Then run:
@@ -39,5 +40,3 @@ export AIMS_SPECIES_DIR="path/to/directory"
 - [seaborn](https://seaborn.pydata.org/)
 - numpy
 - pandas
-
-For simplicity, download my [ase-env](https://anaconda.org/romankempt/ase-env/files) from the anaconda cloud. This should contain all necessary libraries and a couple more.
