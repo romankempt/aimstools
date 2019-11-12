@@ -143,7 +143,7 @@ class bandstructure:
                 xlabels.append(self.kpath[i])
         axes.set_xticklabels(xlabels)
         axes.set_ylabel("E-E$_\mathrm{F}$ [eV]")
-        axes.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+        #axes.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
         axes.set_xlabel("")
         axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")
         axes.grid(which="major", axis="x", linestyle=":")

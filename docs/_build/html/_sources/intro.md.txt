@@ -32,9 +32,12 @@ export AIMS_SPECIES_DIR="path/to/directory"
 - On t3000, this one is "/chemsoft/FHI-aims/stable/species_defaults/"
 - On taurus, this one is "/projects/m_chemie/FHI-aims/FHI-aims_4_Roman/aimsfiles-master/species_defaults/"
 
-
 ## Requirements
 - [Atomic Simulation Environment](https://wiki.fysik.dtu.dk/ase/) ase 3.18.1 or higher
 - [Space Group Libary](https://atztogo.github.io/spglib/python-spglib.html) spglib
 - [scipy](https://www.scipy.org/)
 - [seaborn](https://seaborn.pydata.org/)
+- numpy
+- pandas
+
+For simplicity, download my [ase-env](https://anaconda.org/romankempt/ase-env/files) from the anaconda cloud. This should contain all necessary libraries and a couple more.

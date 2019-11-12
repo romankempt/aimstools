@@ -55,7 +55,6 @@ optional arguments:
   -vdw VDW              Add vdW correction, e.g., TS for
                         vdw_correction_hirshfeld or MBD for
                         many_body_dispersion (default: None).
-                        many_body_dispersion (default: None).
 ```
 
 The script will automatically generate the geometry.in, control.in and a submission file for the Taurus or T3000 cluster with a couple of senseful default options, but please refer to the AIMS manual for detailed options.

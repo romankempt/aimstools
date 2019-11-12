@@ -13,11 +13,11 @@ from AIMS_tools import bandstructure, dos
 from pathlib import Path as Path
 from matplotlib.lines import Line2D
 
-# plt.rcParams["legend.handlelength"] = 1.0
-# plt.rcParams["legend.framealpha"] = 0.8
-# font_name = "Arial"
-# font_size = 8.5
-# plt.rcParams.update({"font.sans-serif": font_name, "font.size": font_size})
+plt.rcParams["legend.handlelength"] = 1.0
+plt.rcParams["legend.framealpha"] = 0.8
+font_name = "Arial"
+font_size = 8.5
+plt.rcParams.update({"font.sans-serif": font_name, "font.size": font_size})
 
 
 def combine_bs_dos(BSpath, DOSpath, title="", fix_energy_limits=[]):
