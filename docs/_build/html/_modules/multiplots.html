@@ -1,0 +1,438 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>multiplots &mdash; AIMS_tools 0.02 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> AIMS_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preparing_aims.html">Preparing AIMS calculations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">AIMS_tools</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">AIMS_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>multiplots</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for multiplots</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Sat Oct 12 09:12:57 2019</span>
+
+<span class="sd">@author: roman</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.gridspec</span> <span class="k">as</span> <span class="nn">gridspec</span>
+<span class="kn">from</span> <span class="nn">AIMS_tools</span> <span class="k">import</span> <span class="n">bandstructure</span><span class="p">,</span> <span class="n">dos</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">matplotlib.lines</span> <span class="k">import</span> <span class="n">Line2D</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;seaborn-ticks&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;legend.handlelength&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.8</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;legend.framealpha&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.8</span>
+<span class="n">font_name</span> <span class="o">=</span> <span class="s2">&quot;Arial&quot;</span>
+<span class="n">font_size</span> <span class="o">=</span> <span class="mf">8.5</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;font.sans-serif&quot;</span><span class="p">:</span> <span class="n">font_name</span><span class="p">,</span> <span class="s2">&quot;font.size&quot;</span><span class="p">:</span> <span class="n">font_size</span><span class="p">})</span>
+
+
+<div class="viewcode-block" id="combine_bs_dos"><a class="viewcode-back" href="../multiplots.html#multiplots.combine_bs_dos">[docs]</a><span class="k">def</span> <span class="nf">combine_bs_dos</span><span class="p">(</span><span class="n">BSpath</span><span class="p">,</span> <span class="n">DOSpath</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">fix_energy_limits</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="sd">&quot;&quot;&quot; Combines a band structure plot and densities of states plot.</span>
+
+<span class="sd">    Automatically detects whether BSpath contains SOC information. If yes, overlay_ZORA_SOC() is invoked.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from AIMS_tools import multiplots</span>
+<span class="sd">        &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; combi = multiplots.combine_bs_dos(&quot;band_structure_outputfile&quot;, &quot;dos_outputfile&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; plt.show()</span>
+<span class="sd">        &gt;&gt;&gt; plt.savefig(&quot;Name.png&quot;, dpi=300, transparent=False, bbox_inches=&quot;tight&quot;, facecolor=&quot;white&quot;)</span>
+
+<span class="sd">    .. image:: ../pictures/MoS2_BS+DOS.png</span>
+<span class="sd">        :width: 250px</span>
+<span class="sd">        :align: center</span>
+<span class="sd">        :height: 250px</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        BSpath (str): Path to band structure calculation output file.</span>
+<span class="sd">        DOSpath (str): Path to density of states calculation output file.</span>
+<span class="sd">        title (str, optional): Ttile of the plot</span>
+<span class="sd">        fix_energy_limits (list, optional): List of lower and upper energy limits to show. Defaults to [].</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        figure: matplotlib figure object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">constrained_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">gridspec</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">ax1</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">ax2</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="c1">## Handle bandstructures</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">sca</span><span class="p">(</span><span class="n">ax1</span><span class="p">)</span>
+    <span class="n">ZORA</span> <span class="o">=</span> <span class="n">bandstructure</span><span class="o">.</span><span class="n">bandstructure</span><span class="p">(</span><span class="n">BSpath</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ZORA</span><span class="o">.</span><span class="n">active_SOC</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">SOC</span> <span class="o">=</span> <span class="n">bandstructure</span><span class="o">.</span><span class="n">bandstructure</span><span class="p">(</span><span class="n">BSpath</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax1</span> <span class="o">=</span> <span class="n">overlay_ZORA_SOC</span><span class="p">(</span>
+            <span class="n">BSpath</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">ax1</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">fix_energy_limits</span><span class="o">=</span><span class="n">fix_energy_limits</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ax1</span> <span class="o">=</span> <span class="n">ZORA</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">BSpath</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">ax1</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">fix_energy_limits</span><span class="o">=</span><span class="n">fix_energy_limits</span><span class="p">)</span>
+    <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">ax1</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
+
+    <span class="c1">## Handle DOS</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">sca</span><span class="p">(</span><span class="n">ax2</span><span class="p">)</span>
+    <span class="n">DOS</span> <span class="o">=</span> <span class="n">dos</span><span class="o">.</span><span class="n">DOS</span><span class="p">(</span><span class="n">DOSpath</span><span class="p">)</span>
+    <span class="n">ax2</span> <span class="o">=</span> <span class="n">DOS</span><span class="o">.</span><span class="n">plot_all_atomic_dos</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">ax2</span><span class="p">,</span> <span class="n">fix_energy_limits</span><span class="o">=</span><span class="p">[</span><span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">])</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
+    <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">()</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+<div class="viewcode-block" id="overlay_ZORA_SOC"><a class="viewcode-back" href="../multiplots.html#multiplots.overlay_ZORA_SOC">[docs]</a><span class="k">def</span> <span class="nf">overlay_ZORA_SOC</span><span class="p">(</span>
+    <span class="n">BSpath</span><span class="p">,</span>
+    <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">axes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">ZORA_color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span>
+    <span class="n">SOC_color</span><span class="o">=</span><span class="s2">&quot;crimson&quot;</span><span class="p">,</span>
+    <span class="n">var_energy_limits</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">fix_energy_limits</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">zorakwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">},</span>
+    <span class="n">sockwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;linestyle&quot;</span><span class="p">:</span> <span class="s2">&quot;--&quot;</span><span class="p">},</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Overlays a bandstructure plot with ZORA and SOC.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from AIMS_tools import multiplots</span>
+<span class="sd">        &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; combi = multiplots.overlay_ZORA_SOC(&quot;outputfile&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; plt.show()</span>
+<span class="sd">        &gt;&gt;&gt; plt.savefig(&quot;Name.png&quot;, dpi=300, transparent=False, bbox_inches=&quot;tight&quot;, facecolor=&quot;white&quot;)</span>
+
+<span class="sd">    .. image:: ../pictures/MoS2_ZORA+SOC.png</span>
+<span class="sd">        :width: 220px</span>
+<span class="sd">        :align: center</span>
+<span class="sd">        :height: 250px</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        BSpath (str): Path to band structure calculation output file.</span>
+<span class="sd">        fig (matplotlib figure): Figure to draw the plot on.</span>
+<span class="sd">        axes (matplotlib axes): Axes to draw the plot on.</span>
+<span class="sd">        title (str, optional): Title of plot. Defaults to &quot;&quot;.</span>
+<span class="sd">        ZORA_color (str, optional): Color of ZORA lines. Defaults to &quot;gray&quot;.</span>
+<span class="sd">        SOC_color (str, optional): Color of SOC lines. Defaults to &quot;crimson&quot;.</span>
+<span class="sd">        var_energy_limits (float, optional): Variable energy range above and below the band gap to show. Defaults to 1.0.</span>
+<span class="sd">        fix_energy_limits (list, optional): List of lower and upper energy limits to show. Defaults to [].</span>
+<span class="sd">        **zorakwargs (dict, optional): zorakwargs are passed to the ZORA.plot() function. Defaults to {&quot;alpha&quot;:0.8}.</span>
+<span class="sd">        **sockwargs (dict, optional): sockwargs are passed to the SOC.plot() function. Defaults to {&quot;linestyle&quot;: &quot;--&quot;}.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        axes: matplotlib axes object&quot;&quot;&quot;</span>
+    <span class="c1"># ZORA section</span>
+    <span class="n">ZORA</span> <span class="o">=</span> <span class="n">bandstructure</span><span class="o">.</span><span class="n">bandstructure</span><span class="p">(</span><span class="n">BSpath</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fig</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ZORA</span><span class="o">.</span><span class="n">kpath</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">axes</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">ZORA</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
+        <span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">ZORA_color</span><span class="p">,</span>
+        <span class="n">var_energy_limits</span><span class="o">=</span><span class="n">var_energy_limits</span><span class="p">,</span>
+        <span class="n">fix_energy_limits</span><span class="o">=</span><span class="n">fix_energy_limits</span><span class="p">,</span>
+        <span class="n">kwargs</span><span class="o">=</span><span class="n">zorakwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ZORA_line</span> <span class="o">=</span> <span class="n">Line2D</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">ZORA_color</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;ZORA&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+    <span class="c1"># SOC section</span>
+    <span class="n">SOC</span> <span class="o">=</span> <span class="n">bandstructure</span><span class="o">.</span><span class="n">bandstructure</span><span class="p">(</span><span class="n">BSpath</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">SOC</span><span class="o">.</span><span class="n">properties</span><span class="p">()</span>
+    <span class="n">SOC</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
+        <span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">SOC_color</span><span class="p">,</span>
+        <span class="n">var_energy_limits</span><span class="o">=</span><span class="n">var_energy_limits</span><span class="p">,</span>
+        <span class="n">fix_energy_limits</span><span class="o">=</span><span class="n">fix_energy_limits</span><span class="p">,</span>
+        <span class="n">kwargs</span><span class="o">=</span><span class="n">sockwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">SOC_line</span> <span class="o">=</span> <span class="n">Line2D</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">SOC_color</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;ZORA+SOC&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
+        <span class="n">handles</span><span class="o">=</span><span class="p">[</span><span class="n">ZORA_line</span><span class="p">,</span> <span class="n">SOC_line</span><span class="p">],</span>
+        <span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">fancybox</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">borderpad</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+        <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper right&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">axes</span></div>
+
+
+<div class="viewcode-block" id="overlay_noGW_GW"><a class="viewcode-back" href="../multiplots.html#multiplots.overlay_noGW_GW">[docs]</a><span class="k">def</span> <span class="nf">overlay_noGW_GW</span><span class="p">(</span>
+    <span class="n">noGWpath</span><span class="p">,</span>
+    <span class="n">GWpath</span><span class="p">,</span>
+    <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">axes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">noGW_color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span>
+    <span class="n">GW_color</span><span class="o">=</span><span class="s2">&quot;royalblue&quot;</span><span class="p">,</span>
+    <span class="n">var_energy_limits</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">fix_energy_limits</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">noGWkwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">},</span>
+    <span class="n">GWkwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;linestyle&quot;</span><span class="p">:</span> <span class="s2">&quot;--&quot;</span><span class="p">},</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Overlays a bandstructure plot with GW and without GW.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from AIMS_tools import multiplots</span>
+<span class="sd">        &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; combi = multiplots.overlay_noGW_GW(&quot;noGW_outputfile&quot;, &quot;GW_outputfile&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; plt.show()</span>
+<span class="sd">        &gt;&gt;&gt; plt.savefig(&quot;Name.png&quot;, dpi=300, transparent=False, bbox_inches=&quot;tight&quot;, facecolor=&quot;white&quot;)</span>
+<span class="sd">    </span>
+<span class="sd">    .. image:: ../pictures/MoSe2_GW+noGW.png</span>
+<span class="sd">        :width: 200px</span>
+<span class="sd">        :align: center</span>
+<span class="sd">        :height: 250px</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        noGWpath (str): Path to band structure calculation output file.</span>
+<span class="sd">        GWpath (str): Path to GW band structure calculation output file.</span>
+<span class="sd">        fig (matplotlib figure): Figure to draw the plot on.</span>
+<span class="sd">        axes (matplotlib axes): Axes to draw the plot on.</span>
+<span class="sd">        title (str, optional): Title of plot. Defaults to &quot;&quot;.</span>
+<span class="sd">        noGW_color (str, optional): Color of band structure lines. Defaults to &quot;gray&quot;.</span>
+<span class="sd">        GW_color (str, optional): Color of GW lines. Defaults to &quot;royalblue&quot;.</span>
+<span class="sd">        var_energy_limits (float, optional): Variable energy range above and below the band gap to show. Defaults to 1.0.</span>
+<span class="sd">        fix_energy_limits (list, optional): List of lower and upper energy limits to show. Defaults to [].</span>
+<span class="sd">        **noGWkwargs (dict, optional): noGWkwargs are passed to the noGW.plot() function. Defaults to {&quot;alpha&quot;:0.8}.</span>
+<span class="sd">        **GWkwargs (dict, optional): GWkwargs are passed to the GW.plot() function. Defaults to {&quot;linestyle&quot;: &quot;--&quot;}.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        axes: matplotlib axes object&quot;&quot;&quot;</span>
+    <span class="c1"># noGW section</span>
+    <span class="n">noGW</span> <span class="o">=</span> <span class="n">bandstructure</span><span class="o">.</span><span class="n">bandstructure</span><span class="p">(</span><span class="n">noGWpath</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">noGW</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;control.in&quot;</span><span class="p">),</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s2">&quot;xc&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">xc</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">fig</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">noGW</span><span class="o">.</span><span class="n">kpath</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">axes</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">noGW</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
+        <span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">noGW_color</span><span class="p">,</span>
+        <span class="n">var_energy_limits</span><span class="o">=</span><span class="n">var_energy_limits</span><span class="p">,</span>
+        <span class="n">fix_energy_limits</span><span class="o">=</span><span class="n">fix_energy_limits</span><span class="p">,</span>
+        <span class="n">kwargs</span><span class="o">=</span><span class="n">noGWkwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">noGW_line</span> <span class="o">=</span> <span class="n">Line2D</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">noGW_color</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">xc</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+    <span class="c1"># GW section</span>
+    <span class="n">GW</span> <span class="o">=</span> <span class="n">bandstructure</span><span class="o">.</span><span class="n">bandstructure</span><span class="p">(</span><span class="n">GWpath</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">GW</span><span class="o">.</span><span class="n">properties</span><span class="p">()</span>
+    <span class="n">GW</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
+        <span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">GW_color</span><span class="p">,</span>
+        <span class="n">var_energy_limits</span><span class="o">=</span><span class="n">var_energy_limits</span><span class="p">,</span>
+        <span class="n">fix_energy_limits</span><span class="o">=</span><span class="n">fix_energy_limits</span><span class="p">,</span>
+        <span class="n">kwargs</span><span class="o">=</span><span class="n">GWkwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">GW_line</span> <span class="o">=</span> <span class="n">Line2D</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">GW_color</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;GW@</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xc</span><span class="p">),</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
+        <span class="n">handles</span><span class="o">=</span><span class="p">[</span><span class="n">noGW_line</span><span class="p">,</span> <span class="n">GW_line</span><span class="p">],</span>
+        <span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">fancybox</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">borderpad</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+        <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper right&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">axes</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Roman Kempt
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

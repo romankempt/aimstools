@@ -1,0 +1,279 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>hirshfeld &mdash; AIMS_tools 0.02 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> AIMS_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preparing_aims.html">Preparing AIMS calculations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">AIMS_tools</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">AIMS_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>hirshfeld</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for hirshfeld</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">ase.io</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+
+
+<div class="viewcode-block" id="hirshfeld"><a class="viewcode-back" href="../hirshfeld.html#hirshfeld.hirshfeld">[docs]</a><span class="k">class</span> <span class="nc">hirshfeld</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; A simple class to evaluate Hirshfeld charge analysis from AIMS.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        outputfile (str): Path to outputfile.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        outputfile (pathlib object): Path to outputfile.</span>
+<span class="sd">        path (pathlib object): Parent directory.</span>
+<span class="sd">        atoms (Atoms object): ASE atoms object of geometry.in.</span>
+<span class="sd">        charges (dict): Dictionary of (index, species) tuples and hirshfeld charges. </span>
+<span class="sd">        sum_charges (dict): Dictionary of species and summed hirshfeld charges.</span>
+<span class="sd">    </span>
+<span class="sd">    Todo:</span>
+<span class="sd">        When needed, I&#39;ll implement features to relate geometry to charges, for example separating charges</span>
+<span class="sd">        to different parts of the structure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputfile</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__check_output</span><span class="p">(</span><span class="n">outputfile</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;geometry.in&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">charges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_charges</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sum_charges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sum_charges</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__check_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputfile</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">outputfile</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="n">check</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span>
+                <span class="s2">&quot;tail -n 10 </span><span class="si">{filepath}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">outputfile</span><span class="p">))</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s2">&quot;Have a nice day.&quot;</span> <span class="ow">in</span> <span class="n">check</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">outputfile</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span><span class="o">.</span><span class="n">parent</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calculation did not converge!&quot;</span><span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="n">Path</span><span class="p">(</span><span class="n">outputfile</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="n">outfiles</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">outputfile</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.out&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outfiles</span><span class="p">:</span>
+                <span class="n">check</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="s2">&quot;tail -n 10 </span><span class="si">{filepath}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="n">i</span><span class="p">))</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                <span class="k">if</span> <span class="s2">&quot;Have a nice day.&quot;</span> <span class="ow">in</span> <span class="n">check</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span> <span class="o">=</span> <span class="n">i</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span><span class="o">.</span><span class="n">parent</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calculation did not converge!&quot;</span><span class="p">)</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Could not find outputfile.&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+<div class="viewcode-block" id="hirshfeld.read_charges"><a class="viewcode-back" href="../hirshfeld.html#hirshfeld.hirshfeld.read_charges">[docs]</a>    <span class="k">def</span> <span class="nf">read_charges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">ats</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">charges</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">read</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+                <span class="k">if</span> <span class="s2">&quot;Performing Hirshfeld analysis&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="n">read</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">if</span> <span class="n">read</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;Atom&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                        <span class="n">ats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)),</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="p">)</span>
+                    <span class="k">if</span> <span class="s2">&quot;Hirshfeld charge        :&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                        <span class="n">charges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">get_number_of_atoms</span><span class="p">():</span>
+                            <span class="n">read</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">charges</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ats</span><span class="p">,</span> <span class="n">charges</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">charges</span></div>
+
+<div class="viewcode-block" id="hirshfeld.sum_charges"><a class="viewcode-back" href="../hirshfeld.html#hirshfeld.hirshfeld.sum_charges">[docs]</a>    <span class="k">def</span> <span class="nf">sum_charges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">sum_charges</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">charges</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">atom</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sum_charges</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">sum_charges</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">charges</span><span class="p">[</span><span class="n">atom</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sum_charges</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">charges</span><span class="p">[</span><span class="n">atom</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">sum_charges</span></div></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Roman Kempt
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
