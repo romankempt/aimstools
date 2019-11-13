@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>AIMS_tools &mdash; AIMS_tools 0.02 documentation</title>
+  <title>hirshfeld module &mdash; AIMS_tools 0.02 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="bandstructure module" href="bandstructure.html" />
-    <link rel="prev" title="Preparing AIMS calculations" href="preparing_aims.html" /> 
+    <link rel="next" title="multiplots module" href="multiplots.html" />
+    <link rel="prev" title="dos module" href="dos.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -84,10 +84,10 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preparing_aims.html">Preparing AIMS calculations</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">AIMS_tools</a><ul>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">AIMS_tools</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="bandstructure.html">bandstructure module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dos.html">dos module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hirshfeld.html">hirshfeld module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">hirshfeld module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="multiplots.html">multiplots module</a></li>
 </ul>
 </li>
@@ -136,13 +136,15 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>AIMS_tools</li>
+          <li><a href="modules.html">AIMS_tools</a> &raquo;</li>
+        
+      <li>hirshfeld module</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/hirshfeld.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -155,16 +157,44 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="aims-tools">
-<h1>AIMS_tools<a class="headerlink" href="#aims-tools" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="bandstructure.html">bandstructure module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dos.html">dos module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hirshfeld.html">hirshfeld module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="multiplots.html">multiplots module</a></li>
+  <div class="section" id="module-hirshfeld">
+<span id="hirshfeld-module"></span><h1>hirshfeld module<a class="headerlink" href="#module-hirshfeld" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="hirshfeld.hirshfeld">
+<em class="property">class </em><code class="sig-prename descclassname">hirshfeld.</code><code class="sig-name descname">hirshfeld</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em><span class="sig-paren">)</span><a class="headerlink" href="#hirshfeld.hirshfeld" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A simple class to evaluate Hirshfeld charge analysis from AIMS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outputfile</strong> (<em>str</em>) – Path to outputfile.</p>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>outputfile</strong> (<em>pathlib object</em>) – Path to outputfile.</p></li>
+<li><p><strong>path</strong> (<em>pathlib object</em>) – Parent directory.</p></li>
+<li><p><strong>atoms</strong> (<em>Atoms object</em>) – ASE atoms object of geometry.in.</p></li>
+<li><p><strong>charges</strong> (<em>dict</em>) – Dictionary of (index, species) tuples and hirshfeld charges.</p></li>
+<li><p><a class="reference internal" href="#hirshfeld.hirshfeld.sum_charges" title="hirshfeld.hirshfeld.sum_charges"><strong>sum_charges</strong></a> (<em>dict</em>) – Dictionary of species and summed hirshfeld charges.</p></li>
 </ul>
+</dd>
+</dl>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>When needed, I’ll implement features to relate geometry to charges, for example separating charges
+to different parts of the structure.</p>
 </div>
+<dl class="method">
+<dt id="hirshfeld.hirshfeld.read_charges">
+<code class="sig-name descname">read_charges</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hirshfeld.hirshfeld.read_charges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hirshfeld.hirshfeld.sum_charges">
+<code class="sig-name descname">sum_charges</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hirshfeld.hirshfeld.sum_charges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 
 
@@ -175,10 +205,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="bandstructure.html" class="btn btn-neutral float-right" title="bandstructure module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="multiplots.html" class="btn btn-neutral float-right" title="multiplots module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="preparing_aims.html" class="btn btn-neutral float-left" title="Preparing AIMS calculations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="dos.html" class="btn btn-neutral float-left" title="dos module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

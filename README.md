@@ -9,7 +9,7 @@ The plotting modules are designed for combinatorial plotting with a lot of flexi
 
     > **dos.py** handles atom-projected densities of states. Summing up different DOS contributions or to get the total DOS is easily done.
 
-    > **multiplots.py** contains exemplary functions to combine plots in different fashions, for example overlaying ZORA and ZORA+SOC bandstructures or bandstructures and DOS.
+    > **multiplots.py** contains exemplary functions to combine plots in different fashions, for example overlaying ZORA and ZORA+SOC bandstructures or combining bandstructures and DOS.
 
     > **To do:** instead of making every module in-line executable, I will provide a superscript that automatically detects the calculation type and provides an easy plotting functionality.
 

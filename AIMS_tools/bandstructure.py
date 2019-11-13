@@ -18,8 +18,13 @@ from pathlib import Path as Path
 from scipy import interpolate
 import ase.io, ase.cell
 
-
 plt.style.use("seaborn-ticks")
+plt.rcParams["legend.handlelength"] = 0.8
+plt.rcParams["legend.framealpha"] = 0.8
+font_name = "Arial"
+font_size = 8.5
+plt.rcParams.update({"font.sans-serif": font_name, "font.size": font_size})
+
 
 Angstroem_to_bohr = 1.889725989
 
@@ -71,10 +76,7 @@ class bandstructure:
 
     def __init__(self, outputfile, get_SOC=True, custom_path="", shift_to="middle"):
         """ Creates band structure instance. """
-        cwd = Path.cwd()
-        self.path = cwd.joinpath(
-            Path(outputfile).parent
-        )  # this retrieves the directory where the output file is
+        self.__check_output(outputfile)
         self.shift_type = shift_to
         self.__read_control()
         self.__read_geometry()
@@ -89,6 +91,32 @@ class bandstructure:
             self.custom_path(custom_path)
         self.__concat_bandfiles(self.bandfiles)
         self.spectrum = self.shift_to(self.spectrum)
+
+    def __check_output(self, outputfile):
+        if Path(outputfile).is_file():
+            check = os.popen(
+                "tail -n 10 {filepath}".format(filepath=Path(outputfile))
+            ).read()
+            if "Have a nice day." in check:
+                self.outputfile = Path(outputfile)
+                self.path = self.outputfile.parent
+            else:
+                print("Calculation did not converge!")
+                sys.exit()
+
+        elif Path(outputfile).is_dir():
+            outfiles = Path(outputfile).glob("*.out")
+            for i in outfiles:
+                check = os.popen("tail -n 10 {filepath}".format(filepath=i)).read()
+                if "Have a nice day." in check:
+                    self.outputfile = i
+                    self.path = self.outputfile.parent
+                else:
+                    print("Calculation did not converge!")
+                    sys.exit()
+        else:
+            print("Could not find outputfile.")
+            sys.exit()
 
     def plot(
         self,

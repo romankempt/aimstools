@@ -16,6 +16,13 @@ import re
 from pathlib import Path as Path
 import argparse
 
+plt.style.use("seaborn-ticks")
+plt.rcParams["legend.handlelength"] = 0.8
+plt.rcParams["legend.framealpha"] = 0.8
+font_name = "Arial"
+font_size = 8.5
+plt.rcParams.update({"font.sans-serif": font_name, "font.size": font_size})
+
 
 class DOS:
     """ Density-of-states object.
@@ -59,10 +66,7 @@ class DOS:
     """
 
     def __init__(self, outputfile, get_SOC=True):
-        cwd = Path.cwd()
-        self.path = cwd.joinpath(
-            Path(outputfile).parent
-        )  # this retrieves the directory where the output file is
+        self.__check_output(outputfile)
         self.DOS_type, self.active_SOC = self.__read_control()
         self.VBM, self.CBM, self.fermi_level = self.__read_output(outputfile)
         self.band_gap = self.CBM - self.VBM
@@ -193,6 +197,32 @@ class DOS:
             "Hs": (0.901960784, 0, 0.180392157),
             "Mt": (0.921568627, 0, 0.149019608),
         }
+
+    def __check_output(self, outputfile):
+        if Path(outputfile).is_file():
+            check = os.popen(
+                "tail -n 10 {filepath}".format(filepath=Path(outputfile))
+            ).read()
+            if "Have a nice day." in check:
+                self.outputfile = Path(outputfile)
+                self.path = self.outputfile.parent
+            else:
+                print("Calculation did not converge!")
+                sys.exit()
+
+        elif Path(outputfile).is_dir():
+            outfiles = Path(outputfile).glob("*.out")
+            for i in outfiles:
+                check = os.popen("tail -n 10 {filepath}".format(filepath=i)).read()
+                if "Have a nice day." in check:
+                    self.outputfile = i
+                    self.path = self.outputfile.parent
+                else:
+                    print("Calculation did not converge!")
+                    sys.exit()
+        else:
+            print("Could not find outputfile.")
+            sys.exit()
 
     def __read_control(self):
         """ Retrieve DOS and SOC information. """

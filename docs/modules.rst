@@ -6,4 +6,5 @@ AIMS_tools
 
    bandstructure
    dos
+   hirshfeld
    multiplots
