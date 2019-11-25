@@ -163,8 +163,10 @@ def process_control(args, output_bands=None):
                     if args.vdw in ["MBD", "TS"]:
                         if args.vdw == "TS":
                             line += "vdw_correction_hirshfeld\n"
-                        elif args.vdw == "MBD":
-                            line += "many_body_dispersion_rsscs\n"
+                        elif (args.vdw == "MBD") and (args.pbc != "2D"):
+                            line += "many_body_dispersion\n"
+                        elif (args.vdw == "MBD") and (args.pbc != "2D"):
+                            line += "many_body dispersion    vacuum=False,False,True\n"
                 elif ("atomic_zora scalar" in line) and (args.SOC == True):
                     line += "include_spin_orbit \n"
                 elif "adjust_scf" in line:

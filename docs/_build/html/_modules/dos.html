@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>dos &mdash; AIMS_tools 0.02 documentation</title>
+  <title>dos &mdash; AIMS_tools 0.03 documentation</title>
   
 
   
@@ -80,7 +80,7 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">AIMS_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../preparing_aims.html">Preparing AIMS calculations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules.html">AIMS_tools</a></li>
 </ul>
@@ -162,7 +162,7 @@
 <span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="k">import</span> <span class="n">Polygon</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">argparse</span>
+
 
 <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;seaborn-ticks&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;legend.handlelength&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.8</span>
@@ -189,11 +189,14 @@
 <span class="sd">    Args:</span>
 <span class="sd">        outputfile (str): Path to outputfile.</span>
 <span class="sd">        get_SOC (bool): Retrieve DOS with or without spin-orbit coupling (True/False), if calculated.</span>
+<span class="sd">        spin (int): Retrieve spin channel 1 or 2. Defaults to None (spin-restricted) or 1 (collinear).</span>
+<span class="sd">        shift_to (str): Shifts Fermi level. Options are None (default for metallic systems), &quot;middle&quot; for middle of band gap, and &quot;VBM&quot; for valence band maximum.</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        path (pathlib object): Directory of outputfile.</span>
 <span class="sd">        active_SOC (bool): If spin-orbit coupling was included in the control.in file.</span>
 <span class="sd">        DOS_type (str): Type of DOS calculation, typicaly atom_proj_dos.</span>
+<span class="sd">        spin (int): Spin channel.        </span>
 <span class="sd">        shift_type (str): Argument of shift_to.</span>
 <span class="sd">        ksections (dict): Dictionary of path segments and corresponding band file.</span>
 <span class="sd">        bandfiles (list): List of path objects to band files.</span>
@@ -213,14 +216,21 @@
 <span class="sd">        - provide a function to plot orbital-resolved DOS of atom.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputfile</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputfile</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shift_to</span><span class="o">=</span><span class="s2">&quot;middle&quot;</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__check_output</span><span class="p">(</span><span class="n">outputfile</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">DOS_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_SOC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__read_control</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">VBM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">CBM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermi_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__read_output</span><span class="p">(</span><span class="n">outputfile</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spin</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;up&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spin</span> <span class="o">=</span> <span class="s2">&quot;up&quot;</span>
+        <span class="k">elif</span> <span class="n">spin</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;down&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;dn&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spin</span> <span class="o">=</span> <span class="s2">&quot;down&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spin</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__read_control</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__read_output</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">band_gap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CBM</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">VBM</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__read_geometry</span><span class="p">()</span>
 
-        <span class="n">dosfiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_raw_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_SOC</span><span class="p">,</span> <span class="n">get_SOC</span><span class="p">)</span>
+        <span class="n">dosfiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_raw_data</span><span class="p">(</span><span class="n">get_SOC</span><span class="p">)</span>
         <span class="n">dos_per_atom</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">atomic_dos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sort_dosfiles</span><span class="p">(</span><span class="n">dosfiles</span><span class="p">,</span> <span class="n">atom</span><span class="p">)</span>
@@ -231,7 +241,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">dos_per_atom</span><span class="p">[</span><span class="n">atom</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">dos_per_atom</span><span class="p">[</span><span class="n">atom</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">[</span><span class="n">atom</span><span class="p">]</span>
             <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">shift_to</span><span class="p">(</span><span class="s2">&quot;middle&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shift_to</span><span class="p">(</span><span class="n">shift_to</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">total_dos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_total_dos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dos_per_atom</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">color_dict</span> <span class="o">=</span> <span class="p">{</span>
@@ -365,23 +375,34 @@
                 <span class="k">if</span> <span class="s2">&quot;Have a nice day.&quot;</span> <span class="ow">in</span> <span class="n">check</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span> <span class="o">=</span> <span class="n">i</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span><span class="o">.</span><span class="n">parent</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calculation did not converge!&quot;</span><span class="p">)</span>
-                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Could not find outputfile.&quot;</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
 
+    <span class="k">def</span> <span class="nf">__read_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputfile</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Retrieve VBM, CBM and Fermi level from output file. &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outputfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+                <span class="k">if</span> <span class="s2">&quot;Highest occupied state (VBM) at&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">VBM</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">5</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s2">&quot;Lowest unoccupied state (CBM) at&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">CBM</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">5</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s2">&quot;Chemical potential is&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fermi_level</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+
     <span class="k">def</span> <span class="nf">__read_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Retrieve DOS and SOC information. &quot;&quot;&quot;</span>
         <span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;control.in&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_SOC</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">control</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
                 <span class="k">if</span> <span class="s2">&quot;output atom_proj_dos&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-                    <span class="n">DOS_type</span> <span class="o">=</span> <span class="s2">&quot;atom_proj_dos&quot;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">DOS_type</span> <span class="o">=</span> <span class="s2">&quot;atom_proj_dos&quot;</span>
                 <span class="k">if</span> <span class="s2">&quot;include_spin_orbit&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-                    <span class="n">active_SOC</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">return</span> <span class="n">DOS_type</span><span class="p">,</span> <span class="n">active_SOC</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">active_SOC</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;spin&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;collinear&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spin</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">spin</span> <span class="o">=</span> <span class="s2">&quot;up&quot;</span>
 
     <span class="k">def</span> <span class="nf">__read_geometry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Retrieve atom types and number of atoms from geometry. &quot;&quot;&quot;</span>
@@ -398,19 +419,49 @@
         <span class="n">species</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">numbers</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">species</span>
 
-    <span class="k">def</span> <span class="nf">__get_raw_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">active_SOC</span><span class="p">,</span> <span class="n">get_SOC</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__get_raw_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">get_SOC</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Get .raw.out files.</span>
 <span class="sd">            get_SOC : True or False to obtain the ones with or without SOC.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_SOC</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">dosfiles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*raw*&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_SOC</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spin</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">get_SOC</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
-                <span class="n">dosfiles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*raw*&quot;</span><span class="p">))</span>
                 <span class="n">dosfiles</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dosfiles</span> <span class="k">if</span> <span class="s2">&quot;no_soc&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span>
             <span class="k">elif</span> <span class="n">get_SOC</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
-                <span class="n">dosfiles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*raw*&quot;</span><span class="p">))</span>
                 <span class="n">dosfiles</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dosfiles</span> <span class="k">if</span> <span class="s2">&quot;no_soc&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">dosfiles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*raw*&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_SOC</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spin</span> <span class="o">==</span> <span class="s2">&quot;up&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">get_SOC</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">dosfiles</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dosfiles</span>
+                    <span class="k">if</span> <span class="s2">&quot;no_soc&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;spin_up&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="k">elif</span> <span class="n">get_SOC</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">dosfiles</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dosfiles</span>
+                    <span class="k">if</span> <span class="s2">&quot;no_soc&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;spin_up&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="p">]</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_SOC</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spin</span> <span class="o">==</span> <span class="s2">&quot;down&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">get_SOC</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">dosfiles</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dosfiles</span>
+                    <span class="k">if</span> <span class="s2">&quot;no_soc&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;spin_dn&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="k">elif</span> <span class="n">get_SOC</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">dosfiles</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dosfiles</span>
+                    <span class="k">if</span> <span class="s2">&quot;no_soc&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;spin_dn&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="p">]</span>
+
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_SOC</span> <span class="o">==</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spin</span> <span class="o">==</span> <span class="s2">&quot;up&quot;</span><span class="p">):</span>
+            <span class="n">dosfiles</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dosfiles</span> <span class="k">if</span> <span class="s2">&quot;spin_up&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_SOC</span> <span class="o">==</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spin</span> <span class="o">==</span> <span class="s2">&quot;down&quot;</span><span class="p">):</span>
+            <span class="n">dosfiles</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dosfiles</span> <span class="k">if</span> <span class="s2">&quot;spin_dn&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span>
         <span class="k">return</span> <span class="n">dosfiles</span>
 
     <span class="k">def</span> <span class="nf">__sort_dosfiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dosfiles</span><span class="p">,</span> <span class="n">atom_type</span><span class="p">):</span>
@@ -436,18 +487,6 @@
             <span class="n">total_dos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dos_per_atom</span><span class="p">[</span><span class="n">atom</span><span class="p">][:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
         <span class="n">total_dos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">total_dos</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">dos_per_atom</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">total_dos</span>
-
-    <span class="k">def</span> <span class="nf">__read_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputfile</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Retrieve VBM, CBM and Fermi level from output file. &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outputfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
-                <span class="k">if</span> <span class="s2">&quot;Highest occupied state (VBM) at&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-                    <span class="n">VBM</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">5</span><span class="p">])</span>
-                <span class="k">if</span> <span class="s2">&quot;Lowest unoccupied state (CBM) at&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-                    <span class="n">CBM</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">5</span><span class="p">])</span>
-                <span class="k">if</span> <span class="s2">&quot;Chemical potential (Fermi level) in eV&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-                    <span class="n">fermi_level</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">VBM</span><span class="p">,</span> <span class="n">CBM</span><span class="p">,</span> <span class="n">fermi_level</span>
 
 <div class="viewcode-block" id="DOS.shift_to"><a class="viewcode-back" href="../dos.html#dos.DOS.shift_to">[docs]</a>    <span class="k">def</span> <span class="nf">shift_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shift_type</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Shifts Fermi level of DOS spectrum according to shift_type attribute. &quot;&quot;&quot;</span>
@@ -603,58 +642,6 @@
         <span class="n">axes</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="n">handles</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;center right&quot;</span><span class="p">,</span> <span class="n">fancybox</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">xmax</span><span class="p">)])</span>
         <span class="k">return</span> <span class="n">axes</span></div></div>
-
-
-<span class="c1">#### in-line execution</span>
-<span class="c1"># def parseArguments():</span>
-<span class="c1">#     # Create argument parser</span>
-<span class="c1">#     parser = argparse.ArgumentParser()</span>
-
-<span class="c1">#     # Positional mandatory arguments</span>
-<span class="c1">#     parser.add_argument(&quot;path&quot;, help=&quot;Path to directory&quot;, type=str)</span>
-<span class="c1">#     parser.add_argument(&quot;title&quot;, help=&quot;title of plot&quot;, type=str)</span>
-
-<span class="c1">#     # Optional arguments</span>
-<span class="c1">#     parser.add_argument(</span>
-<span class="c1">#         &quot;-i&quot;,</span>
-<span class="c1">#         &quot;--interactive&quot;,</span>
-<span class="c1">#         help=&quot;interactive plotting mode&quot;,</span>
-<span class="c1">#         type=bool,</span>
-<span class="c1">#         default=False,</span>
-<span class="c1">#     )</span>
-<span class="c1">#     parser.add_argument(&quot;-t&quot;, &quot;--title&quot;, help=&quot;Name of the file&quot;, type=str, default=&quot;&quot;)</span>
-<span class="c1">#     parser.add_argument(</span>
-<span class="c1">#         &quot;-yl&quot;,</span>
-<span class="c1">#         &quot;--ylimits&quot;,</span>
-<span class="c1">#         nargs=&quot;+&quot;,</span>
-<span class="c1">#         help=&quot;list of upper and lower y-axis limits&quot;,</span>
-<span class="c1">#         type=float,</span>
-<span class="c1">#         default=[],</span>
-<span class="c1">#     )</span>
-<span class="c1">#     parser.add_argument(&quot;--task&quot;, help=&quot;Which DOS to plot?&quot;, type=str, default=&quot;total&quot;)</span>
-<span class="c1">#     # Parse arguments</span>
-<span class="c1">#     args = parser.parse_args()</span>
-<span class="c1">#     return args</span>
-
-
-<span class="c1"># if __name__ == &quot;__main__&quot;:</span>
-<span class="c1">#     # Parse the arguments</span>
-<span class="c1">#     args = parseArguments()</span>
-<span class="c1">#     cwd = Path.cwd()</span>
-<span class="c1">#     if args.interactive == True:</span>
-<span class="c1">#         plt.ion()</span>
-<span class="c1">#     else:</span>
-<span class="c1">#         plt.ioff()</span>
-
-<span class="c1">#     dos = DOS(cwd.joinpath(args.path))</span>
-<span class="c1">#     figure = dos.plot_all_atomic_dos()</span>
-
-<span class="c1">#     if args.interactive == False:</span>
-<span class="c1">#         os.chdir(str(cwd.joinpath(args.path)))</span>
-<span class="c1">#         plt.savefig(args.title + &quot;.png&quot;, dpi=300, bbox_inches=&quot;tight&quot;)</span>
-<span class="c1">#         os.chdir(str(cwd))</span>
-<span class="c1">#     else:</span>
-<span class="c1">#         plt.show(block=True)</span>
 
 </pre></div>
 

@@ -14,7 +14,7 @@ import matplotlib.colors as mcolors
 from matplotlib.patches import Polygon
 import re
 from pathlib import Path as Path
-import argparse
+
 
 plt.style.use("seaborn-ticks")
 plt.rcParams["legend.handlelength"] = 0.8
@@ -41,11 +41,14 @@ class DOS:
     Args:
         outputfile (str): Path to outputfile.
         get_SOC (bool): Retrieve DOS with or without spin-orbit coupling (True/False), if calculated.
+        spin (int): Retrieve spin channel 1 or 2. Defaults to None (spin-restricted) or 1 (collinear).
+        shift_to (str): Shifts Fermi level. Options are None (default for metallic systems), "middle" for middle of band gap, and "VBM" for valence band maximum.
 
     Attributes:
         path (pathlib object): Directory of outputfile.
         active_SOC (bool): If spin-orbit coupling was included in the control.in file.
         DOS_type (str): Type of DOS calculation, typicaly atom_proj_dos.
+        spin (int): Spin channel.        
         shift_type (str): Argument of shift_to.
         ksections (dict): Dictionary of path segments and corresponding band file.
         bandfiles (list): List of path objects to band files.
@@ -65,14 +68,21 @@ class DOS:
         - provide a function to plot orbital-resolved DOS of atom.
     """
 
-    def __init__(self, outputfile, get_SOC=True):
+    def __init__(self, outputfile, get_SOC=True, spin=None, shift_to="middle"):
         self.__check_output(outputfile)
-        self.DOS_type, self.active_SOC = self.__read_control()
-        self.VBM, self.CBM, self.fermi_level = self.__read_output(outputfile)
+        if spin in ["up", 1]:
+            self.spin = "up"
+        elif spin in ["down", 2, "dn"]:
+            self.spin = "down"
+        else:
+            self.spin = None
+
+        self.__read_control()
+        self.__read_output(self.outputfile)
         self.band_gap = self.CBM - self.VBM
         self.species = self.__read_geometry()
 
-        dosfiles = self.__get_raw_data(self.active_SOC, get_SOC)
+        dosfiles = self.__get_raw_data(get_SOC)
         dos_per_atom = []
         for atom in self.species.keys():
             atomic_dos = self.__sort_dosfiles(dosfiles, atom)
@@ -83,7 +93,7 @@ class DOS:
             self.dos_per_atom[atom][:, 1:] = (
                 self.dos_per_atom[atom][:, 1:] * self.species[atom]
             )
-        self.shift_to("middle")
+        self.shift_to(shift_to)
 
         self.total_dos = self.__get_total_dos(self.dos_per_atom)
         self.color_dict = {
@@ -217,23 +227,34 @@ class DOS:
                 if "Have a nice day." in check:
                     self.outputfile = i
                     self.path = self.outputfile.parent
-                else:
-                    print("Calculation did not converge!")
-                    sys.exit()
+
         else:
             print("Could not find outputfile.")
             sys.exit()
 
+    def __read_output(self, outputfile):
+        """ Retrieve VBM, CBM and Fermi level from output file. """
+        with open(outputfile, "r") as file:
+            for line in file.readlines():
+                if "Highest occupied state (VBM) at" in line:
+                    self.VBM = float(line.split()[5])
+                if "Lowest unoccupied state (CBM) at" in line:
+                    self.CBM = float(line.split()[5])
+                if "Chemical potential is" in line:
+                    self.fermi_level = float(line.split()[-2])
+
     def __read_control(self):
         """ Retrieve DOS and SOC information. """
         control = self.path.joinpath("control.in")
+        self.active_SOC = False
         with open(control, "r") as file:
             for line in file.readlines():
                 if "output atom_proj_dos" in line:
-                    DOS_type = "atom_proj_dos"
+                    self.DOS_type = "atom_proj_dos"
                 if "include_spin_orbit" in line:
-                    active_SOC = True
-        return DOS_type, active_SOC
+                    self.active_SOC = True
+                if ("spin" in line) and ("collinear" in line) and (self.spin == None):
+                    self.spin = "up"
 
     def __read_geometry(self):
         """ Retrieve atom types and number of atoms from geometry. """
@@ -250,19 +271,49 @@ class DOS:
         species = dict(zip(keys, numbers))
         return species
 
-    def __get_raw_data(self, active_SOC, get_SOC):
+    def __get_raw_data(self, get_SOC):
         """ Get .raw.out files.
             get_SOC : True or False to obtain the ones with or without SOC.
             """
-        if self.active_SOC == True:
+        dosfiles = list(self.path.glob("*raw*"))
+        if (self.active_SOC == True) and (self.spin == None):
             if get_SOC == True:
-                dosfiles = list(self.path.glob("*raw*"))
                 dosfiles = [str(i) for i in dosfiles if "no_soc" not in str(i)]
             elif get_SOC == False:
-                dosfiles = list(self.path.glob("*raw*"))
                 dosfiles = [str(i) for i in dosfiles if "no_soc" in str(i)]
-        else:
-            dosfiles = list(self.path.glob("*raw*"))
+
+        if (self.active_SOC == True) and (self.spin == "up"):
+            if get_SOC == True:
+                dosfiles = [
+                    str(i)
+                    for i in dosfiles
+                    if "no_soc" not in str(i) and "spin_up" in str(i)
+                ]
+            elif get_SOC == False:
+                dosfiles = [
+                    str(i)
+                    for i in dosfiles
+                    if "no_soc" in str(i) and "spin_up" in str(i)
+                ]
+
+        if (self.active_SOC == True) and (self.spin == "down"):
+            if get_SOC == True:
+                dosfiles = [
+                    str(i)
+                    for i in dosfiles
+                    if "no_soc" not in str(i) and "spin_dn" in str(i)
+                ]
+            elif get_SOC == False:
+                dosfiles = [
+                    str(i)
+                    for i in dosfiles
+                    if "no_soc" in str(i) and "spin_dn" in str(i)
+                ]
+
+        elif (self.active_SOC == False) and (self.spin == "up"):
+            dosfiles = [str(i) for i in dosfiles if "spin_up" in str(i)]
+        elif (self.active_SOC == False) and (self.spin == "down"):
+            dosfiles = [str(i) for i in dosfiles if "spin_dn" in str(i)]
         return dosfiles
 
     def __sort_dosfiles(self, dosfiles, atom_type):
@@ -288,18 +339,6 @@ class DOS:
             total_dos.append(dos_per_atom[atom][:, [0, 1]])
         total_dos = np.sum(total_dos, axis=0) / len(dos_per_atom.keys())
         return total_dos
-
-    def __read_output(self, outputfile):
-        """ Retrieve VBM, CBM and Fermi level from output file. """
-        with open(outputfile, "r") as file:
-            for line in file.readlines():
-                if "Highest occupied state (VBM) at" in line:
-                    VBM = float(line.split()[5])
-                if "Lowest unoccupied state (CBM) at" in line:
-                    CBM = float(line.split()[5])
-                if "Chemical potential (Fermi level) in eV" in line:
-                    fermi_level = float(line.split()[-1])
-        return VBM, CBM, fermi_level
 
     def shift_to(self, shift_type):
         """ Shifts Fermi level of DOS spectrum according to shift_type attribute. """
@@ -455,56 +494,4 @@ class DOS:
         axes.legend(handles=handles, frameon=True, loc="center right", fancybox=False)
         axes.set_xlim([0, max(xmax)])
         return axes
-
-
-#### in-line execution
-# def parseArguments():
-#     # Create argument parser
-#     parser = argparse.ArgumentParser()
-
-#     # Positional mandatory arguments
-#     parser.add_argument("path", help="Path to directory", type=str)
-#     parser.add_argument("title", help="title of plot", type=str)
-
-#     # Optional arguments
-#     parser.add_argument(
-#         "-i",
-#         "--interactive",
-#         help="interactive plotting mode",
-#         type=bool,
-#         default=False,
-#     )
-#     parser.add_argument("-t", "--title", help="Name of the file", type=str, default="")
-#     parser.add_argument(
-#         "-yl",
-#         "--ylimits",
-#         nargs="+",
-#         help="list of upper and lower y-axis limits",
-#         type=float,
-#         default=[],
-#     )
-#     parser.add_argument("--task", help="Which DOS to plot?", type=str, default="total")
-#     # Parse arguments
-#     args = parser.parse_args()
-#     return args
-
-
-# if __name__ == "__main__":
-#     # Parse the arguments
-#     args = parseArguments()
-#     cwd = Path.cwd()
-#     if args.interactive == True:
-#         plt.ion()
-#     else:
-#         plt.ioff()
-
-#     dos = DOS(cwd.joinpath(args.path))
-#     figure = dos.plot_all_atomic_dos()
-
-#     if args.interactive == False:
-#         os.chdir(str(cwd.joinpath(args.path)))
-#         plt.savefig(args.title + ".png", dpi=300, bbox_inches="tight")
-#         os.chdir(str(cwd))
-#     else:
-#         plt.show(block=True)
 

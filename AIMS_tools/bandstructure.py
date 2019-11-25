@@ -12,7 +12,7 @@ from matplotlib.lines import Line2D
 from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
 import argparse
-from matplotlib.ticker import FormatStrFormatter
+import matplotlib.ticker as ticker
 import seaborn as sns
 from pathlib import Path as Path
 from scipy import interpolate
@@ -46,7 +46,7 @@ class bandstructure:
     Args:    
         outputfile (str): Path to outputfile.
         get_SOC (bool): Retrieve spectrum with or without spin-orbit coupling (True/False), if calculated.
-        custom_path (str): Custom high-symmetry path for plotting, e.g., "G-X-M".
+        spin (int): Retrieve spin channel 1 or 2. Defaults to None (spin-restricted) or 1 (collinear).
         shift_to (str): Shifts Fermi level. Options are None (default for metallic systems), "middle" for middle of band gap, and "VBM" for valence band maximum.
     
     Attributes:
@@ -54,8 +54,9 @@ class bandstructure:
         active_SOC (bool): If spin-orbit coupling was included in the control.in file.
         active_GW (bool): If GW was included in the control.in file.
         shift_type (str): Argument of shift_to.
+        spin (int): Spin channel.
         ksections (dict): Dictionary of path segments and corresponding band file.
-        bandfiles (list): List of path objects to band files.
+        bandsegments (dict): Dictionary of path segments and corresponding eigenvalues.
         kpath (list): K-path labels following AFLOW conventions.
         kvectors (dict): Dictionary of k-point labels and fractional coordinates.
         klabel_coords (list): List of x-positions of the k-path labels.
@@ -70,27 +71,30 @@ class bandstructure:
     Note:
         Input coordinates are assumed to be in Angström. Units are converted to atomic units.
 
-    Todo:
-        Invoking the class easier by looking for outputfiles automatically.
     """
 
-    def __init__(self, outputfile, get_SOC=True, custom_path="", shift_to="middle"):
+    def __init__(self, outputfile, get_SOC=True, spin=None, shift_to="middle"):
         """ Creates band structure instance. """
         self.__check_output(outputfile)
+        if spin in ["up", 1]:
+            self.spin = 1
+        elif spin in ["down", 2, "dn"]:
+            self.spin = 2
+        else:
+            self.spin = None
+        
         self.shift_type = shift_to
         self.__read_control()
         self.__read_geometry()
-        self.__get_output_information(outputfile)
+        self.__get_output_information()
         self.__get_bandfiles(get_SOC)
         self.ksections = dict(zip(self.ksections, self.bandfiles))
         self.kpath = [i[0] for i in self.ksections.keys()]
         self.kpath += [
             list(self.ksections.keys())[-1][1]
         ]  # retrieves the endpoint of the path
-        if custom_path != "":
-            self.custom_path(custom_path)
-        self.__concat_bandfiles(self.bandfiles)
-        self.spectrum = self.shift_to(self.spectrum)
+        self.bandsegments = self.__read_bandfiles()
+        self.__create_spectrum()
 
     def __check_output(self, outputfile):
         if Path(outputfile).is_file():
@@ -111,9 +115,6 @@ class bandstructure:
                 if "Have a nice day." in check:
                     self.outputfile = i
                     self.path = self.outputfile.parent
-                else:
-                    print("Calculation did not converge!")
-                    sys.exit()
         else:
             print("Could not find outputfile.")
             sys.exit()
@@ -158,7 +159,7 @@ class bandstructure:
         else:
             lower_ylimit = fix_energy_limits[0]
             upper_ylimit = fix_energy_limits[1]
-        if (CBM - VBM) > 0.1 and mark_gap != False:
+        if (CBM - VBM) > 0.1 and (mark_gap != False) and (self.spin == None):
             axes.fill_between(x, VBM, CBM, color=mark_gap, alpha=0.6)
         axes.set_ylim([lower_ylimit, upper_ylimit])
         axes.set_xlim([0, np.max(x)])
@@ -171,7 +172,8 @@ class bandstructure:
                 xlabels.append(self.kpath[i])
         axes.set_xticklabels(xlabels)
         axes.set_ylabel("E-E$_\mathrm{F}$ [eV]")
-        #axes.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+        ylocs = ticker.MultipleLocator(base=0.5) # this locator puts ticks at regular intervals
+        axes.yaxis.set_major_locator(ylocs)        
         axes.set_xlabel("")
         axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")
         axes.grid(which="major", axis="x", linestyle=":")
@@ -180,41 +182,65 @@ class bandstructure:
 
     def properties(self):
         """ Prints out key properties of the band structure. """
-        print("Band gap: {:2f} eV (SOC = {})".format(self.band_gap, self.active_SOC))
+        print("Sum Formula: {}".format(self.cell.symbols))
+        print("Number of k-points for SCF: {}".format(self.k_points))        
+        cell = self.cell.cell 
+        if np.array_equal(cell[2],  [0.0, 0.0, 100.0]):
+            pbc = 2
+            area = np.linalg.norm(np.cross(cell[0], cell[1]))
+            kdens = self.k_points/area
+        else:
+            pbc = 3
+            volume = self.cell.get_volume()
+            kdens = self.k_points/volume
+
+        if pbc == 2:
+            print("System seems to be 2D. The k-point density is {:.4f} points/bohr^2 .".format(kdens))
+        else:
+            print("System seems to be 3D. The k-point density is {:.4f} points/bohr^3 .".format(kdens))                        
+
+        print("Band gap: {:2f} eV (SOC = {}, spin channel = {})".format(self.band_gap, self.active_SOC, self.spin))
         print(self.smallest_direct_gap)
         print("Path: ", self.kpath)
+        import ase.spacegroup
+        brav_latt = self.cell.cell.get_bravais_lattice()
+        sg = ase.spacegroup.get_spacegroup(self.cell)
+        print("Space group: {} (Nr. {})".format(sg.symbol, sg.no))
+        print("Bravais lattice: {}".format(brav_latt))
 
-    def __read_bandfile(self, bandfile, kstep):
-        """ Reads in band.out file and produces array of eigenvalues for the distance between k-points.
-            kstep: shifts the x-axis to glue together all sections in one single axis."""
-        try:
-            array = [line.split() for line in open(bandfile)]
-            array = np.array(array, dtype=float)
-        except:
-            return "File not found."
-        """ Popping out the k-vectors of each line """
-        kcoords = (
-            array[:, 1:4] * self.rec_cell_lengths
-        )  # non-relative positions in 2 pi/bohr
-        klength = np.linalg.norm(kcoords[0, :] - kcoords[-1, :])
-        klength = np.linspace(0, klength, num=len(kcoords)) + kstep
-        new_kmax = np.max(klength)
-        """ Removing kcoords and occupations from .out"""
-        array = np.delete(array, [0, 1, 2, 3], 1)
-        array = np.delete(array, list(range(0, array.shape[1], 2)), axis=1)
-        array = np.insert(array, 0, klength, axis=1)
-        return array, new_kmax
+    def __read_bandfiles(self):
+        """ Reads in band.out files."""
+        bandsegments = {}
+        for path in self.ksections.keys():
+            bandfile = self.ksections[path]
+            try:
+                array = [line.split() for line in open(bandfile)]
+                array = np.array(array, dtype=float)
+            except:
+                return "File {} not found.".format(bandfile)
+            array[:, 1:4] * self.rec_cell_lengths  # non-relative positions in bohr^(-1)
+            # Removing index and occupations from .out
+            array = np.delete(array, [0] + list(range(4, array.shape[1], 2)), axis=1)
+            bandsegments[path] = array
+        return bandsegments
 
-    def __concat_bandfiles(self, bandfiles):
-        """ Concatenates bandfiles and produces array of x-Axis with eigenvalues."""
+    def __create_spectrum(self):
+        """ Merges bandsegments to a single spectrum with suitable x-axis."""
         kstep = 0
         klabel_coords = [0.0]  # positions of x-ticks
-        list_of_arrays = []
-        for bandfile in bandfiles:
-            array, kstep = self.__read_bandfile(bandfile, kstep)
+        specs = []
+        segments = [(self.kpath[i], self.kpath[i + 1]) for i in range(len(self.kpath) - 1)]
+        for segment in segments:
+            array = self.bandsegments[segment]
+            energies = array[:, 3:]
+            start = kstep
+            kstep += np.linalg.norm(array[-1, [0,1,2]] - array[0, [0,1,2]])
+            kaxis = np.linspace(start, kstep, array.shape[0])
             klabel_coords.append(kstep)
-            list_of_arrays.append(array)
-        self.spectrum = np.concatenate(list_of_arrays)
+            energies = np.insert(energies, 0, kaxis, axis=1)
+            specs.append(energies)
+        spectrum = np.concatenate(specs, axis=0)
+        self.spectrum = self.shift_to(spectrum)
         self.klabel_coords = klabel_coords
 
     def __read_geometry(self):
@@ -251,6 +277,8 @@ class bandstructure:
                         self.active_SOC = True
                     if "qpe_calc" in line and "gw" in line:
                         self.active_GW = True
+                    if ("spin" in line) and ("collinear" in line) and (self.spin == None):
+                        self.spin = 1                        
         self.ksections = []
         self.kvectors = {"G": np.array([0.0, 0.0, 0.0])}
         for entry in bandlines:
@@ -282,22 +310,25 @@ class bandstructure:
                 )
                 break
         self.kpath = newpath
-        self.bandfiles = [self.ksections[i] for i in check]
-        self.__concat_bandfiles(self.bandfiles)
-
+        self.create_spectrum()
+        
     def __get_bandfiles(self, get_SOC):
-        """Sort bandfiles according to k-path, SOC and GW.
+        """Sort bandfiles according to k-path, spin, SOC and GW.
         As you can see, the naming of band files in Aims is terribly inconsistent."""
+        if self.spin != None:
+            stem = "band" + str(self.spin)
+        else:
+            stem = "band1"
         if (
             self.active_SOC == False
         ):  ### That's the ZORA case if SOC was not calculated.
             bandfiles = [
-                self.path.joinpath("band100" + str(i + 1) + ".out")
+                self.path.joinpath(stem + "00" + str(i + 1) + ".out")
                 for i in range(len(self.ksections))
                 if i < 9
             ]
             bandfiles += [
-                self.path.joinpath("band10" + str(i + 1) + ".out")
+                self.path.joinpath(stem + "0" + str(i + 1) + ".out")
                 for i in range(len(self.ksections))
                 if i > 8
             ]  # inconsistent naming of files sucks
@@ -305,23 +336,23 @@ class bandstructure:
             self.active_SOC == True and get_SOC == False
         ):  ### That's the ZORA case if SOC was calculated.
             bandfiles = [
-                self.path.joinpath("band100" + str(i + 1) + ".out.no_soc")
+                self.path.joinpath(stem + "00" + str(i + 1) + ".out.no_soc")
                 for i in range(len(self.ksections))
                 if i < 9
             ]
             bandfiles += [
-                self.path.joinpath("band10" + str(i + 1) + ".out.no_soc")
+                self.path.joinpath(stem + "0" + str(i + 1) + ".out.no_soc")
                 for i in range(len(self.ksections))
                 if i > 8
             ]
         elif self.active_SOC == True and get_SOC == True:
             bandfiles = [
-                self.path.joinpath("band100" + str(i + 1) + ".out")
+                self.path.joinpath(stem + "00" + str(i + 1) + ".out")
                 for i in range(len(self.ksections))
                 if i < 9
             ]
             bandfiles += [
-                self.path.joinpath("band10" + str(i + 1) + ".out")
+                self.path.joinpath(stem + "0" + str(i + 1) + ".out")
                 for i in range(len(self.ksections))
                 if i > 8
             ]
@@ -329,26 +360,36 @@ class bandstructure:
             self.active_SOC == False and self.active_GW == True
         ):  ### That's the ZORA case with GW.
             bandfiles = [
-                self.path.joinpath("GW_band100" + str(i + 1) + ".out")
+                self.path.joinpath("GW_" + stem + "00" + str(i + 1) + ".out")
                 for i in range(len(self.ksections))
                 if i < 9
             ]
             bandfiles += [
-                self.path.joinpath("band10" + str(i + 1) + ".out")
+                self.path.joinpath("GW_" + stem + "0" + str(i + 1) + ".out")
                 for i in range(len(self.ksections))
                 if i > 8
             ]
         self.bandfiles = bandfiles
 
-    def __get_output_information(self, outputfile):
+    def __get_output_information(self):
         """ Retrieve information such as Fermi level and band gap from output file."""
         self.smallest_direct_gap = "Direct gap not determined. This usually happens if the fundamental gap is direct."
-        with open(outputfile, "r") as file:
+        with open(self.outputfile, "r") as file:
             for line in file:
+                if "Chemical potential" in line:
+                    if self.spin != None:
+                        if "spin up" in line:
+                            up_fermi_level = float(line.split()[-2])
+                        elif "spin dn" in line:
+                            down_fermi_level = float(line.split()[-2])                        
                 if "Chemical potential (Fermi level) in eV" in line:
-                    self.fermi_level = float(line.split()[-1])
+                        self.fermi_level = float(line.split()[-1])
                 if "Smallest direct gap :" in line:
                     self.smallest_direct_gap = line
+                if "Number of k-points" in line:
+                    self.k_points = int(line.split()[-1])
+        if self.spin != None:
+            self.fermi_level = max([up_fermi_level, down_fermi_level])
 
     def shift_to(self, spectrum):
         """ Shifts Fermi level of spectrum according to shift_type attribute.
@@ -360,7 +401,7 @@ class bandstructure:
         VBM = np.max(spectrum[:, 1:][spectrum[:, 1:] < 0])
         CBM = np.min(spectrum[:, 1:][spectrum[:, 1:] > 0])
         self.band_gap = CBM - VBM
-        if self.band_gap < 0.1:
+        if (self.band_gap < 0.1) or (self.spin != None):
             shift_type = None
         elif self.shift_type == "middle":
             spectrum[:, 1:] -= (VBM + CBM) / 2
@@ -376,15 +417,14 @@ class fatbandstructure(bandstructure):
         >>> from AIMS_tools import bandstructure
         >>> import matplotlib.pyplot as plt
         >>> import numpy as np
-        >>> if __name__ == "main":
-        >>>     bs = bandstructure.fatbandstructure("outputfile", parallel=True)
-        >>>     bs.plot_all_orbitals()
-        >>>     plt.show()
-        >>>     plt.savefig("Name.png", dpi=300, transparent=False, bbox_inches="tight", facecolor="white")
+        >>> bs = bandstructure.fatbandstructure("outputfile")
+        >>> bs.plot_all_orbitals()
+        >>> plt.show()
+        >>> plt.savefig("Name.png", dpi=300, transparent=False, bbox_inches="tight", facecolor="white")
     
     Args:
         filter (list): Only processes list of atom labels, e.g., ["W", "S"].
-        parallel (bool) : Employs multiprocessing to speed up the data input. Especially useful for systems above 20 atoms.
+        parallel (bool) : Currently disabled. New serial implementation is much faster than multiprocessing for up to 500 atoms.
 
     
     Attributes:
@@ -393,15 +433,16 @@ class fatbandstructure(bandstructure):
         s_contributions (dict): Dictionary of numpy arrays per atom containing s-orbital contributions.
         p_contributions (dict): Dictionary of numpy arrays per atom containing p-orbital contributions.
         d_contributions (dict): Dictionary of numpy arrays per atom containing d-orbital contributions.
-        mlk_bandfiles (list): List of pathlib objects pointing to the mulliken band output files.
+        mlk_bandsegments (dict): Nested dictionary of path segments and data.
 
     Note:
         Invoking the parallel option strictly requires your execution script to be safeguarded with the statement: \n
         if __name__ == "__main__": \n
-        Hence, this option can not be invoked interactively.
+        Hence, this option can not be invoked interactively.\n
+        In the current version, the parallel option is disabled. The new serial implementation \n
+        should be much faster for any reasonable system and runs more stably.
 
-    Todo:
-        * Invoking the class easier by looking for outputfiles automatically.
+    Todo:        
         * Improving fatband plots.
         * Adding a scatter option.
     """
@@ -410,16 +451,15 @@ class fatbandstructure(bandstructure):
         self,
         outputfile,
         get_SOC=True,
-        custom_path="",
+        spin=None,
         shift_to="middle",
         filter=[],
-        parallel=False,
     ):
         super().__init__(
-            outputfile, get_SOC=get_SOC, custom_path=custom_path, shift_to=shift_to
+            outputfile, get_SOC=get_SOC, shift_to=shift_to, spin=spin,
         )
-        """ get_SOC is true because for mulliken bands, both spin channels are
-        written to the same file. """
+        #get_SOC is true because for mulliken bands, both spin channels are
+        #written to the same file. 
         self.filter = list(self.atoms.values()) if filter == [] else filter
         self.atoms = {k: v for k, v in self.atoms.items() if v in self.filter}
         self.tot_contributions = {}
@@ -428,25 +468,26 @@ class fatbandstructure(bandstructure):
         self.d_contributions = {}
         self.__get_mlk_bandfiles(get_SOC)
         self.ksections = dict(zip(self.ksections, self.mlk_bandfiles))
-        if custom_path != "":
-            self.custom_path(custom_path, parallel=parallel)
-        self.concat_mlk_bandfiles(
-            self.mlk_bandfiles, filter=self.filter, parallel=parallel
-        )
+        self.__read_mlk_bandfiles()
+        self.__create_mlk_spectra()
 
     def __get_mlk_bandfiles(self, get_SOC):
-        """Sort bandfiles that have mulliken information.
-        As you can see, the naming of band files in Aims is terribly inconsistent."""
+        #"""Sort bandfiles that have mulliken information.
+        #As you can see, the naming of band files in Aims is terribly inconsistent."""
+        if self.spin != None:
+            stem = "bandmlk" + str(self.spin)
+        else:
+            stem = "bandmlk1"
         if (
             self.active_SOC == False
         ):  ### That's the ZORA case if SOC was not calculated.
             bandfiles = [
-                self.path.joinpath("bandmlk100" + str(i + 1) + ".out")
+                self.path.joinpath(stem + "00" + str(i + 1) + ".out")
                 for i in range(len(self.ksections))
                 if i < 9
             ]
             bandfiles += [
-                self.path.joinpath("bandmlk10" + str(i + 1) + ".out")
+                self.path.joinpath(stem + "0" + str(i + 1) + ".out")
                 for i in range(len(self.ksections))
                 if i > 8
             ]  # inconsistent naming of files sucks
@@ -454,23 +495,23 @@ class fatbandstructure(bandstructure):
             self.active_SOC == True and get_SOC == False
         ):  ### That's the ZORA case if SOC was calculated. For mlk calculations it doesn't exist.
             bandfiles = [
-                self.path.joinpath("bandmlk100" + str(i + 1) + ".out.no_soc")
+                self.path.joinpath(stem + "00" + str(i + 1) + ".out.no_soc")
                 for i in range(len(self.ksections))
                 if i < 9
             ]
             bandfiles += [
-                self.path.joinpath("bandmlk10" + str(i + 1) + ".out.no_soc")
+                self.path.joinpath(stem + "0" + str(i + 1) + ".out.no_soc")
                 for i in range(len(self.ksections))
                 if i > 8
             ]
         elif self.active_SOC == True and get_SOC == True:
             bandfiles = [
-                self.path.joinpath("bandmlk100" + str(i + 1) + ".out")
+                self.path.joinpath(stem + "00" + str(i + 1) + ".out")
                 for i in range(len(self.ksections))
                 if i < 9
             ]
             bandfiles += [
-                self.path.joinpath("bandmlk10" + str(i + 1) + ".out")
+                self.path.joinpath(stem + "0" + str(i + 1) + ".out")
                 for i in range(len(self.ksections))
                 if i > 8
             ]
@@ -478,159 +519,150 @@ class fatbandstructure(bandstructure):
             self.active_SOC == False and self.active_GW == True
         ):  ### That's the ZORA case with GW.
             bandfiles = [
-                self.path.joinpath("GW_bandmlk100" + str(i + 1) + ".out")
+                self.path.joinpath("GW_" + stem + "00" + str(i + 1) + ".out")
                 for i in range(len(self.ksections))
                 if i < 9
             ]
             bandfiles += [
-                self.path.joinpath("GW_bandmlk10" + str(i + 1) + ".out")
+                self.path.joinpath("GW_" + stem + "0" + str(i + 1) + ".out")
                 for i in range(len(self.ksections))
                 if i > 8
             ]
         self.mlk_bandfiles = bandfiles
 
-    def __read_mlk_bandfile(self, bandfile, kstep, atom_number, orbital=4):
-        """ Reads in mulliken bandfile and returns eigenvalues and 
-        orbital-wise contributions as numpy arrays.
-        orbital : int 
-        4 --> total, 5 --> s, 6 --> p, 7 --> d ..."""
-        with open(bandfile, "r") as file:
-            content = file.read()
-
+    def __read_mlk_bandfile(self, bandfile, bandsegments, key):
+        #Reads in mulliken bandfile and puts everything in dictionaries.
+        try:
+            with open(bandfile, "r") as file:
+                content = file.read()
+        except:
+            return "File {} not found.".format(bandfile)
         split_by_k = [
             z.split("\n") for z in content.split("k point number:") if z != ""
-        ]
-
-        energies = []
-        tot_contributions = []
-        s_contributions = []
-        p_contributions = []
-        d_contributions = []
+        ]        
         kpoints = []
-        for k in split_by_k:
+        bandsegments[key] = {}
+        segment = bandsegments[key]
+        for k in split_by_k: #iterate over k-points
             content = [i.split() for i in k if "State" not in i and i != ""]
             kx, ky, kz = [float(i) for i in content.pop(0)[2:5]]
             kpoints.append([kx, ky, kz])
-            empty = np.zeros([len(content), 13])
+            array = np.zeros([len(content), 12])
             for i, j in enumerate(
                 content
             ):  # this circumvenes that there are different amounts of columns
-                empty[i][0 : len(j)] = j
-            content = np.array(empty, dtype=float)
-            content = content[content[:, 3] == atom_number]  # filter by atom
-            if self.active_SOC == True:
-                spin1 = content[content[:, 4] == 1]  # filter by spin one
-                spin2 = content[content[:, 4] == 2]  # filter by spin two
-                energies.append(np.concatenate([spin1[:, 1], spin2[:, 1]], axis=0))
-                tot_contributions.append(
-                    np.concatenate([spin1[:, 4 + 1], spin2[:, 4 + 1]], axis=0)
-                )
-                s_contributions.append(
-                    np.concatenate([spin1[:, 5 + 1], spin2[:, 5 + 1]], axis=0)
-                )
-                p_contributions.append(
-                    np.concatenate([spin1[:, 6 + 1], spin2[:, 6 + 1]], axis=0)
-                )
-                d_contributions.append(
-                    np.concatenate([spin1[:, 7 + 1], spin2[:, 7 + 1]], axis=0)
-                )
-            else:
-                energies.append(content[:, 1])
-                tot_contributions.append(content[:, 4])  # filter contribution
-                s_contributions.append(content[:, 5])  # filter contribution
-                p_contributions.append(content[:, 6])  # filter contribution
-                d_contributions.append(content[:, 7])  # filter contribution
-
+                array[i][0 : len(j)] = j
+            content = np.array(array, dtype=float)
+            for atom in self.atoms.keys():
+                cons = self.__read_atom_cons(content, atom)
+                if atom not in segment.keys():
+                    segment[atom] = cons
+                else:
+                    for entry in segment[atom].keys():
+                        segment[atom][entry] = np.vstack([segment[atom][entry], cons[entry]])
         kpoints = np.array(kpoints)
-        klength = np.linalg.norm(kpoints[0, :] - kpoints[-1, :])
-        klength = np.linspace(0, klength, num=len(kpoints)) + kstep
-        new_kmax = np.max(klength)
+        segment["k"] = kpoints
+        bandsegments[key] = segment
 
-        spectrum = np.insert(np.array(energies), 0, klength, axis=1)
-        return (
-            new_kmax,
-            spectrum,
-            tot_contributions,
-            s_contributions,
-            p_contributions,
-            d_contributions,
-        )
-
-    def concat_atom(self, atom, mlk_bandfiles, return_dict):
-        """ This is a helper function for parallelisation."""
-        kstep = 0
-        energies = []
-        tot_contributions = []
-        s_contributions = []
-        p_contributions = []
-        d_contributions = []
-        klabel_coords = [kstep]
-        for bandfile in mlk_bandfiles:
-            kstep, energy, tot_contribution, s_contribution, p_contribution, d_contribution = self.__read_mlk_bandfile(
-                bandfile, kstep, atom
+    def __read_atom_cons(self, content, atom):
+        # Reads atomic contributions from k-point
+        content = content[content[:, 3] == atom]  # filter by atom
+        if self.active_SOC == True:
+            spin1 = content[content[:, 4] == 1]  # filter by spin one
+            spin2 = content[content[:, 4] == 2]  # filter by spin two
+            energies = np.concatenate([spin1[:, 1], spin2[:, 1]], axis=0)
+            tot_cons = (
+                np.concatenate([spin1[:, 4 + 1], spin2[:, 4 + 1]], axis=0)
             )
-            klabel_coords.append(kstep)
-            energies.append(energy)
-            tot_contributions.append(tot_contribution)
-            s_contributions.append(s_contribution)
-            p_contributions.append(p_contribution)
-            d_contributions.append(d_contribution)
-            print(
-                "Processed {} for atom {} Nr. {} .".format(
-                    bandfile, self.atoms[atom], atom
-                )
+            s_cons = (
+                np.concatenate([spin1[:, 5 + 1], spin2[:, 5 + 1]], axis=0)
             )
-        tot, s, p, d = {}, {}, {}, {}
-        tot[atom] = np.concatenate(tot_contributions, axis=0)
-        s[atom] = np.concatenate(s_contributions, axis=0)
-        p[atom] = np.concatenate(p_contributions, axis=0)
-        d[atom] = np.concatenate(d_contributions, axis=0)
-        if atom == list(self.atoms.keys())[0]:
-            spectrum = np.concatenate(energies, axis=0)
-            spectrum = self.shift_to(spectrum)
-            return_dict[atom] = [
-                klabel_coords,
-                spectrum,
-                tot[atom],
-                s[atom],
-                p[atom],
-                d[atom],
-            ]
+            p_cons = (
+                np.concatenate([spin1[:, 6 + 1], spin2[:, 6 + 1]], axis=0)
+            )
+            d_cons = (
+                np.concatenate([spin1[:, 7 + 1], spin2[:, 7 + 1]], axis=0)
+            )
         else:
-            return_dict[atom] = [None, None, tot[atom], s[atom], p[atom], d[atom]]
+            energies = content[:, 1]
+            tot_cons = content[:, 4]  # filter contribution
+            s_cons = content[:, 5]  # filter contribution
+            p_cons = content[:, 6]  # filter contribution
+            d_cons = content[:, 7]  # filter contribution
+        return {"ev": energies, "tot":tot_cons, "s":s_cons, "p":p_cons, "d":d_cons}
 
-    def concat_mlk_bandfiles(self, mlk_bandfiles, filter, parallel=False):
-        """Concatenates contributions and energies for every single k-point, atom, and band."""
+    def __read_mlk_bandfiles(self, parallel=False):
+        # Iterates __read_mlk_bandfile() over bandfiles
         import multiprocessing
         from multiprocessing import Process
-
+        
         if parallel == False:
             print("Reading in mulliken band files in serial...")
-            return_dict = dict()
-            for atom in self.atoms.keys():
-                self.concat_atom(atom, mlk_bandfiles, return_dict)
+            bandsegments = dict()
+            for path in self.ksections.keys():            
+                bandfile = self.ksections[path]
+                print("     Processing {} ...".format(bandfile.name))
+                self.__read_mlk_bandfile(bandfile, bandsegments, path)   
+            self.mlk_bandsegments = bandsegments         
         if parallel == True:
-            print("Reading in mulliken band files in parallel.")
+            print("Reading in mulliken band files in parallel...")
             manager = multiprocessing.Manager()
-            return_dict = manager.dict()
+            bandsegments = manager.dict()
             processes = []
-            for atom in self.atoms.keys():
+            for path in self.ksections.keys():
+                bandfile = self.ksections[path]  
+                print("     Processing {} ...".format(bandfile.name))
                 p = Process(
-                    target=self.concat_atom, args=[atom, mlk_bandfiles, return_dict]
-                )
+                    target=self.__read_mlk_bandfile, args=[bandfile, bandsegments, path])                
                 p.start()
                 processes.append(p)
             for p in processes:
                 p.join()
-        self.klabel_coords = return_dict[list(self.atoms.keys())[0]][0]
-        self.spectrum = return_dict[list(self.atoms.keys())[0]][1]
-        for atom in self.atoms.keys():
-            self.tot_contributions[atom] = return_dict[atom][2]
-            self.s_contributions[atom] = return_dict[atom][3]
-            self.p_contributions[atom] = return_dict[atom][4]
-            self.d_contributions[atom] = return_dict[atom][5]
+            self.mlk_bandsegments = bandsegments
+ 
+    def __create_mlk_spectrum(self, atom):
+        # creates spectrum for energy and contributions with suitable x-axis
+        kstep = 0
+        klabel_coords = [0.0]  # positions of x-ticks
+        specs = []
+        tots = []
+        ss = []
+        ps = []
+        ds = []        
+        segments = [(self.kpath[i], self.kpath[i + 1]) for i in range(len(self.kpath) - 1)]
+        for segment in segments:
+            data = self.mlk_bandsegments[segment]
+            energies = data[atom]["ev"]
+            tots.append(data[atom]["tot"])
+            ss.append(data[atom]["s"])
+            ps.append(data[atom]["p"])
+            ds.append(data[atom]["d"])
+            start = kstep
+            kstep += np.linalg.norm(data["k"][-1, [0,1,2]] - data["k"][0, [0,1,2]])
+            kaxis = np.linspace(start, kstep, data["k"].shape[0])
+            klabel_coords.append(kstep)
+            energies = np.insert(energies, 0, kaxis, axis=1)
+            specs.append(energies)
+        spectrum = np.concatenate(specs, axis=0)
+        spectrum = self.shift_to(spectrum)
+        tots = np.concatenate(tots, axis=0)
+        ss = np.concatenate(ss, axis=0)
+        ps = np.concatenate(ps, axis=0)
+        ds = np.concatenate(ds, axis=0)        
+        self.klabel_coords = klabel_coords
+        return [spectrum, tots, ss, ps, ds]
 
-    def custom_path(self, custompath, parallel=False):
+    def __create_mlk_spectra(self):
+        # iterates __create_mlk_spectrum over all bandsegments
+        for atom in self.atoms.keys():
+            data = self.__create_mlk_spectrum(atom)
+            self.spectrum = data[0]
+            self.tot_contributions[atom] = data[1]
+            self.s_contributions[atom] = data[2]
+            self.p_contributions[atom] = data[3]
+            self.d_contributions[atom] = data[4]
+
+    def custom_path(self, custompath):
         """ This function takes in a custom path of form K1-K2-K3 for plotting.
 
         Args:
@@ -650,10 +682,10 @@ class fatbandstructure(bandstructure):
                 )
                 break
         self.kpath = newpath
-        self.mlk_bandfiles = [self.ksections[i] for i in check]
-        self.concat_mlk_bandfiles(self.mlk_bandfiles, parallel=parallel)
+        self.create_spectrum()
+        self.__create_mlk_spectra()
 
-    def plot(
+    def plot_mlk(
         self,
         contribution,
         title="",
@@ -755,7 +787,8 @@ class fatbandstructure(bandstructure):
                 xlabels.append(self.kpath[i])
         axes.set_xticklabels(xlabels)
         axes.set_ylabel("E-E$_\mathrm{F}$ [eV]")
-        axes.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+        ylocs = ticker.MultipleLocator(base=0.5) # this locator puts ticks at regular intervals
+        axes.yaxis.set_major_locator(ylocs)       
         axes.set_xlabel("")
         axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")
         axes.grid(which="major", axis="x", linestyle=":")
@@ -966,7 +999,7 @@ class fatbandstructure(bandstructure):
         i = 0
         for atom in self.atoms.keys():
             label = self.atoms[atom]
-            self.plot(
+            self.plot_mlk(
                 self.tot_contributions[atom],
                 cmap=cmaps[i],
                 axes=axes,
@@ -1056,7 +1089,7 @@ class fatbandstructure(bandstructure):
             axis=0,
         )
         for orbital in orbitals.keys():
-            self.plot(
+            self.plot_mlk(
                 orbitals[orbital],
                 cmap=cmaps[i],
                 axes=axes,
@@ -1080,64 +1113,3 @@ class fatbandstructure(bandstructure):
         )
         return axes
 
-
-# def parseArguments():
-#     # Create argument parser
-#     parser = argparse.ArgumentParser()
-
-#     # Positional mandatory arguments
-#     parser.add_argument("path", help="Path to directory", type=str)
-#     parser.add_argument("title", help="Name of the file", type=str)
-
-#     # Optional arguments
-#     parser.add_argument(
-#         "--ZORA_color", help="ZORA bands color", type=str, default="black"
-#     )
-#     parser.add_argument(
-#         "--SOC_color", help="SOC bands color", type=str, default="crimson"
-#     )
-#     parser.add_argument(
-#         "-i",
-#         "--interactive",
-#         help="interactive plotting mode",
-#         type=bool,
-#         default=False,
-#     )
-#     parser.add_argument(
-#         "-yl",
-#         "--ylimits",
-#         nargs="+",
-#         help="list of upper and lower y-axis limits",
-#         type=float,
-#         default=[],
-#     )
-#     # Parse arguments
-#     args = parser.parse_args()
-#     return args
-
-
-# if __name__ == "__main__":
-#     # Parse the arguments
-#     args = parseArguments()
-#     if args.interactive == True:
-#         plt.ion()
-#     else:
-#         plt.ioff()
-
-#     ZORA = bandstructure(args.path, get_SOC=False)
-#     if ZORA.active_SOC == True:
-#         plot_ZORA_and_SOC(
-#             args.path,
-#             fix_energy_limits=args.ylimits,
-#             ZORA_color=args.ZORA_color,
-#             SOC_color=args.SOC_color,
-#         )
-#     else:
-#         ZORA.plot(
-#             title=args.title, fix_energy_limits=args.ylimits, color=args.ZORA_color
-#         )
-#         ZORA.properties()
-#     if args.interactive == False:
-#         plt.savefig(os.path.basename(args.title) + ".png", dpi=300, bbox_inches="tight")
-#     else:
-#         plt.show(block=True)

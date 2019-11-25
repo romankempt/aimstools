@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>dos module &mdash; AIMS_tools 0.02 documentation</title>
+  <title>dos module &mdash; AIMS_tools 0.03 documentation</title>
   
 
   
@@ -82,7 +82,7 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">AIMS_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preparing_aims.html">Preparing AIMS calculations</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">AIMS_tools</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="bandstructure.html">bandstructure module</a></li>
@@ -163,7 +163,7 @@
 <p>&#64;author: Roman Kempt</p>
 <dl class="class">
 <dt id="dos.DOS">
-<em class="property">class </em><code class="sig-prename descclassname">dos.</code><code class="sig-name descname">DOS</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dos.html#DOS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dos.DOS" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">dos.</code><code class="sig-name descname">DOS</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">spin=None</em>, <em class="sig-param">shift_to='middle'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dos.html#DOS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dos.DOS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Density-of-states object.</p>
 <p>Contains all information about a DOS instance, such as the DOS per atom.</p>
@@ -184,6 +184,8 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>outputfile</strong> (<em>str</em>) – Path to outputfile.</p></li>
 <li><p><strong>get_SOC</strong> (<em>bool</em>) – Retrieve DOS with or without spin-orbit coupling (True/False), if calculated.</p></li>
+<li><p><strong>spin</strong> (<em>int</em>) – Retrieve spin channel 1 or 2. Defaults to None (spin-restricted) or 1 (collinear).</p></li>
+<li><p><strong>shift_to</strong> (<em>str</em>) – Shifts Fermi level. Options are None (default for metallic systems), “middle” for middle of band gap, and “VBM” for valence band maximum.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Variables</dt>
@@ -191,6 +193,7 @@
 <li><p><strong>path</strong> (<em>pathlib object</em>) – Directory of outputfile.</p></li>
 <li><p><strong>active_SOC</strong> (<em>bool</em>) – If spin-orbit coupling was included in the control.in file.</p></li>
 <li><p><strong>DOS_type</strong> (<em>str</em>) – Type of DOS calculation, typicaly atom_proj_dos.</p></li>
+<li><p><strong>spin</strong> (<em>int</em>) – Spin channel.</p></li>
 <li><p><strong>shift_type</strong> (<em>str</em>) – Argument of shift_to.</p></li>
 <li><p><strong>ksections</strong> (<em>dict</em>) – Dictionary of path segments and corresponding band file.</p></li>
 <li><p><strong>bandfiles</strong> (<em>list</em>) – List of path objects to band files.</p></li>

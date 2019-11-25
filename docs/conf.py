@@ -26,7 +26,7 @@ copyright = "2019, Roman Kempt"
 author = "Roman Kempt"
 
 # The full version, including alpha/beta/rc tags
-release = "0.02"
+release = "0.03"
 
 
 # -- General configuration ---------------------------------------------------
@@ -40,7 +40,7 @@ extensions = [
     "sphinx.ext.githubpages",
     "recommonmark",
     "sphinxcontrib.napoleon",
-    "sphinx.ext.viewcode"
+    "sphinx.ext.viewcode",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
