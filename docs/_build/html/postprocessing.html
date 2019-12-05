@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>AIMS_tools &mdash; AIMS_tools 0.04 documentation</title>
+  <title>postprocessing module &mdash; AIMS_tools 0.04 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="bandstructure module" href="bandstructure.html" />
-    <link rel="prev" title="Preparing AIMS calculations" href="preparing_aims.html" /> 
+    <link rel="next" title="preparation module" href="preparation.html" />
+    <link rel="prev" title="multiplots module" href="multiplots.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -84,12 +84,12 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">AIMS_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preparing_aims.html">Preparing AIMS calculations</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">AIMS_tools</a><ul>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">AIMS_tools</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="bandstructure.html">bandstructure module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dos.html">dos module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hirshfeld.html">hirshfeld module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="multiplots.html">multiplots module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="postprocessing.html">postprocessing module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">postprocessing module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="preparation.html">preparation module</a></li>
 </ul>
 </li>
@@ -138,13 +138,15 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>AIMS_tools</li>
+          <li><a href="modules.html">AIMS_tools</a> &raquo;</li>
+        
+      <li>postprocessing module</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/postprocessing.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -157,18 +159,36 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="aims-tools">
-<h1>AIMS_tools<a class="headerlink" href="#aims-tools" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="bandstructure.html">bandstructure module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dos.html">dos module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hirshfeld.html">hirshfeld module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="multiplots.html">multiplots module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="postprocessing.html">postprocessing module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="preparation.html">preparation module</a></li>
+  <div class="section" id="module-postprocessing">
+<span id="postprocessing-module"></span><h1>postprocessing module<a class="headerlink" href="#module-postprocessing" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="postprocessing.postprocess">
+<em class="property">class </em><code class="sig-prename descclassname">postprocessing.</code><code class="sig-name descname">postprocess</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">spin=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/postprocessing.html#postprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#postprocessing.postprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A base class that retrieves information from finished calculations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>pathlib object</em>) – Directory of outputfile.</p></li>
+<li><p><strong>calc_type</strong> (<em>dict</em>) – Dictionary of requested calculation types.</p></li>
+<li><p><strong>active_SOC</strong> (<em>bool</em>) – If spin-orbit coupling was included in the control.in file.</p></li>
+<li><p><strong>active_GW</strong> (<em>bool</em>) – If GW was included in the control.in file.</p></li>
+<li><p><strong>spin</strong> (<em>int</em>) – Spin channel.</p></li>
+<li><p><strong>fermi_level</strong> (<em>float</em>) – Fermi level energy value in eV.</p></li>
+<li><p><strong>smallest_direct_gap</strong> (<em>str</em>) – Smallest direct gap from outputfile.</p></li>
+<li><p><strong>VBM</strong> (<em>float</em>) – Valence band maximum energy in eV.</p></li>
+<li><p><strong>CBM</strong> (<em>float</em>) – Conduction band minimum energy in eV.</p></li>
+<li><p><strong>atoms</strong> (<em>dict</em>) – Dictionary of atom index and label.</p></li>
+<li><p><strong>species</strong> (<em>dict</em>) – Dictionary of atom labels and counts.</p></li>
+<li><p><strong>cell</strong> (<em>Atoms</em>) – ASE atoms object of the geometry.</p></li>
+<li><p><strong>rec_cell</strong> (<em>array</em>) – Reciprocal lattice vectors in 2 pi/bohr.</p></li>
+<li><p><strong>rec_cell_lengths</strong> (<em>numpy array</em>) – Reciprocal lattice vector lengths in 2 pi/bohr.</p></li>
+<li><p><strong>color_dict</strong> (<em>dict</em>) – Dictionary of atom labels and JMOL color tuples.</p></li>
 </ul>
-</div>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 
@@ -179,10 +199,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="bandstructure.html" class="btn btn-neutral float-right" title="bandstructure module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="preparation.html" class="btn btn-neutral float-right" title="preparation module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="preparing_aims.html" class="btn btn-neutral float-left" title="Preparing AIMS calculations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="multiplots.html" class="btn btn-neutral float-left" title="multiplots module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

@@ -26,7 +26,7 @@ copyright = "2019, Roman Kempt"
 author = "Roman Kempt"
 
 # The full version, including alpha/beta/rc tags
-release = "0.03"
+release = "0.04"
 
 
 # -- General configuration ---------------------------------------------------

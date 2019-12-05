@@ -1,0 +1,423 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>preparation &mdash; AIMS_tools 0.04 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> AIMS_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">AIMS_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preparing_aims.html">Preparing AIMS calculations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">AIMS_tools</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">AIMS_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>preparation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for preparation</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">ase</span> <span class="k">import</span> <span class="n">Atoms</span>
+<span class="kn">import</span> <span class="nn">ase.io</span>
+<span class="kn">from</span> <span class="nn">ase.calculators.aims</span> <span class="k">import</span> <span class="n">Aims</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">glob</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+
+
+<div class="viewcode-block" id="prepare"><a class="viewcode-back" href="../preparation.html#preparation.prepare">[docs]</a><span class="k">class</span> <span class="nc">prepare</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; A base class to initialise and prepare AIMS calculations.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">species_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;AIMS_SPECIES_DIR&quot;</span><span class="p">)</span>
+        <span class="n">cwd</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">species_dir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cwd</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">basis</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pbc</span> <span class="o">==</span> <span class="s2">&quot;2D&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">k_grid</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">k_grid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">k_grid</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">SOC</span> <span class="o">!=</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">SOC</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_calculator</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;BS&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">task</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup_bandpath</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adjust_control</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adjust_cost</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cluster</span> <span class="o">==</span> <span class="s2">&quot;t3000&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_submit_t3000</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cluster</span> <span class="o">==</span> <span class="s2">&quot;taurus&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_submit_taurus</span><span class="p">()</span>
+
+<div class="viewcode-block" id="prepare.setup_calculator"><a class="viewcode-back" href="../preparation.html#preparation.prepare.setup_calculator">[docs]</a>    <span class="k">def</span> <span class="nf">setup_calculator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This function sets up the calculator object of the ASE.</span>
+<span class="sd">        Because certain functions are not implemented yet, it simply</span>
+<span class="sd">        writes out the input files.&quot;&quot;&quot;</span>
+        <span class="n">atoms</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">atoms</span><span class="o">.</span><span class="n">pbc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">atoms</span><span class="o">.</span><span class="n">cell</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">100</span><span class="p">]</span>
+        <span class="n">calc</span> <span class="o">=</span> <span class="n">Aims</span><span class="p">(</span>
+            <span class="n">xc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">xc</span><span class="p">,</span>
+            <span class="n">spin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">spin</span><span class="p">,</span>
+            <span class="n">species_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">species_dir</span><span class="p">,</span>
+            <span class="n">tier</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">tier</span><span class="p">,</span>
+            <span class="n">k_grid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">k_grid</span><span class="p">,</span>
+            <span class="n">relativistic</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;atomic_zora&quot;</span><span class="p">,</span> <span class="s2">&quot;scalar&quot;</span><span class="p">),</span>
+            <span class="n">adjust_scf</span><span class="o">=</span><span class="s2">&quot;once 2&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">atoms</span><span class="o">.</span><span class="n">set_calculator</span><span class="p">(</span><span class="n">calc</span><span class="p">)</span>
+        <span class="n">calc</span><span class="o">.</span><span class="n">prepare_input_files</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="prepare.setup_bandpath"><a class="viewcode-back" href="../preparation.html#preparation.prepare.setup_bandpath">[docs]</a>    <span class="k">def</span> <span class="nf">setup_bandpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This function sets up the band path according to AFLOW conventions</span>
+<span class="sd">        in the AIMS-specific format. &quot;&quot;&quot;</span>
+        <span class="n">atoms</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pbc</span> <span class="o">==</span> <span class="s2">&quot;2D&quot;</span><span class="p">:</span>
+            <span class="n">atoms</span><span class="o">.</span><span class="n">cell</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+        <span class="n">npoints</span> <span class="o">=</span> <span class="mi">31</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_bravais_lattice</span><span class="p">()</span><span class="o">.</span><span class="n">get_special_points</span><span class="p">()</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">char</span>
+            <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">atoms</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_bravais_lattice</span><span class="p">()</span><span class="o">.</span><span class="n">special_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">AFLOW</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">AFLOW</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">path</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="n">AFLOW</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">AFLOW</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">path</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">output_bands</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">AFLOW</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">vec1</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{:.6f}</span><span class="s2"> </span><span class="si">{:.6f}</span><span class="s2"> </span><span class="si">{:.6f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">points</span><span class="p">[</span><span class="n">AFLOW</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+            <span class="n">vec2</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{:.6f}</span><span class="s2"> </span><span class="si">{:.6f}</span><span class="s2"> </span><span class="si">{:.6f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">points</span><span class="p">[</span><span class="n">AFLOW</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]])</span>
+            <span class="n">output_bands</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="s2">&quot;output band </span><span class="si">{vec1}</span><span class="s2">    </span><span class="si">{vec2}</span><span class="s2">  </span><span class="si">{npoints}</span><span class="s2">  </span><span class="si">{label1}</span><span class="s2"> </span><span class="si">{label2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">label1</span><span class="o">=</span><span class="n">AFLOW</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                    <span class="n">label2</span><span class="o">=</span><span class="n">AFLOW</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span>
+                    <span class="n">npoints</span><span class="o">=</span><span class="n">npoints</span><span class="p">,</span>
+                    <span class="n">vec1</span><span class="o">=</span><span class="n">vec1</span><span class="p">,</span>
+                    <span class="n">vec2</span><span class="o">=</span><span class="n">vec2</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_bands</span> <span class="o">=</span> <span class="n">output_bands</span></div>
+
+<div class="viewcode-block" id="prepare.adjust_xc"><a class="viewcode-back" href="../preparation.html#preparation.prepare.adjust_xc">[docs]</a>    <span class="k">def</span> <span class="nf">adjust_xc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;hse06&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;xc                                 hse06 0.11</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;hse_unit        bohr-1</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;exx_band_structure_version        1</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">vdw</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;MBD&quot;</span><span class="p">,</span> <span class="s2">&quot;TS&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">vdw</span> <span class="o">==</span> <span class="s2">&quot;TS&quot;</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;vdw_correction_hirshfeld</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">vdw</span> <span class="o">==</span> <span class="s2">&quot;MBD&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pbc</span> <span class="o">!=</span> <span class="s2">&quot;2D&quot;</span><span class="p">):</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;many_body_dispersion</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">vdw</span> <span class="o">==</span> <span class="s2">&quot;MBD&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pbc</span> <span class="o">==</span> <span class="s2">&quot;2D&quot;</span><span class="p">):</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;many_body dispersion           vacuum=False:False:True</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">line</span></div>
+
+<div class="viewcode-block" id="prepare.adjust_scf"><a class="viewcode-back" href="../preparation.html#preparation.prepare.adjust_scf">[docs]</a>    <span class="k">def</span> <span class="nf">adjust_scf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;### SCF settings </span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;GO&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">task</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;adjust_scf     once        2</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;adjust_scf     always      2</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;# charge_mix_param  0.05</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;# sc_accuracy_eev   1E-3                       # sum of eigenvalues convergence</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;# sc_accuracy_etot  1E-6                       # total energy convergence</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;# sc_accuracy_rho   1E-3                       # electron density convergence</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">line</span></div>
+
+<div class="viewcode-block" id="prepare.adjust_task"><a class="viewcode-back" href="../preparation.html#preparation.prepare.adjust_task">[docs]</a>    <span class="k">def</span> <span class="nf">adjust_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;BS&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">task</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;### band structure section </span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_bands</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="n">band</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;DOS&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">task</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;### DOS section </span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;output atom_proj_dos  -10 0 300 0.05       # Estart Eend n_points broadening</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;dos_kgrid_factors 4 4 4                    # auxiliary k-grid</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;GO&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">task</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;### geometry optimisation section</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;relax_geometry    bfgs    1E-2</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;relax_unit_cell   fixed_angles             # none, full, fixed_angles </span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">line</span></div>
+
+<div class="viewcode-block" id="prepare.adjust_cost"><a class="viewcode-back" href="../preparation.html#preparation.prepare.adjust_cost">[docs]</a>    <span class="k">def</span> <span class="nf">adjust_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cluster</span> <span class="o">==</span> <span class="s2">&quot;taurus&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cost</span> <span class="o">==</span> <span class="s2">&quot;low&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="mi">60</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">ppn</span> <span class="o">=</span> <span class="mi">24</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">walltime</span> <span class="o">=</span> <span class="mi">24</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cost</span> <span class="o">==</span> <span class="s2">&quot;medium&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="mi">126</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">ppn</span> <span class="o">=</span> <span class="mi">24</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="mi">4</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">walltime</span> <span class="o">=</span> <span class="mi">72</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cost</span> <span class="o">==</span> <span class="s2">&quot;high&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="mi">254</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">ppn</span> <span class="o">=</span> <span class="mi">24</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="mi">2</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">walltime</span> <span class="o">=</span> <span class="mi">72</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cluster</span> <span class="o">==</span> <span class="s2">&quot;t3000&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cost</span> <span class="o">==</span> <span class="s2">&quot;low&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="mi">60</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">ppn</span> <span class="o">=</span> <span class="mi">20</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="mi">4</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">walltime</span> <span class="o">=</span> <span class="mi">150</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cost</span> <span class="o">==</span> <span class="s2">&quot;medium&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="mi">128</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">ppn</span> <span class="o">=</span> <span class="mi">20</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="mi">4</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">walltime</span> <span class="o">=</span> <span class="mi">150</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cost</span> <span class="o">==</span> <span class="s2">&quot;high&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="mi">256</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">ppn</span> <span class="o">=</span> <span class="mi">20</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="mi">2</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">walltime</span> <span class="o">=</span> <span class="mi">150</span></div>
+
+<div class="viewcode-block" id="prepare.adjust_control"><a class="viewcode-back" href="../preparation.html#preparation.prepare.adjust_control">[docs]</a>    <span class="k">def</span> <span class="nf">adjust_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This function processes the control.in file to add</span>
+<span class="sd">        comments that are currently not implemented in the ASE.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;control.in&quot;</span><span class="p">,</span> <span class="s2">&quot;r+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">control</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;control.in&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">control</span><span class="p">:</span>
+                <span class="n">write</span> <span class="o">=</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">write</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;xc&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>  <span class="c1"># corrections to the functional</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adjust_xc</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="p">(</span><span class="s2">&quot;spin&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;collinear&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">):</span>
+                        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;#default_initial_moment   0      # only necessary if not specified in geometry.in</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="k">elif</span> <span class="p">(</span><span class="s2">&quot;atomic_zora scalar&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">SOC</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+                        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;include_spin_orbit </span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="k">elif</span> <span class="s2">&quot;adjust_scf&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adjust_scf</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adjust_task</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="prepare.write_submit_t3000"><a class="viewcode-back" href="../preparation.html#preparation.prepare.write_submit_t3000">[docs]</a>    <span class="k">def</span> <span class="nf">write_submit_t3000</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Writes the .sh file to submit on the t3000 via qsub. &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="sd">&quot;&quot;&quot;#! /bin/sh</span>
+<span class="sd">#PBS -N {name}</span>
+<span class="sd">#PBS -l walltime={walltime}:00:00,mem={memory}GB,nodes={nodes}:ppn={ppn}</span>
+<span class="sd">module ()</span>
+<span class="sd">    eval `/usr/bin/modulecmd bash $*`</span>
+<span class="sd">    module load aims</span>
+<span class="sd">export OMP_NUM_THREADS=1</span>
+
+<span class="sd">cd $PBS_O_WORKDIR</span>
+
+<span class="sd">mpirun -np {cpus} bash -c &quot;ulimit -s unlimited &amp;&amp; aims.171221_1.scalapack.mpi.x&quot; &lt; /dev/null &gt; {name}.out</span>
+<span class="sd">                &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">cpus</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nodes</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">ppn</span><span class="p">,</span> <span class="o">**</span><span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="prepare.write_submit_taurus"><a class="viewcode-back" href="../preparation.html#preparation.prepare.write_submit_taurus">[docs]</a>    <span class="k">def</span> <span class="nf">write_submit_taurus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Writes the .sh file to submit on the taurus via sbatch. &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="sd">&quot;&quot;&quot;#!/bin/bash</span>
+<span class="sd">#SBATCH --time={walltime}:00:00 \t\t# walltime in h</span>
+<span class="sd">#SBATCH --nodes={nodes} \t\t\t# number of nodes</span>
+<span class="sd">#SBATCH --ntasks={cpus} \t\t\t# number of cpus</span>
+<span class="sd">#SBATCH --mem={mem}MB \t\t\t# memory per node</span>
+<span class="sd">#SBATCH -J {name} \t\t\t# job name</span>
+<span class="sd">#SBATCH --error={name}.err \t\t# error output</span>
+<span class="sd">#SBATCH --output={name}.out \t\t# output</span>
+
+<span class="sd">module use /projects/m_chemie/privatemodules/</span>
+<span class="sd">module add aims/aims_2155</span>
+
+<span class="sd">COMPUTE_DIR=aims_$SLURM_JOB_ID</span>
+<span class="sd">ws_allocate -F ssd $COMPUTE_DIR 7</span>
+<span class="sd">export AIMS_SCRDIR=/ssd/ws/$USER-$COMPUTE_DIR</span>
+
+<span class="sd">export OMP_NUM_THREADS=1</span>
+<span class="sd">srun aims.191127.scalapack.mpi.x &gt; {name}.out</span>
+<span class="sd">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">cpus</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">nodes</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">ppn</span><span class="p">,</span>
+                    <span class="n">mem</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">memory</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">ppn</span><span class="p">)),</span>
+                    <span class="o">**</span><span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Roman Kempt
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

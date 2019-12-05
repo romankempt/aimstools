@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>dos module &mdash; AIMS_tools 0.03 documentation</title>
+  <title>dos module &mdash; AIMS_tools 0.04 documentation</title>
   
 
   
@@ -89,6 +89,8 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">dos module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hirshfeld.html">hirshfeld module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="multiplots.html">multiplots module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="postprocessing.html">postprocessing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="preparation.html">preparation module</a></li>
 </ul>
 </li>
 </ul>
@@ -164,8 +166,8 @@
 <dl class="class">
 <dt id="dos.DOS">
 <em class="property">class </em><code class="sig-prename descclassname">dos.</code><code class="sig-name descname">DOS</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">spin=None</em>, <em class="sig-param">shift_to='middle'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dos.html#DOS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dos.DOS" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Density-of-states object.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">AIMS_tools.postprocessing.postprocess</span></code></p>
+<p>Density-of-states object. Inherits from postprocess.</p>
 <p>Contains all information about a DOS instance, such as the DOS per atom.</p>
 <div class="admonition-example admonition">
 <p class="admonition-title">Example</p>
@@ -190,24 +192,10 @@
 </dd>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>path</strong> (<em>pathlib object</em>) – Directory of outputfile.</p></li>
-<li><p><strong>active_SOC</strong> (<em>bool</em>) – If spin-orbit coupling was included in the control.in file.</p></li>
-<li><p><strong>DOS_type</strong> (<em>str</em>) – Type of DOS calculation, typicaly atom_proj_dos.</p></li>
-<li><p><strong>spin</strong> (<em>int</em>) – Spin channel.</p></li>
 <li><p><strong>shift_type</strong> (<em>str</em>) – Argument of shift_to.</p></li>
-<li><p><strong>ksections</strong> (<em>dict</em>) – Dictionary of path segments and corresponding band file.</p></li>
-<li><p><strong>bandfiles</strong> (<em>list</em>) – List of path objects to band files.</p></li>
-<li><p><strong>kpath</strong> (<em>list</em>) – K-path labels following AFLOW conventions.</p></li>
-<li><p><strong>kvectors</strong> (<em>dict</em>) – Dictionary of k-point labels and fractional coordinates.</p></li>
-<li><p><strong>klabel_coords</strong> (<em>list</em>) – List of x-positions of the k-path labels.</p></li>
-<li><p><strong>VBM</strong> (<em>float</em>) – Valence band maximum energy in eV.</p></li>
-<li><p><strong>CBM</strong> (<em>float</em>) – Conduction band minimum energy in eV.</p></li>
-<li><p><strong>fermi_level</strong> (<em>float</em>) – Fermi level energy value in eV.</p></li>
 <li><p><strong>band_gap</strong> (<em>float</em>) – Band gap energy in eV.</p></li>
-<li><p><strong>species</strong> (<em>dict</em>) – Dictionary of atom labels and counts.</p></li>
 <li><p><strong>dos_per_atom</strong> (<em>dict</em>) – Dictionary of atom labels and density of states as numpy array of energy vs. DOS.</p></li>
 <li><p><strong>total_dos</strong> (<em>numpy array</em>) – Array of energy vs. DOS.</p></li>
-<li><p><strong>color_dict</strong> (<em>dict</em>) – Dictionary of atom labels and JMOL color tuples.</p></li>
 </ul>
 </dd>
 </dl>

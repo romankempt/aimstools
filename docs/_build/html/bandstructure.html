@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>bandstructure module &mdash; AIMS_tools 0.03 documentation</title>
+  <title>bandstructure module &mdash; AIMS_tools 0.04 documentation</title>
   
 
   
@@ -89,6 +89,8 @@
 <li class="toctree-l2"><a class="reference internal" href="dos.html">dos module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hirshfeld.html">hirshfeld module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="multiplots.html">multiplots module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="postprocessing.html">postprocessing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="preparation.html">preparation module</a></li>
 </ul>
 </li>
 </ul>
@@ -164,8 +166,8 @@
 <dl class="class">
 <dt id="bandstructure.bandstructure">
 <em class="property">class </em><code class="sig-prename descclassname">bandstructure.</code><code class="sig-name descname">bandstructure</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">spin=None</em>, <em class="sig-param">shift_to='middle'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#bandstructure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.bandstructure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Band structure object.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">AIMS_tools.postprocessing.postprocess</span></code></p>
+<p>Band structure object. Inherits from postprocess.</p>
 <p>Contains all information about a single band structure instance, such as the energy spectrum, the band gap, Fermi level etc.</p>
 <div class="admonition-example admonition">
 <p class="admonition-title">Example</p>
@@ -190,30 +192,17 @@
 </dd>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>path</strong> (<em>pathlib object</em>) – Directory of outputfile.</p></li>
-<li><p><strong>active_SOC</strong> (<em>bool</em>) – If spin-orbit coupling was included in the control.in file.</p></li>
-<li><p><strong>active_GW</strong> (<em>bool</em>) – If GW was included in the control.in file.</p></li>
 <li><p><strong>shift_type</strong> (<em>str</em>) – Argument of shift_to.</p></li>
-<li><p><strong>spin</strong> (<em>int</em>) – Spin channel.</p></li>
 <li><p><strong>ksections</strong> (<em>dict</em>) – Dictionary of path segments and corresponding band file.</p></li>
 <li><p><strong>bandsegments</strong> (<em>dict</em>) – Dictionary of path segments and corresponding eigenvalues.</p></li>
 <li><p><strong>kpath</strong> (<em>list</em>) – K-path labels following AFLOW conventions.</p></li>
 <li><p><strong>kvectors</strong> (<em>dict</em>) – Dictionary of k-point labels and fractional coordinates.</p></li>
 <li><p><strong>klabel_coords</strong> (<em>list</em>) – List of x-positions of the k-path labels.</p></li>
-<li><p><strong>fermi_level</strong> (<em>float</em>) – Fermi level energy value in eV.</p></li>
 <li><p><strong>band_gap</strong> (<em>float</em>) – Band gap energy in eV.</p></li>
-<li><p><strong>smallest_direct_gap</strong> (<em>str</em>) – Smallest direct gap from outputfile.</p></li>
 <li><p><strong>spectrum</strong> (<em>numpy array</em>) – Array of k-values and eigenvalues.</p></li>
-<li><p><strong>atoms</strong> (<em>dict</em>) – Dictionary of atom index and label.</p></li>
-<li><p><strong>cell</strong> (<em>Atoms</em>) – ASE atoms object of the geometry.</p></li>
-<li><p><strong>rec_cell_lengths</strong> (<em>numpy array</em>) – Reciprocal lattice vector lengths in 2 pi/bohr.</p></li>
 </ul>
 </dd>
 </dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Input coordinates are assumed to be in Angström. Units are converted to atomic units.</p>
-</div>
 <dl class="method">
 <dt id="bandstructure.bandstructure.custom_path">
 <code class="sig-name descname">custom_path</code><span class="sig-paren">(</span><em class="sig-param">custompath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#bandstructure.custom_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.bandstructure.custom_path" title="Permalink to this definition">¶</a></dt>

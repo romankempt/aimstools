@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Preparing AIMS calculations &mdash; AIMS_tools 0.03 documentation</title>
+  <title>Preparing AIMS calculations &mdash; AIMS_tools 0.04 documentation</title>
   
 
   
@@ -156,7 +156,7 @@ Therefore, it sets up an ASE calculator object. In the current version of ASE (3
 To circumvene this limitation, the input files are generated and modified.</p>
 <p>The input is any file supported by the ASE containing (periodic) coordinate informations, e.g., xyz, cif or POSCAR.</p>
 <p>Simply run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python prepare_aims.py geometry_inputfile
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python prepare_aims.py geometry_inputfile <span class="o">[</span>options<span class="o">]</span>
 </pre></div>
 </div>
 <p>The script has many different options. Show these with:</p>
@@ -164,9 +164,9 @@ To circumvene this limitation, the input files are generated and modified.</p>
 </pre></div>
 </div>
 <p>This will print out:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: prepare_aims.py <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>-cluster CLUSTER<span class="o">]</span> <span class="o">[</span>-m MEMORY<span class="o">]</span> <span class="o">[</span>-n NODES<span class="o">]</span>
-                       <span class="o">[</span>-ppn PPN<span class="o">]</span> <span class="o">[</span>-wt WALLTIME<span class="o">]</span> <span class="o">[</span>-xc XC<span class="o">]</span> <span class="o">[</span>-spin SPIN<span class="o">]</span>
-                       <span class="o">[</span>-tier TIER<span class="o">]</span> <span class="o">[</span>-basis BASIS<span class="o">]</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: prepare_aims.py <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>-cluster CLUSTER<span class="o">]</span> <span class="o">[</span>-cost COST<span class="o">]</span> <span class="o">[</span>-m MEMORY<span class="o">]</span>
+                       <span class="o">[</span>-n NODES<span class="o">]</span> <span class="o">[</span>-ppn PPN<span class="o">]</span> <span class="o">[</span>-wt WALLTIME<span class="o">]</span> <span class="o">[</span>-xc XC<span class="o">]</span>
+                       <span class="o">[</span>-spin SPIN<span class="o">]</span> <span class="o">[</span>-tier TIER<span class="o">]</span> <span class="o">[</span>-basis BASIS<span class="o">]</span>
                        <span class="o">[</span>-k_grid K_GRID <span class="o">[</span>K_GRID ...<span class="o">]]</span> <span class="o">[</span>-SOC SOC<span class="o">]</span>
                        <span class="o">[</span>-task TASK <span class="o">[</span>TASK ...<span class="o">]]</span> <span class="o">[</span>-pbc PBC<span class="o">]</span> <span class="o">[</span>-vdw VDW<span class="o">]</span>
                        geometry
@@ -176,7 +176,9 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this <span class="nb">help</span> message and <span class="nb">exit</span>
-  -cluster CLUSTER      t3000 or taurus <span class="o">(</span>default: t3000<span class="o">)</span>
+  -cluster CLUSTER      t3000 or taurus
+  -cost COST            low, medium or high <span class="o">(</span>automatically adjusts memory and
+                        nodes<span class="o">)</span>
   -m MEMORY, --memory MEMORY
                         memory in GB <span class="o">(</span>default: <span class="m">63</span><span class="o">)</span>
   -n NODES, --nodes NODES
@@ -209,7 +211,7 @@ Don’t forget that every AIMS calculation needs to be in its own separate direc
 </pre></div>
 </div>
 <p>An example would look like this:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python prepare_aims.py MoS2.cif -cluster t3000 -m <span class="m">63</span> -n <span class="m">4</span> -wt <span class="m">72</span> -xc hse06 -tier <span class="m">2</span> -basis tight -k_grid <span class="m">6</span> <span class="m">6</span> <span class="m">1</span> -pbc 2D -vdw MBD -SOC True -task BS DOS
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python prepare_aims.py MoS2.cif -cluster taurus -cost low -xc hse06 -basis tight -tier <span class="m">2</span> -pbc 2D -vdw MBD -SOC True -task BS DOS
 </pre></div>
 </div>
 <p>This will set up a band structure calculation following AFLOW conventions for the t3000 cluster with spin-orbit coupling and atom-projected densities of states on a 6x6x1 k-grid.

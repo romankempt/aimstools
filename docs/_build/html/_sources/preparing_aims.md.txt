@@ -8,7 +8,7 @@ The input is any file supported by the ASE containing (periodic) coordinate info
 
 Simply run:
 ```bash
-python prepare_aims.py geometry_inputfile
+python prepare_aims.py geometry_inputfile [options]
 ```
 
 The script has many different options. Show these with:
@@ -18,9 +18,9 @@ python prepare_aims.py --help
 
 This will print out:
 ```bash
-usage: prepare_aims.py [-h] [-cluster CLUSTER] [-m MEMORY] [-n NODES]
-                       [-ppn PPN] [-wt WALLTIME] [-xc XC] [-spin SPIN]
-                       [-tier TIER] [-basis BASIS]
+usage: prepare_aims.py [-h] [-cluster CLUSTER] [-cost COST] [-m MEMORY]
+                       [-n NODES] [-ppn PPN] [-wt WALLTIME] [-xc XC]
+                       [-spin SPIN] [-tier TIER] [-basis BASIS]
                        [-k_grid K_GRID [K_GRID ...]] [-SOC SOC]
                        [-task TASK [TASK ...]] [-pbc PBC] [-vdw VDW]
                        geometry
@@ -30,7 +30,9 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -cluster CLUSTER      t3000 or taurus (default: t3000)
+  -cluster CLUSTER      t3000 or taurus
+  -cost COST            low, medium or high (automatically adjusts memory and
+                        nodes)
   -m MEMORY, --memory MEMORY
                         memory in GB (default: 63)
   -n NODES, --nodes NODES
@@ -66,7 +68,7 @@ for d in *.xyz; do (mkdir ${d%.xyz} && mv $d ${d%.xyz}/); done
 
 An example would look like this:
 ```bash
-python prepare_aims.py MoS2.cif -cluster t3000 -m 63 -n 4 -wt 72 -xc hse06 -tier 2 -basis tight -k_grid 6 6 1 -pbc 2D -vdw MBD -SOC True -task BS DOS
+python prepare_aims.py MoS2.cif -cluster taurus -cost low -xc hse06 -basis tight -tier 2 -pbc 2D -vdw MBD -SOC True -task BS DOS
 ```
 
 This will set up a band structure calculation following AFLOW conventions for the t3000 cluster with spin-orbit coupling and atom-projected densities of states on a 6x6x1 k-grid.

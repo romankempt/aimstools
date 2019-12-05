@@ -8,3 +8,5 @@ AIMS_tools
    dos
    hirshfeld
    multiplots
+   postprocessing
+   preparation
