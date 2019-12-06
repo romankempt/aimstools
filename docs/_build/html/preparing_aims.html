@@ -151,20 +151,21 @@
             
   <div class="section" id="preparing-aims-calculations">
 <h1>Preparing AIMS calculations<a class="headerlink" href="#preparing-aims-calculations" title="Permalink to this headline">¶</a></h1>
-<p>The <strong>prepare_aims.py</strong> script contains simply functionalities to set up the files needed for different tasks.
+<p>The <strong>preparation</strong> module contains simple functionalities to set up the files needed for different tasks. This module is automatically called by the <strong>prepare_aims.py</strong> script.
 Therefore, it sets up an ASE calculator object. In the current version of ASE (3.18), only single-points and forces are implemented for AIMS.
-To circumvene this limitation, the input files are generated and modified.</p>
-<p>The input is any file supported by the ASE containing (periodic) coordinate informations, e.g., xyz, cif or POSCAR.</p>
+To circumvene this limitation, the input files are generated and modified.
+The input is any file supported by the ASE containing (periodic) coordinate informations, e.g., xyz, cif or POSCAR.</p>
+<p>If installed correctly, the prepare_aims.py script is added to your environment/bin folder and can be directly called from the command line:</p>
 <p>Simply run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python prepare_aims.py geometry_inputfile <span class="o">[</span>options<span class="o">]</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prepare_aims geometry_inputfile <span class="o">[</span>options<span class="o">]</span>
 </pre></div>
 </div>
 <p>The script has many different options. Show these with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python prepare_aims.py --help
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prepare_aims --help
 </pre></div>
 </div>
 <p>This will print out:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: prepare_aims.py <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>-cluster CLUSTER<span class="o">]</span> <span class="o">[</span>-cost COST<span class="o">]</span> <span class="o">[</span>-m MEMORY<span class="o">]</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: prepare_aims <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>-cluster CLUSTER<span class="o">]</span> <span class="o">[</span>-cost COST<span class="o">]</span> <span class="o">[</span>-m MEMORY<span class="o">]</span>
                        <span class="o">[</span>-n NODES<span class="o">]</span> <span class="o">[</span>-ppn PPN<span class="o">]</span> <span class="o">[</span>-wt WALLTIME<span class="o">]</span> <span class="o">[</span>-xc XC<span class="o">]</span>
                        <span class="o">[</span>-spin SPIN<span class="o">]</span> <span class="o">[</span>-tier TIER<span class="o">]</span> <span class="o">[</span>-basis BASIS<span class="o">]</span>
                        <span class="o">[</span>-k_grid K_GRID <span class="o">[</span>K_GRID ...<span class="o">]]</span> <span class="o">[</span>-SOC SOC<span class="o">]</span>
@@ -211,7 +212,7 @@ Don’t forget that every AIMS calculation needs to be in its own separate direc
 </pre></div>
 </div>
 <p>An example would look like this:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python prepare_aims.py MoS2.cif -cluster taurus -cost low -xc hse06 -basis tight -tier <span class="m">2</span> -pbc 2D -vdw MBD -SOC True -task BS DOS
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prepare_aims MoS2.cif -cluster taurus -cost low -xc hse06 -basis tight -tier <span class="m">2</span> -pbc 2D -vdw MBD -SOC True -task BS DOS
 </pre></div>
 </div>
 <p>This will set up a band structure calculation following AFLOW conventions for the t3000 cluster with spin-orbit coupling and atom-projected densities of states on a 6x6x1 k-grid.

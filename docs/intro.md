@@ -16,11 +16,10 @@ The plotting modules are designed for combinatorial plotting with a lot of flexi
 I recommend using Anaconda to manage package dependencies and updates. See [here](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html).
 For simplicity, you can download my [ase-env](https://anaconda.org/romankempt/ase-env/files) from the anaconda cloud. This should contain all necessary libraries and a couple more (windows 10 OS).
 
-Simply download the zip from github and unpack it. You may need to delete the old installation first, because the setup.py script generally does not overwrite previous installations.
-Then run:
+Simply download the zip from github. Then run:
 
 ```bash
-python setup.py install
+pip install AIMS_tools-master.zip
 ```
 
 Set the path to the aims species (basis sets) in your environment variables (e.g., in the .bashrc):
