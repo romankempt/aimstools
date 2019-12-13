@@ -9,17 +9,17 @@ If installed correctly, the prepare_aims.py script is added to your environment/
 
 Simply run:
 ```bash
-prepare_aims geometry_inputfile [options]
+prepare_aims.py geometry_inputfile [options]
 ```
 
 The script has many different options. Show these with:
 ```bash
-prepare_aims --help
+prepare_aims.py --help
 ```
 
 This will print out:
 ```bash
-usage: prepare_aims [-h] [-cluster CLUSTER] [-cost COST] [-m MEMORY]
+usage: prepare_aims.py [-h] [-cluster CLUSTER] [-cost COST] [-m MEMORY]
                        [-n NODES] [-ppn PPN] [-wt WALLTIME] [-xc XC]
                        [-spin SPIN] [-tier TIER] [-basis BASIS]
                        [-k_grid K_GRID [K_GRID ...]] [-SOC SOC]
@@ -69,13 +69,12 @@ for d in *.xyz; do (mkdir ${d%.xyz} && mv $d ${d%.xyz}/); done
 
 An example would look like this:
 ```bash
-prepare_aims MoS2.cif -cluster taurus -cost low -xc hse06 -basis tight -tier 2 -pbc 2D -vdw MBD -SOC True -task BS DOS
+prepare_aims.py MoS2.cif -cluster taurus -cost low -xc hse06 -basis tight -tier 2 -pbc 2D -vdw MBD -SOC True -task BS DOS
 ```
 
 This will set up a band structure calculation following AFLOW conventions for the t3000 cluster with spin-orbit coupling and atom-projected densities of states on a 6x6x1 k-grid.
 It employs the hse06 functional and adds the necessary options for functionals including exact HF exchange in AIMS.
-Because .cif files are always three-dimensional, the -pbc 2D option is used to remove the third lattice vector for setting up the band structure path, but not for the geometry.
-Note that AIMS does not support 2D boundary conditions, but simply uses a large lattice vector in the z-direction (for example 100 Angström).
-This option fails for systems where the c-axis is not orthogonal to a and b, since then the alpha and beta angle need to be removed first.
+
+Because .cif files are always three-dimensional, the -pbc 2D option is used to remove all z-components from the lattice basis. Note that AIMS does not support 2D boundary conditions, but simply uses a large lattice vector in the z-direction (for example 100 Angström).
 
 The job can then simply be submitted via qsub on the *.sh script (t3000) or sbatch on the *.sh script (taurus). See taurus node limitations [here](https://doc.zih.tu-dresden.de/hpc-wiki/bin/view/Compendium/SystemTaurus).

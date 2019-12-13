@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>preparation &mdash; AIMS_tools 0.04 documentation</title>
+  <title>preparation &mdash; AIMS_tools 0.05 documentation</title>
   
 
   
@@ -25,6 +25,7 @@
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
         <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -78,11 +79,22 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption"><span class="caption-text">Introduction:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../intro.html">AIMS_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../preparing_aims.html">Preparing AIMS calculations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../modules.html">AIMS_tools</a></li>
+</ul>
+<p class="caption"><span class="caption-text">File Handling:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../structuretools.html">structuretools module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preparation.html">preparation module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing.html">postprocessing module</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Analysis and Plotting:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../bandstructure.html">bandstructure module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dos.html">dos module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hirshfeld.html">hirshfeld module</a></li>
 </ul>
 
             
@@ -147,11 +159,13 @@
             
   <h1>Source code for preparation</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">ase</span> <span class="k">import</span> <span class="n">Atoms</span>
-<span class="kn">import</span> <span class="nn">ase.io</span>
+<span class="kn">import</span> <span class="nn">ase.io</span><span class="o">,</span> <span class="nn">ase.cell</span>
 <span class="kn">from</span> <span class="nn">ase.calculators.aims</span> <span class="k">import</span> <span class="n">Aims</span>
 <span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">glob</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">AIMS_tools.structuretools</span> <span class="k">import</span> <span class="n">structure</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
 <div class="viewcode-block" id="prepare"><a class="viewcode-back" href="../preparation.html#preparation.prepare">[docs]</a><span class="k">class</span> <span class="nc">prepare</span><span class="p">:</span>
@@ -162,8 +176,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">species_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;AIMS_SPECIES_DIR&quot;</span><span class="p">)</span>
         <span class="n">cwd</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">species_dir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cwd</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">basis</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">structure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pbc</span> <span class="o">==</span> <span class="s2">&quot;2D&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">k_grid</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">k_grid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">k_grid</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">enforce_2d</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">SOC</span> <span class="o">!=</span> <span class="kc">False</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">SOC</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup_calculator</span><span class="p">()</span>
@@ -180,9 +196,6 @@
         <span class="sd">&quot;&quot;&quot; This function sets up the calculator object of the ASE.</span>
 <span class="sd">        Because certain functions are not implemented yet, it simply</span>
 <span class="sd">        writes out the input files.&quot;&quot;&quot;</span>
-        <span class="n">atoms</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">atoms</span><span class="o">.</span><span class="n">pbc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
-            <span class="n">atoms</span><span class="o">.</span><span class="n">cell</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">100</span><span class="p">]</span>
         <span class="n">calc</span> <span class="o">=</span> <span class="n">Aims</span><span class="p">(</span>
             <span class="n">xc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">xc</span><span class="p">,</span>
             <span class="n">spin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">spin</span><span class="p">,</span>
@@ -192,21 +205,24 @@
             <span class="n">relativistic</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;atomic_zora&quot;</span><span class="p">,</span> <span class="s2">&quot;scalar&quot;</span><span class="p">),</span>
             <span class="n">adjust_scf</span><span class="o">=</span><span class="s2">&quot;once 2&quot;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">atoms</span><span class="o">.</span><span class="n">set_calculator</span><span class="p">(</span><span class="n">calc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">set_calculator</span><span class="p">(</span><span class="n">calc</span><span class="p">)</span>
         <span class="n">calc</span><span class="o">.</span><span class="n">prepare_input_files</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="prepare.setup_bandpath"><a class="viewcode-back" href="../preparation.html#preparation.prepare.setup_bandpath">[docs]</a>    <span class="k">def</span> <span class="nf">setup_bandpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; This function sets up the band path according to AFLOW conventions</span>
-<span class="sd">        in the AIMS-specific format. &quot;&quot;&quot;</span>
-        <span class="n">atoms</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pbc</span> <span class="o">==</span> <span class="s2">&quot;2D&quot;</span><span class="p">:</span>
-            <span class="n">atoms</span><span class="o">.</span><span class="n">cell</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+<span class="sd">        in the AIMS-specific format.</span>
+<span class="sd">        </span>
+<span class="sd">        Note:</span>
+<span class="sd">            The ase.cell.lattice.get_bravais_lattice() method apparently does not like Gamma-angles</span>
+<span class="sd">            that are off 90 or 120 degrees in case of 2D systems. </span>
+<span class="sd">            It then aborts with the error message &quot;This transformation</span>
+<span class="sd">            changes the cell volume.&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">atoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">atoms</span>
+        <span class="n">lattice</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_bravais_lattice</span><span class="p">(</span><span class="n">pbc</span><span class="o">=</span><span class="n">atoms</span><span class="o">.</span><span class="n">pbc</span><span class="p">)</span>
         <span class="n">npoints</span> <span class="o">=</span> <span class="mi">31</span>
-        <span class="n">points</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_bravais_lattice</span><span class="p">()</span><span class="o">.</span><span class="n">get_special_points</span><span class="p">()</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">char</span>
-            <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">atoms</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_bravais_lattice</span><span class="p">()</span><span class="o">.</span><span class="n">special_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="p">]</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_special_points</span><span class="p">()</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="p">[</span><span class="n">char</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">lattice</span><span class="o">.</span><span class="n">special_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)]</span>
         <span class="n">AFLOW</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -233,7 +249,7 @@
             <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">output_bands</span> <span class="o">=</span> <span class="n">output_bands</span></div>
 
-<div class="viewcode-block" id="prepare.adjust_xc"><a class="viewcode-back" href="../preparation.html#preparation.prepare.adjust_xc">[docs]</a>    <span class="k">def</span> <span class="nf">adjust_xc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__adjust_xc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
         <span class="k">if</span> <span class="s2">&quot;hse06&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
             <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;xc                                 hse06 0.11</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;hse_unit        bohr-1</span><span class="se">\n</span><span class="s2">&quot;</span>
@@ -245,9 +261,9 @@
                 <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;many_body_dispersion</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">vdw</span> <span class="o">==</span> <span class="s2">&quot;MBD&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pbc</span> <span class="o">==</span> <span class="s2">&quot;2D&quot;</span><span class="p">):</span>
                 <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;many_body dispersion           vacuum=False:False:True</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="k">return</span> <span class="n">line</span></div>
+        <span class="k">return</span> <span class="n">line</span>
 
-<div class="viewcode-block" id="prepare.adjust_scf"><a class="viewcode-back" href="../preparation.html#preparation.prepare.adjust_scf">[docs]</a>    <span class="k">def</span> <span class="nf">adjust_scf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__adjust_scf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
         <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;### SCF settings </span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;GO&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">task</span><span class="p">:</span>
             <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;adjust_scf     once        2</span><span class="se">\n</span><span class="s2">&quot;</span>
@@ -257,9 +273,9 @@
         <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;# sc_accuracy_eev   1E-3                       # sum of eigenvalues convergence</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;# sc_accuracy_etot  1E-6                       # total energy convergence</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;# sc_accuracy_rho   1E-3                       # electron density convergence</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="k">return</span> <span class="n">line</span></div>
+        <span class="k">return</span> <span class="n">line</span>
 
-<div class="viewcode-block" id="prepare.adjust_task"><a class="viewcode-back" href="../preparation.html#preparation.prepare.adjust_task">[docs]</a>    <span class="k">def</span> <span class="nf">adjust_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__adjust_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
         <span class="k">if</span> <span class="s2">&quot;BS&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">task</span><span class="p">:</span>
             <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;### band structure section </span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_bands</span><span class="p">:</span>
@@ -272,7 +288,7 @@
             <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;### geometry optimisation section</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;relax_geometry    bfgs    1E-2</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;relax_unit_cell   fixed_angles             # none, full, fixed_angles </span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="k">return</span> <span class="n">line</span></div>
+        <span class="k">return</span> <span class="n">line</span>
 
 <div class="viewcode-block" id="prepare.adjust_cost"><a class="viewcode-back" href="../preparation.html#preparation.prepare.adjust_cost">[docs]</a>    <span class="k">def</span> <span class="nf">adjust_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cluster</span> <span class="o">==</span> <span class="s2">&quot;taurus&quot;</span><span class="p">:</span>
@@ -318,14 +334,14 @@
                 <span class="n">write</span> <span class="o">=</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">True</span>
                 <span class="k">if</span> <span class="n">write</span><span class="p">:</span>
                     <span class="k">if</span> <span class="s2">&quot;xc&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>  <span class="c1"># corrections to the functional</span>
-                        <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adjust_xc</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__adjust_xc</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
                     <span class="k">elif</span> <span class="p">(</span><span class="s2">&quot;spin&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;collinear&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">):</span>
                         <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;#default_initial_moment   0      # only necessary if not specified in geometry.in</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="k">elif</span> <span class="p">(</span><span class="s2">&quot;atomic_zora scalar&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">SOC</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
                         <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;include_spin_orbit </span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="k">elif</span> <span class="s2">&quot;adjust_scf&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-                        <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adjust_scf</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-                        <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adjust_task</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__adjust_scf</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__adjust_task</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
                 <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="prepare.write_submit_t3000"><a class="viewcode-back" href="../preparation.html#preparation.prepare.write_submit_t3000">[docs]</a>    <span class="k">def</span> <span class="nf">write_submit_t3000</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -358,10 +374,10 @@
 <span class="sd">#SBATCH --time={walltime}:00:00 \t\t# walltime in h</span>
 <span class="sd">#SBATCH --nodes={nodes} \t\t\t# number of nodes</span>
 <span class="sd">#SBATCH --ntasks={cpus} \t\t\t# number of cpus</span>
-<span class="sd">#SBATCH --mem={mem}MB \t\t\t# memory per node</span>
+<span class="sd">#SBATCH --mem-per-cpu={mem}MB \t\t\t# memory per node per cpu</span>
 <span class="sd">#SBATCH -J {name} \t\t\t# job name</span>
-<span class="sd">#SBATCH --error={name}.err \t\t# error output</span>
-<span class="sd">#SBATCH --output={name}.out \t\t# output</span>
+<span class="sd">#SBATCH --error=slurm.err \t\t# error output</span>
+<span class="sd">#SBATCH --output=slurm.out \t\t# output</span>
 
 <span class="sd">module use /projects/m_chemie/privatemodules/</span>
 <span class="sd">module add aims/aims_2155</span>

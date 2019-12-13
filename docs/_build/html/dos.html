@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>dos module &mdash; AIMS_tools 0.04 documentation</title>
+  <title>dos module &mdash; AIMS_tools 0.05 documentation</title>
   
 
   
@@ -25,6 +25,7 @@
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
         <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -80,19 +81,22 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
+              <p class="caption"><span class="caption-text">Introduction:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">AIMS_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preparing_aims.html">Preparing AIMS calculations</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">AIMS_tools</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="bandstructure.html">bandstructure module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">dos module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hirshfeld.html">hirshfeld module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="multiplots.html">multiplots module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="postprocessing.html">postprocessing module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="preparation.html">preparation module</a></li>
 </ul>
-</li>
+<p class="caption"><span class="caption-text">File Handling:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structuretools.html">structuretools module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preparation.html">preparation module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing.html">postprocessing module</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Analysis and Plotting:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="bandstructure.html">bandstructure module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">dos module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hirshfeld.html">hirshfeld module</a></li>
 </ul>
 
             
@@ -138,8 +142,6 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-          <li><a href="modules.html">AIMS_tools</a> &raquo;</li>
-        
       <li>dos module</li>
     
     
@@ -184,17 +186,17 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>outputfile</strong> (<em>str</em>) – Path to outputfile.</p></li>
-<li><p><strong>get_SOC</strong> (<em>bool</em>) – Retrieve DOS with or without spin-orbit coupling (True/False), if calculated.</p></li>
-<li><p><strong>spin</strong> (<em>int</em>) – Retrieve spin channel 1 or 2. Defaults to None (spin-restricted) or 1 (collinear).</p></li>
-<li><p><strong>shift_to</strong> (<em>str</em>) – Shifts Fermi level. Options are None (default for metallic systems), “middle” for middle of band gap, and “VBM” for valence band maximum.</p></li>
+<li><p><strong>outputfile</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Path to outputfile.</p></li>
+<li><p><strong>get_SOC</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Retrieve DOS with or without spin-orbit coupling (True/False), if calculated.</p></li>
+<li><p><strong>spin</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Retrieve spin channel 1 or 2. Defaults to None (spin-restricted) or 1 (collinear).</p></li>
+<li><p><strong>shift_to</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Shifts Fermi level. Options are None (default for metallic systems), “middle” for middle of band gap, and “VBM” for valence band maximum.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>shift_type</strong> (<em>str</em>) – Argument of shift_to.</p></li>
-<li><p><strong>band_gap</strong> (<em>float</em>) – Band gap energy in eV.</p></li>
-<li><p><strong>dos_per_atom</strong> (<em>dict</em>) – Dictionary of atom labels and density of states as numpy array of energy vs. DOS.</p></li>
+<li><p><strong>shift_type</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Argument of shift_to.</p></li>
+<li><p><strong>band_gap</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Band gap energy in eV.</p></li>
+<li><p><strong>dos_per_atom</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Dictionary of atom labels and density of states as numpy array of energy vs. DOS.</p></li>
 <li><p><strong>total_dos</strong> (<em>numpy array</em>) – Array of energy vs. DOS.</p></li>
 </ul>
 </dd>
@@ -212,7 +214,7 @@
 <p>Shares attributes with the plot_single_atomic_dos() method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>**kwargs</strong> (<em>dict</em>) – Keyword arguments are passed to plot_single_atomic_dos() method.</p>
+<dd class="field-odd"><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Keyword arguments are passed to plot_single_atomic_dos() method.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><em>axes</em> – matplotlib axes object</p>
@@ -227,15 +229,15 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>atom</strong> (<em>str</em>) – Species label.</p></li>
-<li><p><strong>color</strong> (<em>str</em>) – Color for plotting.</p></li>
-<li><p><strong>orbital</strong> (<em>int</em>) – None –&gt; total DOS; 0 –&gt; s, 1 –&gt; p, 2 –&gt; d, 3 –&gt; f etc.</p></li>
+<li><p><strong>atom</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Species label.</p></li>
+<li><p><strong>color</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Color for plotting.</p></li>
+<li><p><strong>orbital</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – None –&gt; total DOS; 0 –&gt; s, 1 –&gt; p, 2 –&gt; d, 3 –&gt; f etc.</p></li>
 <li><p><strong>fig</strong> (<em>matplotlib figure</em>) – Figure to draw the plot on.</p></li>
 <li><p><strong>axes</strong> (<em>matplotlib axes</em>) – Axes to draw the plot on.</p></li>
-<li><p><strong>var_energy_limits</strong> (<em>int</em>) – Variable energy range above and below the band gap to show.</p></li>
-<li><p><strong>fix_energy_limits</strong> (<em>list</em>) – List of lower and upper energy limit to show.</p></li>
-<li><p><strong>fill</strong> (<em>str</em>) – Supported fill methods are None, “gradient”, or “constant”. Gradient is still a bit wonky.</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Passed to matplotlib plotting function.</p></li>
+<li><p><strong>var_energy_limits</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Variable energy range above and below the band gap to show.</p></li>
+<li><p><strong>fix_energy_limits</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – List of lower and upper energy limit to show.</p></li>
+<li><p><strong>fill</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Supported fill methods are None, “gradient”, or “constant”. Gradient is still a bit wonky.</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Passed to matplotlib plotting function.</p></li>
 </ul>
 </dd>
 </dl>

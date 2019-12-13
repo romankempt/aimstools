@@ -1,9 +1,11 @@
 from ase import Atoms
-import ase.io
+import ase.io, ase.cell
 from ase.calculators.aims import Aims
 import argparse
 from pathlib import Path as Path
 import glob, sys, os
+from AIMS_tools.structuretools import structure
+import numpy as np
 
 
 class prepare:
@@ -14,8 +16,10 @@ class prepare:
         self.species_dir = os.getenv("AIMS_SPECIES_DIR")
         cwd = Path.cwd()
         self.species_dir = str(cwd.joinpath(Path(self.species_dir, self.args.basis)))
+        self.structure = structure(self.args.geometry)
         if self.args.pbc == "2D":
             self.args.k_grid = [self.args.k_grid[0], self.args.k_grid[1], 1]
+            self.structure.enforce_2d()
         if self.args.SOC != False:
             self.args.SOC = True
         self.setup_calculator()
@@ -32,9 +36,6 @@ class prepare:
         """ This function sets up the calculator object of the ASE.
         Because certain functions are not implemented yet, it simply
         writes out the input files."""
-        atoms = ase.io.read(self.args.geometry)
-        if atoms.pbc[2] == False:
-            atoms.cell[2] = [0.0, 0.0, 100]
         calc = Aims(
             xc=self.args.xc,
             spin=self.args.spin,
@@ -44,21 +45,24 @@ class prepare:
             relativistic=("atomic_zora", "scalar"),
             adjust_scf="once 2",
         )
-        atoms.set_calculator(calc)
+        self.structure.atoms.set_calculator(calc)
         calc.prepare_input_files()
 
     def setup_bandpath(self):
         """ This function sets up the band path according to AFLOW conventions
-        in the AIMS-specific format. """
-        atoms = ase.io.read(self.args.geometry)
-        if self.args.pbc == "2D":
-            atoms.cell[2] = [0.0, 0.0, 0.0]
+        in the AIMS-specific format.
+        
+        Note:
+            The ase.cell.lattice.get_bravais_lattice() method apparently does not like Gamma-angles
+            that are off 90 or 120 degrees in case of 2D systems. 
+            It then aborts with the error message "This transformation
+            changes the cell volume."
+        """
+        atoms = self.structure.atoms
+        lattice = atoms.cell.get_bravais_lattice(pbc=atoms.pbc)
         npoints = 31
-        points = atoms.cell.get_bravais_lattice().get_special_points()
-        path = [
-            char
-            for char in atoms.cell.get_bravais_lattice().special_path.replace(",", "")
-        ]
+        points = lattice.get_special_points()
+        path = [char for char in lattice.special_path.replace(",", "")]
         AFLOW = []
         for i in range(len(path)):
             if i == 0:
@@ -85,7 +89,7 @@ class prepare:
             )
         self.output_bands = output_bands
 
-    def adjust_xc(self, line):
+    def __adjust_xc(self, line):
         if "hse06" in line:
             line = "xc                                 hse06 0.11\n"
             line += "hse_unit        bohr-1\n"
@@ -99,7 +103,7 @@ class prepare:
                 line += "many_body dispersion           vacuum=False:False:True\n"
         return line
 
-    def adjust_scf(self, line):
+    def __adjust_scf(self, line):
         line = "### SCF settings \n"
         if "GO" not in self.args.task:
             line += "adjust_scf     once        2\n"
@@ -111,7 +115,7 @@ class prepare:
         line += "# sc_accuracy_rho   1E-3                       # electron density convergence\n"
         return line
 
-    def adjust_task(self, line):
+    def __adjust_task(self, line):
         if "BS" in self.args.task:
             line += "### band structure section \n"
             for band in self.output_bands:
@@ -170,14 +174,14 @@ class prepare:
                 write = False if line.startswith("#") else True
                 if write:
                     if "xc" in line:  # corrections to the functional
-                        line = self.adjust_xc(line)
+                        line = self.__adjust_xc(line)
                     elif ("spin" in line) and ("collinear" in line):
                         line += "#default_initial_moment   0      # only necessary if not specified in geometry.in\n"
                     elif ("atomic_zora scalar" in line) and (self.args.SOC == True):
                         line += "include_spin_orbit \n"
                     elif "adjust_scf" in line:
-                        line = self.adjust_scf(line)
-                        line = self.adjust_task(line)
+                        line = self.__adjust_scf(line)
+                        line = self.__adjust_task(line)
                 file.write(line)
 
     def write_submit_t3000(self):
@@ -210,10 +214,10 @@ mpirun -np {cpus} bash -c "ulimit -s unlimited && aims.171221_1.scalapack.mpi.x"
 #SBATCH --time={walltime}:00:00 \t\t# walltime in h
 #SBATCH --nodes={nodes} \t\t\t# number of nodes
 #SBATCH --ntasks={cpus} \t\t\t# number of cpus
-#SBATCH --mem={mem}MB \t\t\t# memory per node
+#SBATCH --mem-per-cpu={mem}MB \t\t\t# memory per node per cpu
 #SBATCH -J {name} \t\t\t# job name
-#SBATCH --error={name}.err \t\t# error output
-#SBATCH --output={name}.out \t\t# output
+#SBATCH --error=slurm.err \t\t# error output
+#SBATCH --output=slurm.out \t\t# output
 
 module use /projects/m_chemie/privatemodules/
 module add aims/aims_2155

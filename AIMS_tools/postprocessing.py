@@ -2,6 +2,7 @@ import numpy as np
 import glob, sys, os, math
 from pathlib import Path as Path
 import ase.io, ase.cell
+from AIMS_tools.structuretools import structure
 
 Angstroem_to_bohr = 1.889725989
 
@@ -11,7 +12,7 @@ class postprocess:
 
     Attributes:
         path (pathlib object): Directory of outputfile.
-        calc_type (dict): Dictionary of requested calculation types.
+        calc_type (set): Set of requested calculation types.
         active_SOC (bool): If spin-orbit coupling was included in the control.in file.
         active_GW (bool): If GW was included in the control.in file.
         spin (int): Spin channel.
@@ -19,11 +20,7 @@ class postprocess:
         smallest_direct_gap (str): Smallest direct gap from outputfile.
         VBM (float): Valence band maximum energy in eV.
         CBM (float): Conduction band minimum energy in eV.        
-        atoms (dict): Dictionary of atom index and label.
-        species (dict): Dictionary of atom labels and counts.
-        cell (Atoms): ASE atoms object of the geometry.
-        rec_cell (array): Reciprocal lattice vectors in 2 pi/bohr.
-        rec_cell_lengths (numpy array): Reciprocal lattice vector lengths in 2 pi/bohr. 
+        structure (structure): AIMS_tools.structuretools.structure object.
         color_dict (dict): Dictionary of atom labels and JMOL color tuples.        
      """
 
@@ -71,39 +68,21 @@ class postprocess:
 
     def __read_geometry(self):
         geometry = self.path.joinpath("geometry.in")
-        self.cell = ase.io.read(self.path.joinpath("geometry.in"))
-        self.rec_cell = (
-            self.cell.get_reciprocal_cell() * 2 * math.pi / Angstroem_to_bohr
-        )
-        self.rec_cell_lengths = ase.cell.Cell.new(
-            self.rec_cell
-        ).lengths()  # converting to atomic units 2 pi/bohr
-        self.atoms = {}
-        i = 1  # index to run over atoms
-        with open(geometry, "r") as file:
-            for line in file.readlines():
-                if "atom" in line:
-                    self.atoms[i] = line.split()[-1]
-                    i += 1
-        keys = list(set(self.atoms.values()))
-        numbers = []
-        for key in keys:
-            numbers.append(list(self.atoms.values()).count(key))
-        self.species = dict(zip(keys, numbers))
+        self.structure = structure(geometry)
 
     def __read_control(self):
         control = self.path.joinpath("control.in")
         bandlines = []
         self.active_SOC = False
         self.active_GW = False
-        self.calc_type = {}
+        self.calc_type = ()
         with open(control, "r") as file:
             for line in file.readlines():
                 read = False if line.startswith("#") else True
                 if read:
                     if "output band" in line:
                         bandlines.append(line.split())
-                        self.calc_type["BS"] = True
+                        self.calc_type.add("BS")
                     if "include_spin_orbit" in line:
                         self.active_SOC = True
                     if "qpe_calc" in line and "gw" in line:
@@ -115,9 +94,9 @@ class postprocess:
                     ):
                         self.spin = 1
                     if "output atom_proj_dos" in line:
-                        self.calc_type["DOS"] = True
+                        self.calc_type.add("DOS")
         ## band structure specific information
-        if self.calc_type["BS"] == True:
+        if "BS" in self.calc_type:
             self.ksections = []
             self.kvectors = {"G": np.array([0.0, 0.0, 0.0])}
             for entry in bandlines:

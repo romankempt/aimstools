@@ -25,10 +25,6 @@ font_name = "Arial"
 font_size = 8.5
 plt.rcParams.update({"font.sans-serif": font_name, "font.size": font_size})
 
-
-Angstroem_to_bohr = 1.889725989
-
-
 class bandstructure(postprocess):
     """ Band structure object. Inherits from postprocess.
     
@@ -138,16 +134,16 @@ class bandstructure(postprocess):
 
     def properties(self):
         """ Prints out key properties of the band structure. """
-        print("Sum Formula: {}".format(self.cell.symbols))
+        print("Sum Formula: {}".format(self.atoms.symbols))
         print("Number of k-points for SCF: {}".format(self.k_points))
-        cell = self.cell.cell
+        cell = self.atoms.cell
         if np.array_equal(cell[2], [0.0, 0.0, 100.0]):
             pbc = 2
             area = np.linalg.norm(np.cross(cell[0], cell[1]))
             kdens = self.k_points / area
         else:
             pbc = 3
-            volume = self.cell.get_volume()
+            volume = self.atoms.get_volume()
             kdens = self.k_points / volume
 
         if pbc == 2:
@@ -172,8 +168,8 @@ class bandstructure(postprocess):
         print("Path: ", self.kpath)
         import ase.spacegroup
 
-        brav_latt = self.cell.cell.get_bravais_lattice()
-        sg = ase.spacegroup.get_spacegroup(self.cell)
+        brav_latt = self.atoms.cell.get_bravais_lattice(pbc=self.atoms.pbc)
+        sg = ase.spacegroup.get_spacegroup(self.atoms)
         print("Space group: {} (Nr. {})".format(sg.symbol, sg.no))
         print("Bravais lattice: {}".format(brav_latt))
 
@@ -231,7 +227,9 @@ class bandstructure(postprocess):
                 )
                 d[pair]
             except KeyError:
-                sys.exit("The path {}-{} has not been calculated.".format(pair[0], pair[1]))
+                sys.exit(
+                    "The path {}-{} has not been calculated.".format(pair[0], pair[1])
+                )
         self.kpath = newpath
         self.__create_spectrum()
 
@@ -573,7 +571,9 @@ class fatbandstructure(bandstructure):
                 )
                 d[pair]
             except KeyError:
-                sys.exit("The path {}-{} has not been calculated.".format(pair[0], pair[1]))
+                sys.exit(
+                    "The path {}-{} has not been calculated.".format(pair[0], pair[1])
+                )
         self.kpath = newpath
         self.create_spectrum()
         self.__create_mlk_spectra()

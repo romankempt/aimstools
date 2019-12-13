@@ -7,12 +7,27 @@ AIMS_tools's documentation
 ==========================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 3
+   :caption: Introduction:
 
    intro
    preparing_aims
-   modules
+
+.. toctree::
+   :maxdepth: 3
+   :caption: File Handling:
+   
+   structuretools
+   preparation
+   postprocessing
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Analysis and Plotting:   
+
+   bandstructure
+   dos
+   hirshfeld
 
 Indices and tables
 ==================

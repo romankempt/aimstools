@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>AIMS_tools &mdash; AIMS_tools 0.04 documentation</title>
+  <title>AIMS_tools &mdash; AIMS_tools 0.05 documentation</title>
   
 
   
@@ -25,6 +25,7 @@
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
         <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -80,7 +81,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption"><span class="caption-text">Introduction:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">AIMS_tools</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#currently-implemented-features">Currently implemented features</a></li>
@@ -90,7 +91,18 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="preparing_aims.html">Preparing AIMS calculations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">AIMS_tools</a></li>
+</ul>
+<p class="caption"><span class="caption-text">File Handling:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structuretools.html">structuretools module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preparation.html">preparation module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing.html">postprocessing module</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Analysis and Plotting:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="bandstructure.html">bandstructure module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dos.html">dos module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hirshfeld.html">hirshfeld module</a></li>
 </ul>
 
             
@@ -161,25 +173,39 @@
 <div class="section" id="currently-implemented-features">
 <h2>Currently implemented features<a class="headerlink" href="#currently-implemented-features" title="Permalink to this headline">¶</a></h2>
 <ul>
-<li><p><strong>Preparing AIMS calculations:</strong> prepare_aims.py can set up the files for different tasks employing the ASE (single point, geometry optimisation, band structure calculation, atom-projected density of states)</p></li>
-<li><p><strong>Plotting functionalities:</strong>
-The plotting modules are designed for combinatorial plotting with a lot of flexibility. It’s very easy to overlay, compare and arrange plots in different fashions with the in-built classes.</p>
+<li><p><strong>Handling AIMS calculations:</strong></p>
 <blockquote>
-<div><p><strong>bandstructure.py</strong> can handle band structure plots with scalar relativity, SOC, spin, and mulliken-projection (“fatbands”).</p>
+<div><p>The installation comes with the <strong>prepare_aims.py</strong> executable in your /.local/bin folder which can set up the files for different tasks employing the ASE. Currently implemented are single-point calculations, geometry optimisations, band structures and atom-projected densities of states.</p>
 </div></blockquote>
 <blockquote>
-<div><p><strong>dos.py</strong> handles atom-projected densities of states. Summing up different DOS contributions or to get the total DOS is easily done.</p>
+<div><p>The <strong>structuretools.py</strong> module contains helper functions to fragment and analyze structures in order to set up different tasks or extract information after a finished calculation.</p>
+</div></blockquote>
+</li>
+<li><p><strong>Analyzing results:</strong></p>
+<blockquote>
+<div><p>The <strong>postprocessing.py</strong> module contains helper functions to extract useful data from finished calculations, such as energies. Additionally, there will be some functions to handle non-convering calculations, errors and other analysis.</p>
 </div></blockquote>
 <blockquote>
-<div><p><strong>multiplots.py</strong> contains exemplary functions to combine plots in different fashions, for example overlaying ZORA and ZORA+SOC bandstructures or combining bandstructures and DOS.</p>
+<div><p>The <strong>hirshfeld.py</strong> module extracts and evaluates hirshfeld charges.</p>
+</div></blockquote>
+</li>
+<li><p><strong>Plotting functionalities:</strong></p>
+<p>The plotting modules are designed for flexible, combinatorial plotting. It’s very easy to overlay, compare and arrange plots in different fashions with the in-built classes.</p>
+<blockquote>
+<div><p>The <strong>bandstructure.py</strong> module handles band structure plots with scalar relativity, SOC, spin, and mulliken-projection (“fatbands”).</p>
+</div></blockquote>
+<blockquote>
+<div><p>The <strong>dos.py</strong> module handles atom-projected densities of states.</p>
+</div></blockquote>
+<blockquote>
+<div><p>The <strong>multiplots.py</strong> module contains helper functions to combine plots in different fashions, for example overlaying ZORA and ZORA+SOC bandstructures or combining bandstructures and DOS.</p>
 </div></blockquote>
 </li>
 </ul>
 </div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>I recommend using Anaconda to manage package dependencies and updates. See <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html">here</a>.
-For simplicity, you can download my <a class="reference external" href="https://anaconda.org/romankempt/ase-env/files">ase-env</a> from the anaconda cloud. This should contain all necessary libraries and a couple more (windows 10 OS).</p>
+<p>I recommend using Anaconda to manage package dependencies and updates. See <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html">here</a>.</p>
 <p>Simply download the zip from github. Then run:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install AIMS_tools-master.zip
 </pre></div>
@@ -190,7 +216,7 @@ For simplicity, you can download my <a class="reference external" href="https://
 </div>
 <ul class="simple">
 <li><p>On t3000, this one is “/chemsoft/FHI-aims/stable/species_defaults/”</p></li>
-<li><p>On taurus, this one is “/projects/m_chemie/FHI-aims/FHI-aims_4_Roman/aimsfiles-master/species_defaults/”</p></li>
+<li><p>On taurus, this one is “/projects/m_chemie/FHI-aims/aims_2155/species_defaults/”</p></li>
 </ul>
 </div>
 <div class="section" id="documentation">
@@ -202,10 +228,9 @@ For simplicity, you can download my <a class="reference external" href="https://
 <ul class="simple">
 <li><p><a class="reference external" href="https://wiki.fysik.dtu.dk/ase/">Atomic Simulation Environment</a> ase 3.18.1 or higher</p></li>
 <li><p><a class="reference external" href="https://atztogo.github.io/spglib/python-spglib.html">Space Group Libary</a> spglib</p></li>
-<li><p><a class="reference external" href="https://www.scipy.org/">scipy</a></p></li>
+<li><p><a class="reference external" href="https://www.scipy.org/">Scientific Python</a> scipy (including numpy, matplotlib and pandas)</p></li>
 <li><p><a class="reference external" href="https://seaborn.pydata.org/">seaborn</a></p></li>
-<li><p>numpy</p></li>
-<li><p>pandas</p></li>
+<li><p><a class="reference external" href="https://networkx.github.io/documentation/stable/install.html">networkx</a></p></li>
 </ul>
 </div>
 </div>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>bandstructure &mdash; AIMS_tools 0.04 documentation</title>
+  <title>bandstructure &mdash; AIMS_tools 0.05 documentation</title>
   
 
   
@@ -25,6 +25,7 @@
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
         <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -78,11 +79,22 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption"><span class="caption-text">Introduction:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../intro.html">AIMS_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../preparing_aims.html">Preparing AIMS calculations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../modules.html">AIMS_tools</a></li>
+</ul>
+<p class="caption"><span class="caption-text">File Handling:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../structuretools.html">structuretools module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preparation.html">preparation module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing.html">postprocessing module</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Analysis and Plotting:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../bandstructure.html">bandstructure module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dos.html">dos module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hirshfeld.html">hirshfeld module</a></li>
 </ul>
 
             
@@ -172,10 +184,6 @@
 <span class="n">font_name</span> <span class="o">=</span> <span class="s2">&quot;Arial&quot;</span>
 <span class="n">font_size</span> <span class="o">=</span> <span class="mf">8.5</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;font.sans-serif&quot;</span><span class="p">:</span> <span class="n">font_name</span><span class="p">,</span> <span class="s2">&quot;font.size&quot;</span><span class="p">:</span> <span class="n">font_size</span><span class="p">})</span>
-
-
-<span class="n">Angstroem_to_bohr</span> <span class="o">=</span> <span class="mf">1.889725989</span>
-
 
 <div class="viewcode-block" id="bandstructure"><a class="viewcode-back" href="../bandstructure.html#bandstructure.bandstructure">[docs]</a><span class="k">class</span> <span class="nc">bandstructure</span><span class="p">(</span><span class="n">postprocess</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Band structure object. Inherits from postprocess.</span>
@@ -286,16 +294,16 @@
 
 <div class="viewcode-block" id="bandstructure.properties"><a class="viewcode-back" href="../bandstructure.html#bandstructure.bandstructure.properties">[docs]</a>    <span class="k">def</span> <span class="nf">properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Prints out key properties of the band structure. &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sum Formula: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">symbols</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sum Formula: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">symbols</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Number of k-points for SCF: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k_points</span><span class="p">))</span>
-        <span class="n">cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">cell</span>
+        <span class="n">cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">cell</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">cell</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">]):</span>
             <span class="n">pbc</span> <span class="o">=</span> <span class="mi">2</span>
             <span class="n">area</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">cell</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cell</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
             <span class="n">kdens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_points</span> <span class="o">/</span> <span class="n">area</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">pbc</span> <span class="o">=</span> <span class="mi">3</span>
-            <span class="n">volume</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_volume</span><span class="p">()</span>
+            <span class="n">volume</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">get_volume</span><span class="p">()</span>
             <span class="n">kdens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_points</span> <span class="o">/</span> <span class="n">volume</span>
 
         <span class="k">if</span> <span class="n">pbc</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
@@ -320,8 +328,8 @@
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Path: &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpath</span><span class="p">)</span>
         <span class="kn">import</span> <span class="nn">ase.spacegroup</span>
 
-        <span class="n">brav_latt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_bravais_lattice</span><span class="p">()</span>
-        <span class="n">sg</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">spacegroup</span><span class="o">.</span><span class="n">get_spacegroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">)</span>
+        <span class="n">brav_latt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_bravais_lattice</span><span class="p">(</span><span class="n">pbc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">pbc</span><span class="p">)</span>
+        <span class="n">sg</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">spacegroup</span><span class="o">.</span><span class="n">get_spacegroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Space group: </span><span class="si">{}</span><span class="s2"> (Nr. </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">sg</span><span class="o">.</span><span class="n">no</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Bravais lattice: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">brav_latt</span><span class="p">))</span></div>
 
@@ -379,7 +387,9 @@
                 <span class="p">)</span>
                 <span class="n">d</span><span class="p">[</span><span class="n">pair</span><span class="p">]</span>
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;The path </span><span class="si">{}</span><span class="s2">-</span><span class="si">{}</span><span class="s2"> has not been calculated.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                    <span class="s2">&quot;The path </span><span class="si">{}</span><span class="s2">-</span><span class="si">{}</span><span class="s2"> has not been calculated.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kpath</span> <span class="o">=</span> <span class="n">newpath</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__create_spectrum</span><span class="p">()</span></div>
 
@@ -721,7 +731,9 @@
                 <span class="p">)</span>
                 <span class="n">d</span><span class="p">[</span><span class="n">pair</span><span class="p">]</span>
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;The path </span><span class="si">{}</span><span class="s2">-</span><span class="si">{}</span><span class="s2"> has not been calculated.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                    <span class="s2">&quot;The path </span><span class="si">{}</span><span class="s2">-</span><span class="si">{}</span><span class="s2"> has not been calculated.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kpath</span> <span class="o">=</span> <span class="n">newpath</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_spectrum</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__create_mlk_spectra</span><span class="p">()</span></div>

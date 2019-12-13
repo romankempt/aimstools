@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>postprocessing &mdash; AIMS_tools 0.04 documentation</title>
+  <title>postprocessing &mdash; AIMS_tools 0.05 documentation</title>
   
 
   
@@ -25,6 +25,7 @@
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
         <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -78,11 +79,22 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption"><span class="caption-text">Introduction:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../intro.html">AIMS_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../preparing_aims.html">Preparing AIMS calculations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../modules.html">AIMS_tools</a></li>
+</ul>
+<p class="caption"><span class="caption-text">File Handling:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../structuretools.html">structuretools module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preparation.html">preparation module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing.html">postprocessing module</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Analysis and Plotting:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../bandstructure.html">bandstructure module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dos.html">dos module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hirshfeld.html">hirshfeld module</a></li>
 </ul>
 
             
@@ -150,6 +162,7 @@
 <span class="kn">import</span> <span class="nn">glob</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">ase.io</span><span class="o">,</span> <span class="nn">ase.cell</span>
+<span class="kn">from</span> <span class="nn">AIMS_tools.structuretools</span> <span class="k">import</span> <span class="n">structure</span>
 
 <span class="n">Angstroem_to_bohr</span> <span class="o">=</span> <span class="mf">1.889725989</span>
 
@@ -159,7 +172,7 @@
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        path (pathlib object): Directory of outputfile.</span>
-<span class="sd">        calc_type (dict): Dictionary of requested calculation types.</span>
+<span class="sd">        calc_type (set): Set of requested calculation types.</span>
 <span class="sd">        active_SOC (bool): If spin-orbit coupling was included in the control.in file.</span>
 <span class="sd">        active_GW (bool): If GW was included in the control.in file.</span>
 <span class="sd">        spin (int): Spin channel.</span>
@@ -167,11 +180,7 @@
 <span class="sd">        smallest_direct_gap (str): Smallest direct gap from outputfile.</span>
 <span class="sd">        VBM (float): Valence band maximum energy in eV.</span>
 <span class="sd">        CBM (float): Conduction band minimum energy in eV.        </span>
-<span class="sd">        atoms (dict): Dictionary of atom index and label.</span>
-<span class="sd">        species (dict): Dictionary of atom labels and counts.</span>
-<span class="sd">        cell (Atoms): ASE atoms object of the geometry.</span>
-<span class="sd">        rec_cell (array): Reciprocal lattice vectors in 2 pi/bohr.</span>
-<span class="sd">        rec_cell_lengths (numpy array): Reciprocal lattice vector lengths in 2 pi/bohr. </span>
+<span class="sd">        structure (structure): AIMS_tools.structuretools.structure object.</span>
 <span class="sd">        color_dict (dict): Dictionary of atom labels and JMOL color tuples.        </span>
 <span class="sd">     &quot;&quot;&quot;</span>
 
@@ -219,39 +228,21 @@
 
     <span class="k">def</span> <span class="nf">__read_geometry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">geometry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;geometry.in&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cell</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;geometry.in&quot;</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rec_cell</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">get_reciprocal_cell</span><span class="p">()</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">Angstroem_to_bohr</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rec_cell_lengths</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">rec_cell</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">lengths</span><span class="p">()</span>  <span class="c1"># converting to atomic units 2 pi/bohr</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># index to run over atoms</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
-                <span class="k">if</span> <span class="s2">&quot;atom&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
-        <span class="n">numbers</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
-            <span class="n">numbers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">numbers</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">structure</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__read_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;control.in&quot;</span><span class="p">)</span>
         <span class="n">bandlines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">active_SOC</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">active_GW</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">calc_type</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calc_type</span> <span class="o">=</span> <span class="p">()</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">control</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
                 <span class="n">read</span> <span class="o">=</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">True</span>
                 <span class="k">if</span> <span class="n">read</span><span class="p">:</span>
                     <span class="k">if</span> <span class="s2">&quot;output band&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
                         <span class="n">bandlines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">calc_type</span><span class="p">[</span><span class="s2">&quot;BS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">calc_type</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;BS&quot;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="s2">&quot;include_spin_orbit&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">active_SOC</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="k">if</span> <span class="s2">&quot;qpe_calc&quot;</span> <span class="ow">in</span> <span class="n">line</span> <span class="ow">and</span> <span class="s2">&quot;gw&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
@@ -263,9 +254,9 @@
                     <span class="p">):</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">spin</span> <span class="o">=</span> <span class="mi">1</span>
                     <span class="k">if</span> <span class="s2">&quot;output atom_proj_dos&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">calc_type</span><span class="p">[</span><span class="s2">&quot;DOS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">calc_type</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;DOS&quot;</span><span class="p">)</span>
         <span class="c1">## band structure specific information</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_type</span><span class="p">[</span><span class="s2">&quot;BS&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;BS&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_type</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ksections</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">kvectors</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])}</span>
             <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">bandlines</span><span class="p">:</span>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>postprocessing module &mdash; AIMS_tools 0.04 documentation</title>
+  <title>postprocessing module &mdash; AIMS_tools 0.05 documentation</title>
   
 
   
@@ -25,6 +25,7 @@
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
         <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -35,8 +36,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="preparation module" href="preparation.html" />
-    <link rel="prev" title="multiplots module" href="multiplots.html" /> 
+    <link rel="next" title="bandstructure module" href="bandstructure.html" />
+    <link rel="prev" title="preparation module" href="preparation.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,19 +81,22 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
+              <p class="caption"><span class="caption-text">Introduction:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">AIMS_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preparing_aims.html">Preparing AIMS calculations</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">AIMS_tools</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="bandstructure.html">bandstructure module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dos.html">dos module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hirshfeld.html">hirshfeld module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="multiplots.html">multiplots module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">postprocessing module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="preparation.html">preparation module</a></li>
 </ul>
-</li>
+<p class="caption"><span class="caption-text">File Handling:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="structuretools.html">structuretools module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preparation.html">preparation module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">postprocessing module</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Analysis and Plotting:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="bandstructure.html">bandstructure module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dos.html">dos module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hirshfeld.html">hirshfeld module</a></li>
 </ul>
 
             
@@ -138,8 +142,6 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-          <li><a href="modules.html">AIMS_tools</a> &raquo;</li>
-        
       <li>postprocessing module</li>
     
     
@@ -164,26 +166,22 @@
 <dl class="class">
 <dt id="postprocessing.postprocess">
 <em class="property">class </em><code class="sig-prename descclassname">postprocessing.</code><code class="sig-name descname">postprocess</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">spin=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/postprocessing.html#postprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#postprocessing.postprocess" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.7/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A base class that retrieves information from finished calculations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Variables</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> (<em>pathlib object</em>) – Directory of outputfile.</p></li>
-<li><p><strong>calc_type</strong> (<em>dict</em>) – Dictionary of requested calculation types.</p></li>
-<li><p><strong>active_SOC</strong> (<em>bool</em>) – If spin-orbit coupling was included in the control.in file.</p></li>
-<li><p><strong>active_GW</strong> (<em>bool</em>) – If GW was included in the control.in file.</p></li>
-<li><p><strong>spin</strong> (<em>int</em>) – Spin channel.</p></li>
-<li><p><strong>fermi_level</strong> (<em>float</em>) – Fermi level energy value in eV.</p></li>
-<li><p><strong>smallest_direct_gap</strong> (<em>str</em>) – Smallest direct gap from outputfile.</p></li>
-<li><p><strong>VBM</strong> (<em>float</em>) – Valence band maximum energy in eV.</p></li>
-<li><p><strong>CBM</strong> (<em>float</em>) – Conduction band minimum energy in eV.</p></li>
-<li><p><strong>atoms</strong> (<em>dict</em>) – Dictionary of atom index and label.</p></li>
-<li><p><strong>species</strong> (<em>dict</em>) – Dictionary of atom labels and counts.</p></li>
-<li><p><strong>cell</strong> (<em>Atoms</em>) – ASE atoms object of the geometry.</p></li>
-<li><p><strong>rec_cell</strong> (<em>array</em>) – Reciprocal lattice vectors in 2 pi/bohr.</p></li>
-<li><p><strong>rec_cell_lengths</strong> (<em>numpy array</em>) – Reciprocal lattice vector lengths in 2 pi/bohr.</p></li>
-<li><p><strong>color_dict</strong> (<em>dict</em>) – Dictionary of atom labels and JMOL color tuples.</p></li>
+<li><p><strong>calc_type</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#set" title="(in Python v3.7)"><em>set</em></a>) – Set of requested calculation types.</p></li>
+<li><p><strong>active_SOC</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If spin-orbit coupling was included in the control.in file.</p></li>
+<li><p><strong>active_GW</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If GW was included in the control.in file.</p></li>
+<li><p><strong>spin</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Spin channel.</p></li>
+<li><p><strong>fermi_level</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Fermi level energy value in eV.</p></li>
+<li><p><strong>smallest_direct_gap</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Smallest direct gap from outputfile.</p></li>
+<li><p><strong>VBM</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Valence band maximum energy in eV.</p></li>
+<li><p><strong>CBM</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Conduction band minimum energy in eV.</p></li>
+<li><p><strong>structure</strong> (<a class="reference internal" href="structuretools.html#structuretools.structure" title="structuretools.structure"><em>structure</em></a>) – AIMS_tools.structuretools.structure object.</p></li>
+<li><p><strong>color_dict</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Dictionary of atom labels and JMOL color tuples.</p></li>
 </ul>
 </dd>
 </dl>
@@ -199,10 +197,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="preparation.html" class="btn btn-neutral float-right" title="preparation module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="bandstructure.html" class="btn btn-neutral float-right" title="bandstructure module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="multiplots.html" class="btn btn-neutral float-left" title="multiplots module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="preparation.html" class="btn btn-neutral float-left" title="preparation module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

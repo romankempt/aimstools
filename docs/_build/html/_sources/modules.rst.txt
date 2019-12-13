@@ -10,3 +10,4 @@ AIMS_tools
    multiplots
    postprocessing
    preparation
+   structuretools
