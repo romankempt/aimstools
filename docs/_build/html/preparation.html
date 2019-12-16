@@ -85,6 +85,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">AIMS_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preparing_aims.html">Preparing AIMS calculations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handling_aims.html">Handling AIMS calculations</a></li>
 </ul>
 <p class="caption"><span class="caption-text">File Handling:</span></p>
 <ul class="current">
@@ -165,9 +166,37 @@
 <span id="preparation-module"></span><h1>preparation module<a class="headerlink" href="#module-preparation" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="preparation.prepare">
-<em class="property">class </em><code class="sig-prename descclassname">preparation.</code><code class="sig-name descname">prepare</code><span class="sig-paren">(</span><em class="sig-param">args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/preparation.html#prepare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preparation.prepare" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">preparation.</code><code class="sig-name descname">prepare</code><span class="sig-paren">(</span><em class="sig-param">geometryfile</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/preparation.html#prepare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preparation.prepare" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.7/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A base class to initialise and prepare AIMS calculations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>geometry</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Path to geometry file.</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>xc</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Exchange-Correlation functional. Defaults to pbe.</p></li>
+<li><p><strong>spin</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – None or collinear. Defaults to None.</p></li>
+<li><p><strong>basis</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Basis set quality. Defaults to tight.</p></li>
+<li><p><strong>tier</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Basis set tier. Defaults to 2.</p></li>
+<li><p><strong>k_grid</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – List of integers for k-point sampling. Defaults to [6,6,6].</p></li>
+<li><p><strong>SOC</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Include spin-orbit coupling. Defaults to False.</p></li>
+<li><p><strong>pbc</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – “2D” or None. Defaults to None. Enforces 2D boundary conditions.</p></li>
+<li><p><strong>vdw</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – TS, MBD or None. Defaults to None. Enables dispersion corrections.</p></li>
+<li><p><strong>task</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – List of tasks to perform. Defaults to []. Currently available: BS, DOS, GO.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Other Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cluster</strong> (<em>str</em>) – HPC cluster. Defaults to None.</p></li>
+<li><p><strong>cost</strong> (<em>str</em>) – Low, medium or high. Defaults to None. Automatically adjusts nodes and walltimes depending on the cluster.</p></li>
+<li><p><strong>memory</strong> (<em>int</em>) – Memory requirements per node in GB. Defaults to 63.</p></li>
+<li><p><strong>nodes</strong> (<em>int</em>) – Number of nodes. Defaults to 4.</p></li>
+<li><p><strong>ppn</strong> (<em>int</em>) – Processors per node. Defaults to 20.</p></li>
+<li><p><strong>walltime</strong> (<em>int</em>) – Walltime in hours. Defaults to 24.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="method">
 <dt id="preparation.prepare.adjust_control">
 <code class="sig-name descname">adjust_control</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/preparation.html#prepare.adjust_control"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preparation.prepare.adjust_control" title="Permalink to this definition">¶</a></dt>
@@ -178,13 +207,14 @@ comments that are currently not implemented in the ASE.</p>
 <dl class="method">
 <dt id="preparation.prepare.adjust_cost">
 <code class="sig-name descname">adjust_cost</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/preparation.html#prepare.adjust_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preparation.prepare.adjust_cost" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This function adjusts the cluster-specific cost requirements to some defaults.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="preparation.prepare.setup_bandpath">
 <code class="sig-name descname">setup_bandpath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/preparation.html#prepare.setup_bandpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preparation.prepare.setup_bandpath" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function sets up the band path according to AFLOW conventions
-in the AIMS-specific format.</p>
+in the AIMS-specific format and stores it in self.output_bands.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The ase.cell.lattice.get_bravais_lattice() method apparently does not like Gamma-angles

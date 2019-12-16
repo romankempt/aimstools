@@ -57,6 +57,8 @@ class DOS(postprocess):
 
     def __init__(self, outputfile, get_SOC=True, spin=None, shift_to="middle"):
         super().__init__(outputfile, get_SOC=get_SOC, spin=spin)
+        if self.success == False:
+            sys.exit("Calculation did not converge.")
         self.band_gap = self.CBM - self.VBM
         dosfiles = self.__get_raw_data(get_SOC)
         dos_per_atom = []

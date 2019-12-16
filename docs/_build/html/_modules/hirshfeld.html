@@ -83,6 +83,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../intro.html">AIMS_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../preparing_aims.html">Preparing AIMS calculations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../handling_aims.html">Handling AIMS calculations</a></li>
 </ul>
 <p class="caption"><span class="caption-text">File Handling:</span></p>
 <ul>
@@ -159,12 +160,12 @@
             
   <h1>Source code for hirshfeld</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">ase.io</span>
 <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">AIMS_tools.postprocessing</span> <span class="k">import</span> <span class="n">postprocess</span>
-<span class="kn">from</span> <span class="nn">AIMS_tools.structuretools</span> <span class="k">import</span> <span class="n">structure</span>
+<span class="kn">from</span> <span class="nn">AIMS_tools.postprocessing</span> <span class="kn">import</span> <span class="n">postprocess</span>
+<span class="kn">from</span> <span class="nn">AIMS_tools.structuretools</span> <span class="kn">import</span> <span class="n">structure</span>
 
 
 <div class="viewcode-block" id="hirshfeld"><a class="viewcode-back" href="../hirshfeld.html#hirshfeld.hirshfeld">[docs]</a><span class="k">class</span> <span class="nc">hirshfeld</span><span class="p">(</span><span class="n">postprocess</span><span class="p">):</span>
@@ -179,7 +180,7 @@
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputfile</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputfile</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">outputfile</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="n">get_SOC</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="n">spin</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">charges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_charges</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tot_charges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sum_charges</span><span class="p">()</span>

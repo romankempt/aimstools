@@ -83,6 +83,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../intro.html">AIMS_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../preparing_aims.html">Preparing AIMS calculations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../handling_aims.html">Handling AIMS calculations</a></li>
 </ul>
 <p class="caption"><span class="caption-text">File Handling:</span></p>
 <ul>
@@ -168,15 +169,15 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">glob</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">matplotlib.lines</span> <span class="k">import</span> <span class="n">Line2D</span>
-<span class="kn">from</span> <span class="nn">matplotlib.collections</span> <span class="k">import</span> <span class="n">LineCollection</span>
-<span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="k">import</span> <span class="n">ListedColormap</span><span class="p">,</span> <span class="n">BoundaryNorm</span>
+<span class="kn">from</span> <span class="nn">matplotlib.lines</span> <span class="kn">import</span> <span class="n">Line2D</span>
+<span class="kn">from</span> <span class="nn">matplotlib.collections</span> <span class="kn">import</span> <span class="n">LineCollection</span>
+<span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">ListedColormap</span><span class="p">,</span> <span class="n">BoundaryNorm</span>
 <span class="kn">import</span> <span class="nn">matplotlib.ticker</span> <span class="k">as</span> <span class="nn">ticker</span>
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">interpolate</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
 <span class="kn">import</span> <span class="nn">ase.io</span><span class="o">,</span> <span class="nn">ase.cell</span>
-<span class="kn">from</span> <span class="nn">AIMS_tools.postprocessing</span> <span class="k">import</span> <span class="n">postprocess</span>
+<span class="kn">from</span> <span class="nn">AIMS_tools.postprocessing</span> <span class="kn">import</span> <span class="n">postprocess</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;seaborn-ticks&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;legend.handlelength&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.8</span>
@@ -217,8 +218,10 @@
 <span class="sd">  </span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputfile</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shift_to</span><span class="o">=</span><span class="s2">&quot;middle&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputfile</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shift_to</span><span class="o">=</span><span class="s2">&quot;middle&quot;</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">outputfile</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="n">get_SOC</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="n">spin</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">success</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Calculation did not converge.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shift_type</span> <span class="o">=</span> <span class="n">shift_to</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__get_bandfiles</span><span class="p">(</span><span class="n">get_SOC</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ksections</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bandfiles</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ksections</span><span class="p">))</span>
@@ -508,7 +511,7 @@
 <span class="sd">        * Adding a scatter option.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">outputfile</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shift_to</span><span class="o">=</span><span class="s2">&quot;middle&quot;</span><span class="p">,</span> <span class="nb">filter</span><span class="o">=</span><span class="p">[]</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">outputfile</span><span class="p">,</span> <span class="n">get_SOC</span><span class="o">=</span><span class="n">get_SOC</span><span class="p">,</span> <span class="n">shift_to</span><span class="o">=</span><span class="n">shift_to</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="n">spin</span><span class="p">)</span>
@@ -642,7 +645,7 @@
     <span class="k">def</span> <span class="nf">__read_mlk_bandfiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="c1"># Iterates __read_mlk_bandfile() over bandfiles</span>
         <span class="kn">import</span> <span class="nn">multiprocessing</span>
-        <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span>
+        <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Process</span>
 
         <span class="k">if</span> <span class="n">parallel</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Reading in mulliken band files in serial...&quot;</span><span class="p">)</span>

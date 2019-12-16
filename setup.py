@@ -12,7 +12,7 @@ setup(
     url="https://github.com/romankempt/AIMS_tools",
     download_url="https://github.com/romankempt/AIMS_tools",
     packages=["AIMS_tools"],
-    scripts=["bin/prepare_aims.py"],
+    scripts=["bin/aims_prepare.py", "bin/aims_sort.py"],
     classifiers=[
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
         "Operating System :: OS Independent",

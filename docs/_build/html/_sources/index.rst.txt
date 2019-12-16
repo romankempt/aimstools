@@ -12,6 +12,7 @@ AIMS_tools's documentation
 
    intro
    preparing_aims
+   handling_aims
 
 .. toctree::
    :maxdepth: 3

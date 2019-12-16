@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="structuretools module" href="structuretools.html" />
+    <link rel="next" title="Handling AIMS calculations" href="handling_aims.html" />
     <link rel="prev" title="AIMS_tools" href="intro.html" /> 
 </head>
 
@@ -85,6 +85,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">AIMS_tools</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Preparing AIMS calculations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handling_aims.html">Handling AIMS calculations</a></li>
 </ul>
 <p class="caption"><span class="caption-text">File Handling:</span></p>
 <ul>
@@ -163,21 +164,21 @@
             
   <div class="section" id="preparing-aims-calculations">
 <h1>Preparing AIMS calculations<a class="headerlink" href="#preparing-aims-calculations" title="Permalink to this headline">¶</a></h1>
-<p>The <strong>preparation</strong> module contains simple functionalities to set up the files needed for different tasks. This module is automatically called by the <strong>prepare_aims.py</strong> script.
+<p>The <strong>preparation</strong> module contains simple functionalities to set up the files needed for different tasks. This module is automatically called by the <strong>aims_prepare.py</strong> script.
 Therefore, it sets up an ASE calculator object. In the current version of ASE (3.18), only single-points and forces are implemented for AIMS.
 To circumvene this limitation, the input files are generated and modified.
 The input is any file supported by the ASE containing (periodic) coordinate informations, e.g., xyz, cif or POSCAR.</p>
-<p>If installed correctly, the prepare_aims.py script is added to your environment/bin folder and can be directly called from the command line:</p>
+<p>If installed correctly, the aims_prepare.py script is added to your environment/bin folder and can be directly called from the command line:</p>
 <p>Simply run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prepare_aims.py geometry_inputfile <span class="o">[</span>options<span class="o">]</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aims_prepare.py geometry_inputfile <span class="o">[</span>options<span class="o">]</span>
 </pre></div>
 </div>
 <p>The script has many different options. Show these with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prepare_aims.py --help
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aims_prepare.py --help
 </pre></div>
 </div>
 <p>This will print out:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: prepare_aims.py <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>-cluster CLUSTER<span class="o">]</span> <span class="o">[</span>-cost COST<span class="o">]</span> <span class="o">[</span>-m MEMORY<span class="o">]</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: aims_prepare.py <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>-cluster CLUSTER<span class="o">]</span> <span class="o">[</span>-cost COST<span class="o">]</span> <span class="o">[</span>-m MEMORY<span class="o">]</span>
                        <span class="o">[</span>-n NODES<span class="o">]</span> <span class="o">[</span>-ppn PPN<span class="o">]</span> <span class="o">[</span>-wt WALLTIME<span class="o">]</span> <span class="o">[</span>-xc XC<span class="o">]</span>
                        <span class="o">[</span>-spin SPIN<span class="o">]</span> <span class="o">[</span>-tier TIER<span class="o">]</span> <span class="o">[</span>-basis BASIS<span class="o">]</span>
                        <span class="o">[</span>-k_grid K_GRID <span class="o">[</span>K_GRID ...<span class="o">]]</span> <span class="o">[</span>-SOC SOC<span class="o">]</span>
@@ -224,7 +225,7 @@ Don’t forget that every AIMS calculation needs to be in its own separate direc
 </pre></div>
 </div>
 <p>An example would look like this:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prepare_aims.py MoS2.cif -cluster taurus -cost low -xc hse06 -basis tight -tier <span class="m">2</span> -pbc 2D -vdw MBD -SOC True -task BS DOS
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>aims_prepare.py MoS2.cif -cluster taurus -cost low -xc hse06 -basis tight -tier <span class="m">2</span> -pbc 2D -vdw MBD -SOC True -task BS DOS
 </pre></div>
 </div>
 <p>This will set up a band structure calculation following AFLOW conventions for the t3000 cluster with spin-orbit coupling and atom-projected densities of states on a 6x6x1 k-grid.
@@ -241,7 +242,7 @@ It employs the hse06 functional and adds the necessary options for functionals i
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="structuretools.html" class="btn btn-neutral float-right" title="structuretools module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="handling_aims.html" class="btn btn-neutral float-right" title="Handling AIMS calculations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="intro.html" class="btn btn-neutral float-left" title="AIMS_tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

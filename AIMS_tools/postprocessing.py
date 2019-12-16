@@ -10,8 +10,11 @@ Angstroem_to_bohr = 1.889725989
 class postprocess:
     """ A base class that retrieves information from finished calculations.
 
-    Attributes:
+    Args:
         path (pathlib object): Directory of outputfile.
+
+    Attributes:
+        success (bool): If output file contained "Have a nice day".
         calc_type (set): Set of requested calculation types.
         active_SOC (bool): If spin-orbit coupling was included in the control.in file.
         active_GW (bool): If GW was included in the control.in file.
@@ -38,6 +41,9 @@ class postprocess:
         self.__read_output()
         self.__def_color_dictionary()
 
+    def __repr__(self):
+        return repr(str(self.path.parts[-1]))
+
     def __check_output(self, outputfile):
         if Path(outputfile).is_file():
             check = os.popen(
@@ -46,9 +52,10 @@ class postprocess:
             if "Have a nice day." in check:
                 self.outputfile = Path(outputfile)
                 self.path = self.outputfile.parent
+                self.success = True
             else:
                 print("Calculation did not converge!")
-                sys.exit()
+                self.success = False
 
         elif Path(outputfile).is_dir():
             outfiles = Path(outputfile).glob("*.out")
@@ -58,10 +65,11 @@ class postprocess:
                 if "Have a nice day." in check:
                     self.outputfile = i
                     self.path = self.outputfile.parent
+                    self.success = True
                     found = True
             if found == False:
                 print("Calculation did not converge!")
-                sys.exit()
+                self.success = False
         else:
             print("Could not find outputfile.")
             sys.exit()
@@ -75,7 +83,7 @@ class postprocess:
         bandlines = []
         self.active_SOC = False
         self.active_GW = False
-        self.calc_type = ()
+        self.calc_type = set()
         with open(control, "r") as file:
             for line in file.readlines():
                 read = False if line.startswith("#") else True

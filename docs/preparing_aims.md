@@ -1,25 +1,25 @@
 # Preparing AIMS calculations
 
-The **preparation** module contains simple functionalities to set up the files needed for different tasks. This module is automatically called by the **prepare_aims.py** script.
+The **preparation** module contains simple functionalities to set up the files needed for different tasks. This module is automatically called by the **aims_prepare.py** script.
 Therefore, it sets up an ASE calculator object. In the current version of ASE (3.18), only single-points and forces are implemented for AIMS.
 To circumvene this limitation, the input files are generated and modified.
 The input is any file supported by the ASE containing (periodic) coordinate informations, e.g., xyz, cif or POSCAR.
 
-If installed correctly, the prepare_aims.py script is added to your environment/bin folder and can be directly called from the command line:
+If installed correctly, the aims_prepare.py script is added to your environment/bin folder and can be directly called from the command line:
 
 Simply run:
 ```bash
-prepare_aims.py geometry_inputfile [options]
+aims_prepare.py geometry_inputfile [options]
 ```
 
 The script has many different options. Show these with:
 ```bash
-prepare_aims.py --help
+aims_prepare.py --help
 ```
 
 This will print out:
 ```bash
-usage: prepare_aims.py [-h] [-cluster CLUSTER] [-cost COST] [-m MEMORY]
+usage: aims_prepare.py [-h] [-cluster CLUSTER] [-cost COST] [-m MEMORY]
                        [-n NODES] [-ppn PPN] [-wt WALLTIME] [-xc XC]
                        [-spin SPIN] [-tier TIER] [-basis BASIS]
                        [-k_grid K_GRID [K_GRID ...]] [-SOC SOC]
@@ -69,7 +69,7 @@ for d in *.xyz; do (mkdir ${d%.xyz} && mv $d ${d%.xyz}/); done
 
 An example would look like this:
 ```bash
-prepare_aims.py MoS2.cif -cluster taurus -cost low -xc hse06 -basis tight -tier 2 -pbc 2D -vdw MBD -SOC True -task BS DOS
+aims_prepare.py MoS2.cif -cluster taurus -cost low -xc hse06 -basis tight -tier 2 -pbc 2D -vdw MBD -SOC True -task BS DOS
 ```
 
 This will set up a band structure calculation following AFLOW conventions for the t3000 cluster with spin-orbit coupling and atom-projected densities of states on a 6x6x1 k-grid.

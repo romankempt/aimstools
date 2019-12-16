@@ -170,4 +170,3 @@ class structure:
         self.atoms.positions = scaled_positions * self.atoms.cell.lengths()
         self.atoms.positions[:, 2] = z_positions
 
-

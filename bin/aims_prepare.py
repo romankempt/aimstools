@@ -92,5 +92,13 @@ def parseArguments():
 
 if __name__ == "__main__":
     args = parseArguments()
-    job = prepare(args)
-
+    job = prepare(args.geometry, **vars(args))
+    job.setup_calculator()
+    if "BS" in args.task:
+        job.setup_bandpath()
+    job.adjust_control()
+    job.adjust_cost()
+    if job.cluster == "t3000":
+        job.write_submit_t3000()
+    elif job.cluster == "taurus":
+        job.write_submit_taurus()

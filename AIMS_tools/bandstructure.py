@@ -59,6 +59,8 @@ class bandstructure(postprocess):
 
     def __init__(self, outputfile, get_SOC=True, spin=None, shift_to="middle"):
         super().__init__(outputfile, get_SOC=get_SOC, spin=spin)
+        if self.success == False:
+            sys.exit("Calculation did not converge.")
         self.shift_type = shift_to
         self.__get_bandfiles(get_SOC)
         self.ksections = dict(zip(self.bandfiles, self.ksections))
