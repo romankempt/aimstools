@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>structuretools &mdash; AIMS_tools 0.05 documentation</title>
+  <title>structuretools &mdash; AIMS_tools 0.06 documentation</title>
   
 
   
@@ -95,6 +95,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../bandstructure.html">bandstructure module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../dos.html">dos module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../phonons.html">phonons module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../hirshfeld.html">hirshfeld module</a></li>
 </ul>
 
@@ -208,6 +209,9 @@
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
             <span class="n">numbers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atom_indices</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">numbers</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span>
 
 <div class="viewcode-block" id="structure.find_fragments"><a class="viewcode-back" href="../structuretools.html#structuretools.structure.find_fragments">[docs]</a>    <span class="k">def</span> <span class="nf">find_fragments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Finds unconnected structural fragments by constructing</span>

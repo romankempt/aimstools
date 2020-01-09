@@ -67,7 +67,8 @@ def parseArguments():
         None (default) = single point;
         BS = band structure;
         DOS = (atom-projected) density of states;
-        GO = geometry optimisation""",
+        GO = geometry optimisation;
+        phonons = Phonon band structure, DOS and free energy""",
         type=str,
         default=[],
     )

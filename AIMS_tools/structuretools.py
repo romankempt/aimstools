@@ -48,6 +48,9 @@ class structure:
             numbers.append(list(self.atom_indices.values()).count(key))
         self.species = dict(zip(keys, numbers))
 
+    def __repr__(self):
+        return self.atoms
+
     def find_fragments(self):
         """ Finds unconnected structural fragments by constructing
         the first-neighbor topology matrix and the resulting graph

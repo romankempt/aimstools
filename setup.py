@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
     name="AIMS_tools",
-    version="0.0.5",
+    version="0.0.6",
     author="Roman Kempt",
     author_email="roman.kempt@tu-dresden.de",
     description="A small toolbox to handle AIMS calculations.",

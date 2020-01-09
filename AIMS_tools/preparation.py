@@ -23,7 +23,7 @@ class prepare:
         SOC (bool): Include spin-orbit coupling. Defaults to False.
         pbc (str): "2D" or None. Defaults to None. Enforces 2D boundary conditions.
         vdw (str): TS, MBD or None. Defaults to None. Enables dispersion corrections.
-        task (list): List of tasks to perform. Defaults to []. Currently available: BS, DOS, GO.
+        task (list): List of tasks to perform. Defaults to []. Currently available: BS, DOS, GO, phonons.
 
     Other Parameters:        
         cluster (str): HPC cluster. Defaults to None.
@@ -160,6 +160,19 @@ class prepare:
             line += "### geometry optimisation section\n"
             line += "relax_geometry    bfgs    1E-2\n"
             line += "relax_unit_cell   fixed_angles             # none, full, fixed_angles \n"
+        if "phonons" in self.task:
+            line += "### phonon section"
+            for band in self.output_bands:
+                line += "phonon supercell 2 2 2 \n"
+                line += "phonon displacement 0.001 \t\t # displacement in Angström (default 0.001) \n"
+                line += "symmetry_thresh 1e-6 \n"
+                line += "frequency_unit cm^-1 \n"
+                line += "phonon hessian phono-perl TDI\n"
+                line += band.replace("output", "phonon") + "\n"
+                line += "phonon free_energy 0 800 801 20 \t \t # Tstart Tend Tpoints qdensity \n"
+                line += "phonon dos 0 600 600 5 20\n \t \t # fstart fend fpoints broad qdensity \n "
+                for mode in range(self.structure.atoms.get_number_of_atoms()*3):                   
+                    line += "phonon animation 0 0 0 4 5 20 0 0 0 mode{}.arc mode{}.ascii mode{}.xyz mode{}.xyz_jmol \n".format(mode)
         return line
 
     def adjust_cost(self):

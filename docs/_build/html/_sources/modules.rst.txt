@@ -8,6 +8,7 @@ AIMS_tools
    dos
    hirshfeld
    multiplots
+   phonons
    postprocessing
    preparation
    structuretools

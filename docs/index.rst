@@ -28,6 +28,7 @@ AIMS_tools's documentation
 
    bandstructure
    dos
+   phonons
    hirshfeld
 
 Indices and tables

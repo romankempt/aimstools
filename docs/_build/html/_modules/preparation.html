@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>preparation &mdash; AIMS_tools 0.05 documentation</title>
+  <title>preparation &mdash; AIMS_tools 0.06 documentation</title>
   
 
   
@@ -95,6 +95,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../bandstructure.html">bandstructure module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../dos.html">dos module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../phonons.html">phonons module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../hirshfeld.html">hirshfeld module</a></li>
 </ul>
 
@@ -184,7 +185,7 @@
 <span class="sd">        SOC (bool): Include spin-orbit coupling. Defaults to False.</span>
 <span class="sd">        pbc (str): &quot;2D&quot; or None. Defaults to None. Enforces 2D boundary conditions.</span>
 <span class="sd">        vdw (str): TS, MBD or None. Defaults to None. Enables dispersion corrections.</span>
-<span class="sd">        task (list): List of tasks to perform. Defaults to []. Currently available: BS, DOS, GO.</span>
+<span class="sd">        task (list): List of tasks to perform. Defaults to []. Currently available: BS, DOS, GO, phonons.</span>
 
 <span class="sd">    Other Parameters:        </span>
 <span class="sd">        cluster (str): HPC cluster. Defaults to None.</span>
@@ -321,6 +322,19 @@
             <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;### geometry optimisation section</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;relax_geometry    bfgs    1E-2</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;relax_unit_cell   fixed_angles             # none, full, fixed_angles </span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;phonons&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;### phonon section&quot;</span>
+            <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_bands</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon supercell 2 2 2 </span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon displacement 0.001 </span><span class="se">\t\t</span><span class="s2"> # displacement in Angström (default 0.001) </span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;symmetry_thresh 1e-6 </span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;frequency_unit cm^-1 </span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon hessian phono-perl TDI</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="n">band</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">,</span> <span class="s2">&quot;phonon&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon free_energy 0 800 801 20 </span><span class="se">\t</span><span class="s2"> </span><span class="se">\t</span><span class="s2"> # Tstart Tend Tpoints qdensity </span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon dos 0 600 600 5 20</span><span class="se">\n</span><span class="s2"> </span><span class="se">\t</span><span class="s2"> </span><span class="se">\t</span><span class="s2"> # fstart fend fpoints broad qdensity </span><span class="se">\n</span><span class="s2"> &quot;</span>
+                <span class="k">for</span> <span class="n">mode</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">get_number_of_atoms</span><span class="p">()</span><span class="o">*</span><span class="mi">3</span><span class="p">):</span>                   
+                    <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon animation 0 0 0 4 5 20 0 0 0 mode</span><span class="si">{}</span><span class="s2">.arc mode</span><span class="si">{}</span><span class="s2">.ascii mode</span><span class="si">{}</span><span class="s2">.xyz mode</span><span class="si">{}</span><span class="s2">.xyz_jmol </span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">line</span>
 
 <div class="viewcode-block" id="prepare.adjust_cost"><a class="viewcode-back" href="../preparation.html#preparation.prepare.adjust_cost">[docs]</a>    <span class="k">def</span> <span class="nf">adjust_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

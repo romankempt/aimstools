@@ -25,6 +25,7 @@ font_name = "Arial"
 font_size = 8.5
 plt.rcParams.update({"font.sans-serif": font_name, "font.size": font_size})
 
+
 class bandstructure(postprocess):
     """ Band structure object. Inherits from postprocess.
     
@@ -184,7 +185,9 @@ class bandstructure(postprocess):
                 array = np.array(array, dtype=float)
             except:
                 return "File {} not found.".format(bandfile)
-            array[:, 1:4] * self.rec_cell_lengths  # non-relative positions in bohr^(-1)
+            array[
+                :, 1:4
+            ] * self.structure.rec_cell_lengths  # non-relative positions in bohr^(-1)
             # Removing index and occupations from .out
             array = np.delete(array, [0] + list(range(4, array.shape[1], 2)), axis=1)
             bandsegments[self.ksections[bandfile]] = array
