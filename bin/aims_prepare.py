@@ -95,7 +95,7 @@ if __name__ == "__main__":
     args = parseArguments()
     job = prepare(args.geometry, **vars(args))
     job.setup_calculator()
-    if "BS" in args.task:
+    if ("BS" in args.task) or ("phonons" in args.task):
         job.setup_bandpath()
     job.adjust_control()
     job.adjust_cost()
