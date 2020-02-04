@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>AIMS_tools &mdash; AIMS_tools 0.06 documentation</title>
+  <title>AIMS_tools &mdash; AIMS_tools 0.07 documentation</title>
   
 
   
@@ -87,7 +87,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#currently-implemented-features">Currently implemented features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#other-libraries">Other libraries:</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="preparing_aims.html">Preparing AIMS calculations</a></li>
@@ -105,6 +108,7 @@
 <li class="toctree-l1"><a class="reference internal" href="dos.html">dos module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="phonons.html">phonons module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hirshfeld.html">hirshfeld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eff_mass.html">eff_mass module</a></li>
 </ul>
 
             
@@ -177,7 +181,7 @@
 <ul>
 <li><p><strong>Handling AIMS calculations:</strong></p>
 <blockquote>
-<div><p>The installation comes with the <strong>prepare_aims.py</strong> executable in your /.local/bin folder which can set up the files for different tasks employing the ASE. Currently implemented are single-point calculations, geometry optimisations, band structures and atom-projected densities of states.</p>
+<div><p>The installation adds command line tools to your /.local/bin folder which can set up the files for different tasks employing the ASE, sort and analyse results.</p>
 </div></blockquote>
 <blockquote>
 <div><p>The <strong>structuretools.py</strong> module contains helper functions to fragment and analyze structures in order to set up different tasks or extract information after a finished calculation.</p>
@@ -185,10 +189,16 @@
 </li>
 <li><p><strong>Analyzing results:</strong></p>
 <blockquote>
-<div><p>The <strong>postprocessing.py</strong> module contains helper functions to extract useful data from finished calculations, such as energies. Additionally, there will be some functions to handle non-convering calculations, errors and other analysis.</p>
+<div><p>The <strong>postprocessing.py</strong> module contains helper functions to extract useful data from finished calculations, such as energies.</p>
 </div></blockquote>
 <blockquote>
 <div><p>The <strong>hirshfeld.py</strong> module extracts and evaluates hirshfeld charges.</p>
+</div></blockquote>
+<blockquote>
+<div><p>The <strong>eff_mass.py</strong> module can evaluate effective masses in 2 and 3 dimensions.</p>
+</div></blockquote>
+<blockquote>
+<div><p>The <strong>phonons.py</strong> module plots phonon spectra from phonopy-FHI aims calculations.</p>
 </div></blockquote>
 </li>
 <li><p><strong>Plotting functionalities:</strong></p>
@@ -218,7 +228,7 @@
 </div>
 <ul class="simple">
 <li><p>On t3000, this one is “/chemsoft/FHI-aims/stable/species_defaults/”</p></li>
-<li><p>On taurus, this one is “/projects/m_chemie/FHI-aims/aims_2155/species_defaults/”</p></li>
+<li><p>On taurus, this one is “/projects/m_chemie/FHI-aims/aims_200112/species_defaults/”</p></li>
 </ul>
 </div>
 <div class="section" id="documentation">
@@ -234,6 +244,12 @@
 <li><p><a class="reference external" href="https://seaborn.pydata.org/">seaborn</a></p></li>
 <li><p><a class="reference external" href="https://networkx.github.io/documentation/stable/install.html">networkx</a></p></li>
 </ul>
+<div class="section" id="other-libraries">
+<h3>Other libraries:<a class="headerlink" href="#other-libraries" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>sci-kit image for 3D isosurfaces</p></li>
+</ul>
+</div>
 </div>
 </div>
 

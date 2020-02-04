@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>dos module &mdash; AIMS_tools 0.06 documentation</title>
+  <title>dos module &mdash; AIMS_tools 0.07 documentation</title>
   
 
   
@@ -99,6 +99,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">dos module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="phonons.html">phonons module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hirshfeld.html">hirshfeld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eff_mass.html">eff_mass module</a></li>
 </ul>
 
             
@@ -169,7 +170,7 @@
 <p>&#64;author: Roman Kempt</p>
 <dl class="class">
 <dt id="dos.DOS">
-<em class="property">class </em><code class="sig-prename descclassname">dos.</code><code class="sig-name descname">DOS</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">spin=None</em>, <em class="sig-param">shift_to='middle'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dos.html#DOS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dos.DOS" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">dos.</code><code class="sig-name descname">DOS</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">spin=None</em>, <em class="sig-param">shift_type='middle'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dos.html#DOS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dos.DOS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">AIMS_tools.postprocessing.postprocess</span></code></p>
 <p>Density-of-states object. Inherits from postprocess.</p>
 <p>Contains all information about a DOS instance, such as the DOS per atom.</p>
@@ -226,7 +227,7 @@
 
 <dl class="method">
 <dt id="dos.DOS.plot_single_atomic_dos">
-<code class="sig-name descname">plot_single_atomic_dos</code><span class="sig-paren">(</span><em class="sig-param">atom</em>, <em class="sig-param">color</em>, <em class="sig-param">orbital=None</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">axes=None</em>, <em class="sig-param">title=''</em>, <em class="sig-param">fill='gradient'</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">kwargs={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dos.html#DOS.plot_single_atomic_dos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dos.DOS.plot_single_atomic_dos" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot_single_atomic_dos</code><span class="sig-paren">(</span><em class="sig-param">atom</em>, <em class="sig-param">color</em>, <em class="sig-param">orbital=None</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">axes=None</em>, <em class="sig-param">title=''</em>, <em class="sig-param">fill=None</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">kwargs={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dos.html#DOS.plot_single_atomic_dos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dos.DOS.plot_single_atomic_dos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots the DOS of a single species.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -258,7 +259,7 @@
 
 <dl class="method">
 <dt id="dos.DOS.shift_to">
-<code class="sig-name descname">shift_to</code><span class="sig-paren">(</span><em class="sig-param">shift_type</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dos.html#DOS.shift_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dos.DOS.shift_to" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">shift_to</code><span class="sig-paren">(</span><em class="sig-param">energy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dos.html#DOS.shift_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dos.DOS.shift_to" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shifts Fermi level of DOS spectrum according to shift_type attribute.</p>
 </dd></dl>
 

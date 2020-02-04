@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>structuretools &mdash; AIMS_tools 0.06 documentation</title>
+  <title>structuretools &mdash; AIMS_tools 0.07 documentation</title>
   
 
   
@@ -97,6 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../dos.html">dos module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../phonons.html">phonons module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../hirshfeld.html">hirshfeld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../eff_mass.html">eff_mass module</a></li>
 </ul>
 
             
@@ -160,15 +161,16 @@
            <div itemprop="articleBody">
             
   <h1>Source code for structuretools</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">ase</span> <span class="kn">import</span> <span class="n">neighborlist</span><span class="p">,</span> <span class="n">build</span>
-<span class="kn">import</span> <span class="nn">ase.io</span>
-<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">math</span>
+<span></span><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 <span class="kn">import</span> <span class="nn">spglib</span>
 
-<span class="n">Angstroem_to_bohr</span> <span class="o">=</span> <span class="mf">1.889725989</span>
+<span class="kn">import</span> <span class="nn">ase.io</span>
+<span class="kn">from</span> <span class="nn">ase</span> <span class="kn">import</span> <span class="n">neighborlist</span><span class="p">,</span> <span class="n">build</span>
+
+<span class="kn">from</span> <span class="nn">AIMS_tools.misc</span> <span class="kn">import</span> <span class="o">*</span>
 
 
 <div class="viewcode-block" id="structure"><a class="viewcode-back" href="../structuretools.html#structuretools.structure">[docs]</a><span class="k">class</span> <span class="nc">structure</span><span class="p">:</span>
@@ -182,8 +184,6 @@
 <span class="sd">        atom_indices (dict): Dictionary of atom index and label.</span>
 <span class="sd">        species (dict): Dictionary of atom labels and counts.</span>
 <span class="sd">        fragments (dict): Dictionary of (index: (original_index, atoms)) pairs.</span>
-<span class="sd">        rec_cell (array): Reciprocal lattice vectors in 2 pi/bohr.</span>
-<span class="sd">        rec_cell_lengths (numpy array): Reciprocal lattice vector lengths in 2 pi/bohr. </span>
 <span class="sd">        attributes (dict): Collection of attributes.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -191,12 +191,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">geometryfile</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">find_fragments</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rec_cell</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">get_reciprocal_cell</span><span class="p">()</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">Angstroem_to_bohr</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rec_cell_lengths</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">rec_cell</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">lengths</span><span class="p">()</span>  <span class="c1"># converting to atomic units 2 pi/bohr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">atom_indices</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># index to run over atoms</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">geometryfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>

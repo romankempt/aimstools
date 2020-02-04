@@ -7,18 +7,14 @@ Created on Sat Oct 12 09:12:57 2019
 
 import sys, os
 import argparse
+from pathlib import Path as Path
+
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from AIMS_tools import bandstructure, dos
-from pathlib import Path as Path
 from matplotlib.lines import Line2D
 
-plt.style.use("seaborn-ticks")
-plt.rcParams["legend.handlelength"] = 0.8
-plt.rcParams["legend.framealpha"] = 0.8
-font_name = "Arial"
-font_size = 8.5
-plt.rcParams.update({"font.sans-serif": font_name, "font.size": font_size})
+from AIMS_tools.misc import *
+from AIMS_tools import bandstructure, dos
 
 
 def combine_bs_dos(BSpath, DOSpath, title="", fix_energy_limits=[]):

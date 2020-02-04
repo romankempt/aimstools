@@ -1,17 +1,14 @@
 import numpy as np
 import glob, sys, os, math
+
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-from pathlib import Path as Path
-import ase.io, ase.cell
 import matplotlib.gridspec as gridspec
 
-plt.style.use("seaborn-ticks")
-plt.rcParams["legend.handlelength"] = 0.8
-plt.rcParams["legend.framealpha"] = 0.8
-font_name = "Arial"
-font_size = 8.5
-plt.rcParams.update({"font.sans-serif": font_name, "font.size": font_size})
+from pathlib import Path as Path
+import ase.io, ase.cell
+
+from AIMS_tools.misc import *
 
 
 class phonon_bandstructure:
@@ -141,10 +138,11 @@ class phonon_dos:
         dosfile = self.path.joinpath("phonopy-FHI-aims-dos.dat")
         self.spectrum = self.__read_dosfile(dosfile)
 
-    
     def __read_dosfile(self, dosfile):
         with open(dosfile, "r") as file:
-            content = [line.strip().split() for line in file.readlines() if "#" not in line]
+            content = [
+                line.strip().split() for line in file.readlines() if "#" not in line
+            ]
         data = np.array(content, dtype=float)
         return data
 
@@ -156,7 +154,7 @@ class phonon_dos:
         x = self.spectrum[:, 1]
         y = self.spectrum[:, 0]
         axes.plot(x, y, color=color)
-        axes.set_xlim((0, np.max(x*1.05)))
+        axes.set_xlim((0, np.max(x * 1.05)))
         axes.set_xticks([])
         axes.set_xlabel("DOS")
         return axes
@@ -195,5 +193,4 @@ def plot_bs_dos(directory, title=""):
 
     fig.suptitle(title)
     return fig
-
 

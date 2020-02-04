@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>postprocessing &mdash; AIMS_tools 0.06 documentation</title>
+  <title>postprocessing &mdash; AIMS_tools 0.07 documentation</title>
   
 
   
@@ -97,6 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../dos.html">dos module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../phonons.html">phonons module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../hirshfeld.html">hirshfeld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../eff_mass.html">eff_mass module</a></li>
 </ul>
 
             
@@ -164,9 +165,9 @@
 <span class="kn">import</span> <span class="nn">glob</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">ase.io</span><span class="o">,</span> <span class="nn">ase.cell</span>
-<span class="kn">from</span> <span class="nn">AIMS_tools.structuretools</span> <span class="kn">import</span> <span class="n">structure</span>
 
-<span class="n">Angstroem_to_bohr</span> <span class="o">=</span> <span class="mf">1.889725989</span>
+<span class="kn">from</span> <span class="nn">AIMS_tools.structuretools</span> <span class="kn">import</span> <span class="n">structure</span>
+<span class="kn">from</span> <span class="nn">AIMS_tools.misc</span> <span class="kn">import</span> <span class="o">*</span>
 
 
 <div class="viewcode-block" id="postprocess"><a class="viewcode-back" href="../postprocessing.html#postprocessing.postprocess">[docs]</a><span class="k">class</span> <span class="nc">postprocess</span><span class="p">:</span>
@@ -215,8 +216,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">outputfile</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span><span class="o">.</span><span class="n">parent</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Found outputfile </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calculation did not converge!&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Calculation did not converge!&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">elif</span> <span class="n">Path</span><span class="p">(</span><span class="n">outputfile</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
@@ -229,16 +231,18 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span><span class="o">.</span><span class="n">parent</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Found outputfile </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">found</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calculation did not converge!&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Calculation did not converge!&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Could not find outputfile.&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;Could not find outputfile.&quot;</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">__read_geometry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">geometry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;geometry.in&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">structure</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Structure: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">atoms</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">__read_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;control.in&quot;</span><span class="p">)</span>

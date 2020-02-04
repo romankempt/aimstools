@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>preparation &mdash; AIMS_tools 0.06 documentation</title>
+  <title>preparation &mdash; AIMS_tools 0.07 documentation</title>
   
 
   
@@ -97,6 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../dos.html">dos module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../phonons.html">phonons module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../hirshfeld.html">hirshfeld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../eff_mass.html">eff_mass module</a></li>
 </ul>
 
             
@@ -160,14 +161,18 @@
            <div itemprop="articleBody">
             
   <h1>Source code for preparation</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">ase</span> <span class="kn">import</span> <span class="n">Atoms</span>
-<span class="kn">import</span> <span class="nn">ase.io</span><span class="o">,</span> <span class="nn">ase.cell</span>
+<span></span><span class="kn">import</span> <span class="nn">ase.io</span><span class="o">,</span> <span class="nn">ase.cell</span>
+<span class="kn">from</span> <span class="nn">ase</span> <span class="kn">import</span> <span class="n">Atoms</span>
 <span class="kn">from</span> <span class="nn">ase.calculators.aims</span> <span class="kn">import</span> <span class="n">Aims</span>
+
 <span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">glob</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">AIMS_tools.structuretools</span> <span class="kn">import</span> <span class="n">structure</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">AIMS_tools.misc</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">AIMS_tools.structuretools</span> <span class="kn">import</span> <span class="n">structure</span>
 
 
 <div class="viewcode-block" id="prepare"><a class="viewcode-back" href="../preparation.html#preparation.prepare">[docs]</a><span class="k">class</span> <span class="nc">prepare</span><span class="p">:</span>
@@ -291,10 +296,10 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vdw</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;MBD&quot;</span><span class="p">,</span> <span class="s2">&quot;TS&quot;</span><span class="p">]:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vdw</span> <span class="o">==</span> <span class="s2">&quot;TS&quot;</span><span class="p">:</span>
                 <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;vdw_correction_hirshfeld</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vdw</span> <span class="o">==</span> <span class="s2">&quot;MBD&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pbc</span> <span class="o">!=</span> <span class="s2">&quot;2D&quot;</span><span class="p">):</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vdw</span> <span class="o">==</span> <span class="s2">&quot;MBD&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xc</span> <span class="o">!=</span> <span class="s2">&quot;pbe&quot;</span><span class="p">):</span>
                 <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;many_body_dispersion</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vdw</span> <span class="o">==</span> <span class="s2">&quot;MBD&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pbc</span> <span class="o">==</span> <span class="s2">&quot;2D&quot;</span><span class="p">):</span>
-                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;many_body dispersion           vacuum=False:False:True</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vdw</span> <span class="o">==</span> <span class="s2">&quot;MBD&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xc</span> <span class="o">==</span> <span class="s2">&quot;pbe&quot;</span><span class="p">):</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;many_body dispersion_nl           beta=0.81 </span><span class="se">\t</span><span class="s2"> # switching to the more advanced MBD </span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="k">return</span> <span class="n">line</span>
 
     <span class="k">def</span> <span class="nf">__adjust_scf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
@@ -323,18 +328,21 @@
             <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;relax_geometry    bfgs    1E-2</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;relax_unit_cell   fixed_angles             # none, full, fixed_angles </span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;phonons&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="p">:</span>
-            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;### phonon section&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;### phonon section </span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;sc_accuracy_forces 1E-5 # necessary for phonons </span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon supercell 2 2 2 </span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon displacement 0.001 </span><span class="se">\t\t</span><span class="s2"> # displacement in Angström (default 0.001) </span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon symmetry_thresh 1e-6 </span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon frequency_unit cm^-1 </span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon hessian phono-perl TDI</span><span class="se">\n</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_bands</span><span class="p">:</span>
-                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon supercell 2 2 2 </span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon displacement 0.001 </span><span class="se">\t\t</span><span class="s2"> # displacement in Angström (default 0.001) </span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;symmetry_thresh 1e-6 </span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;frequency_unit cm^-1 </span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon hessian phono-perl TDI</span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="n">line</span> <span class="o">+=</span> <span class="n">band</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">,</span> <span class="s2">&quot;phonon&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon free_energy 0 800 801 20 </span><span class="se">\t</span><span class="s2"> </span><span class="se">\t</span><span class="s2"> # Tstart Tend Tpoints qdensity </span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon dos 0 600 600 5 20</span><span class="se">\n</span><span class="s2"> </span><span class="se">\t</span><span class="s2"> </span><span class="se">\t</span><span class="s2"> # fstart fend fpoints broad qdensity </span><span class="se">\n</span><span class="s2"> &quot;</span>
-                <span class="k">for</span> <span class="n">mode</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">get_number_of_atoms</span><span class="p">()</span><span class="o">*</span><span class="mi">3</span><span class="p">):</span>                   
-                    <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon animation 0 0 0 4 5 20 0 0 0 mode</span><span class="si">{}</span><span class="s2">.arc mode</span><span class="si">{}</span><span class="s2">.ascii mode</span><span class="si">{}</span><span class="s2">.xyz mode</span><span class="si">{}</span><span class="s2">.xyz_jmol </span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> phonon free_energy 0 800 801 20 </span><span class="se">\t</span><span class="s2"> </span><span class="se">\t</span><span class="s2"> # Tstart Tend Tpoints qdensity </span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon dos 0 600 600 5 20 </span><span class="se">\t</span><span class="s2"> </span><span class="se">\t</span><span class="s2"> # fstart fend fpoints broad qdensity </span><span class="se">\n</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> &quot;</span>
+            <span class="k">for</span> <span class="n">mode</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">get_global_number_of_atoms</span><span class="p">()</span> <span class="o">*</span> <span class="mi">3</span><span class="p">):</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;phonon animation 0 0 0 4 5 20 0 0 0 mode</span><span class="si">{n}</span><span class="s2">.arc mode</span><span class="si">{n}</span><span class="s2">.ascii mode</span><span class="si">{n}</span><span class="s2">.xyz mode</span><span class="si">{n}</span><span class="s2">.xyz_jmol </span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">n</span><span class="o">=</span><span class="n">mode</span>
+                <span class="p">)</span>
         <span class="k">return</span> <span class="n">line</span>
 
 <div class="viewcode-block" id="prepare.adjust_cost"><a class="viewcode-back" href="../preparation.html#preparation.prepare.adjust_cost">[docs]</a>    <span class="k">def</span> <span class="nf">adjust_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -349,13 +357,13 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="mi">126</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">ppn</span> <span class="o">=</span> <span class="mi">24</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="mi">4</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">walltime</span> <span class="o">=</span> <span class="mi">72</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">walltime</span> <span class="o">=</span> <span class="mi">24</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">==</span> <span class="s2">&quot;high&quot;</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="mi">254</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">ppn</span> <span class="o">=</span> <span class="mi">24</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="mi">2</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">walltime</span> <span class="o">=</span> <span class="mi">72</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span> <span class="o">==</span> <span class="s2">&quot;t3000&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">walltime</span> <span class="o">=</span> <span class="mi">24</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster</span> <span class="o">==</span> <span class="s2">&quot;t3000&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">==</span> <span class="s2">&quot;low&quot;</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="mi">60</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">ppn</span> <span class="o">=</span> <span class="mi">20</span>
@@ -433,14 +441,14 @@
 <span class="sd">#SBATCH --output=slurm.out \t\t# output</span>
 
 <span class="sd">module use /projects/m_chemie/privatemodules/</span>
-<span class="sd">module add aims/aims_2155</span>
+<span class="sd">module add aims/aims_200112</span>
 
 <span class="sd">COMPUTE_DIR=aims_$SLURM_JOB_ID</span>
 <span class="sd">ws_allocate -F ssd $COMPUTE_DIR 7</span>
 <span class="sd">export AIMS_SCRDIR=/ssd/ws/$USER-$COMPUTE_DIR</span>
 
 <span class="sd">export OMP_NUM_THREADS=1</span>
-<span class="sd">srun aims.191127.scalapack.mpi.x &gt; {name}.out</span>
+<span class="sd">srun aims.200112.scalapack.mpi.x &gt; {name}.out</span>
 <span class="sd">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
                     <span class="n">cpus</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ppn</span><span class="p">,</span>

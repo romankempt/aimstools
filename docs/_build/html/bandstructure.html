@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>bandstructure module &mdash; AIMS_tools 0.06 documentation</title>
+  <title>bandstructure module &mdash; AIMS_tools 0.07 documentation</title>
   
 
   
@@ -99,6 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="dos.html">dos module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="phonons.html">phonons module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hirshfeld.html">hirshfeld module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eff_mass.html">eff_mass module</a></li>
 </ul>
 
             
@@ -169,9 +170,9 @@
 <p>&#64;author: Roman Kempt</p>
 <dl class="class">
 <dt id="bandstructure.bandstructure">
-<em class="property">class </em><code class="sig-prename descclassname">bandstructure.</code><code class="sig-name descname">bandstructure</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">spin=None</em>, <em class="sig-param">shift_to='middle'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#bandstructure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.bandstructure" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">bandstructure.</code><code class="sig-name descname">bandstructure</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">spin=None</em>, <em class="sig-param">shift_type='middle'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#bandstructure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.bandstructure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">AIMS_tools.postprocessing.postprocess</span></code></p>
-<p>Band structure object. Inherits from postprocess.</p>
+<p>Band structure object.</p>
 <p>Contains all information about a single band structure instance, such as the energy spectrum, the band gap, Fermi level etc.</p>
 <div class="admonition-example admonition">
 <p class="admonition-title">Example</p>
@@ -180,8 +181,8 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bs</span> <span class="o">=</span> <span class="n">bandstructure</span><span class="o">.</span><span class="n">bandstructure</span><span class="p">(</span><span class="s2">&quot;outputfile&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bs</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;Name.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">transparent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -191,12 +192,11 @@
 <li><p><strong>outputfile</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Path to outputfile.</p></li>
 <li><p><strong>get_SOC</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Retrieve spectrum with or without spin-orbit coupling (True/False), if calculated.</p></li>
 <li><p><strong>spin</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Retrieve spin channel 1 or 2. Defaults to None (spin-restricted) or 1 (collinear).</p></li>
-<li><p><strong>shift_to</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Shifts Fermi level. Options are None (default for metallic systems), “middle” for middle of band gap, and “VBM” for valence band maximum.</p></li>
+<li><p><strong>shift_type</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Shifts Fermi level. Options are None (default for metallic systems), “middle” for middle of band gap, and “VBM” for valence band maximum.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>shift_type</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Argument of shift_to.</p></li>
 <li><p><strong>ksections</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Dictionary of path segments and corresponding band file.</p></li>
 <li><p><strong>bandsegments</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Dictionary of path segments and corresponding eigenvalues.</p></li>
 <li><p><strong>kpath</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – K-path labels following AFLOW conventions.</p></li>
@@ -251,22 +251,11 @@
 <dd><p>Prints out key properties of the band structure.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="bandstructure.bandstructure.shift_to">
-<code class="sig-name descname">shift_to</code><span class="sig-paren">(</span><em class="sig-param">spectrum</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#bandstructure.shift_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.bandstructure.shift_to" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shifts Fermi level of spectrum according to shift_type attribute.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><em>array</em> – spectrum attribute</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="class">
 <dt id="bandstructure.fatbandstructure">
-<em class="property">class </em><code class="sig-prename descclassname">bandstructure.</code><code class="sig-name descname">fatbandstructure</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">spin=None</em>, <em class="sig-param">shift_to='middle'</em>, <em class="sig-param">filter=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">bandstructure.</code><code class="sig-name descname">fatbandstructure</code><span class="sig-paren">(</span><em class="sig-param">outputfile</em>, <em class="sig-param">get_SOC=True</em>, <em class="sig-param">spin=None</em>, <em class="sig-param">shift_type='middle'</em>, <em class="sig-param">filter_species=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#bandstructure.bandstructure" title="bandstructure.bandstructure"><code class="xref py py-class docutils literal notranslate"><span class="pre">bandstructure.bandstructure</span></code></a></p>
 <p>Band structure object. Inherits from bandstructure class.</p>
 <div class="admonition-example admonition">
@@ -276,48 +265,29 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bs</span> <span class="o">=</span> <span class="n">bandstructure</span><span class="o">.</span><span class="n">fatbandstructure</span><span class="p">(</span><span class="s2">&quot;outputfile&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bs</span><span class="o">.</span><span class="n">plot_all_orbitals</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;Name.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">transparent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filter</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – Only processes list of atom labels, e.g., [“W”, “S”].</p></li>
-<li><p><strong>parallel</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Currently disabled. New serial implementation is much faster than multiprocessing for up to 500 atoms.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>filter_species</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – Only processes list of atom labels, e.g., [“W”, “S”].</p>
 </dd>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>filter</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – List of atom labels.</p></li>
-<li><p><strong>tot_contributions</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Dictionary of numpy arrays per atom containing total contributions.</p></li>
-<li><p><strong>s_contributions</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Dictionary of numpy arrays per atom containing s-orbital contributions.</p></li>
-<li><p><strong>p_contributions</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Dictionary of numpy arrays per atom containing p-orbital contributions.</p></li>
-<li><p><strong>d_contributions</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Dictionary of numpy arrays per atom containing d-orbital contributions.</p></li>
-<li><p><strong>mlk_bandsegments</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Nested dictionary of path segments and data.</p></li>
+<li><p><strong>mlk_bandsegments</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Nested dictionary of path segments and ndarrays containing data.</p></li>
+<li><p><strong>atom_contributions</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Nested dictionary of dictionaries containing {atom : {section : {kvalues, contributions}}}.</p></li>
+<li><p><strong>atom_spectra</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Nested dictionary of atom index keys and data for plotting aligned with the kpath.</p></li>
 </ul>
 </dd>
 </dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Invoking the parallel option strictly requires your execution script to be safeguarded with the statement:</p>
-<p>if __name__ == “__main__”:</p>
-<p>Hence, this option can not be invoked interactively.</p>
-<p>In the current version, the parallel option is disabled. The new serial implementation</p>
-<p>should be much faster for any reasonable system and runs more stably.</p>
-</div>
-<div class="admonition-todo admonition" id="id1">
-<p class="admonition-title">Todo</p>
-<ul class="simple">
-<li><p>Improving fatband plots.</p></li>
-<li><p>Adding a scatter option.</p></li>
-</ul>
-</div>
 <dl class="method">
 <dt id="bandstructure.fatbandstructure.custom_path">
 <code class="sig-name descname">custom_path</code><span class="sig-paren">(</span><em class="sig-param">custompath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure.custom_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure.custom_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function takes in a custom path of form K1-K2-K3 for plotting.</p>
+<p>Changes kpath attribute according to custompath and recreates atom_spectra according to new kpath.
+Might give weird results if called after summing up contributions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>custompath</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Hyphen-separated string of path labels, e.g., “G-M-X”.</p>
@@ -330,11 +300,33 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="bandstructure.fatbandstructure.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">title=''</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">axes=None</em>, <em class="sig-param">color='k'</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">mark_gap='lightgray'</em>, <em class="sig-param">kwargs={'alpha': 0.25</em>, <em class="sig-param">'linewidth': 0.5}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots a band structure instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Title of the plot.</p></li>
+<li><p><strong>fig</strong> (<em>matplotlib figure</em>) – Figure to draw the plot on.</p></li>
+<li><p><strong>axes</strong> (<em>matplotlib axes</em>) – Axes to draw the plot on.</p></li>
+<li><p><strong>color</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Color of the lines.</p></li>
+<li><p><strong>var_energy_limits</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Variable energy range above and below the band gap to show.</p></li>
+<li><p><strong>fix_energy_limits</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – List of lower and upper energy limits to show.</p></li>
+<li><p><strong>mark_gap</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Color to fill the band gap with or None.</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Passed to matplotlib plotting function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>axes</em> – matplotlib axes object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="bandstructure.fatbandstructure.plot_all_orbitals">
-<code class="sig-name descname">plot_all_orbitals</code><span class="sig-paren">(</span><em class="sig-param">axes=None</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">title=''</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">nbands=False</em>, <em class="sig-param">interpolation_step=False</em>, <em class="sig-param">kwargs={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure.plot_all_orbitals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure.plot_all_orbitals" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot_all_orbitals</code><span class="sig-paren">(</span><em class="sig-param">axes=None</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">mode='lines'</em>, <em class="sig-param">title=''</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">nbands=False</em>, <em class="sig-param">interpolation_step=False</em>, <em class="sig-param">kwargs={'alpha': 0.15</em>, <em class="sig-param">'linewidth': 0.5}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure.plot_all_orbitals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure.plot_all_orbitals" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots a fatbandstructure instance with all orbital characters overlaid.</p>
 <p>Shares attributes with the in-built plot function.</p>
-<a class="reference internal image-reference" href="_images/MoSe2_fatband_orbitals.png"><img alt="_images/MoSe2_fatband_orbitals.png" class="align-center" src="_images/MoSe2_fatband_orbitals.png" style="width: 220px; height: 250px;" /></a>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Keyword arguments are passed to the plot() method.</p>
@@ -347,14 +339,13 @@
 
 <dl class="method">
 <dt id="bandstructure.fatbandstructure.plot_all_species">
-<code class="sig-name descname">plot_all_species</code><span class="sig-paren">(</span><em class="sig-param">axes=None</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">title=''</em>, <em class="sig-param">sum=True</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">nbands=False</em>, <em class="sig-param">interpolation_step=False</em>, <em class="sig-param">kwargs={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure.plot_all_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure.plot_all_species" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot_all_species</code><span class="sig-paren">(</span><em class="sig-param">axes=None</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">mode='lines'</em>, <em class="sig-param">title=''</em>, <em class="sig-param">sum=True</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">nbands=False</em>, <em class="sig-param">interpolation_step=False</em>, <em class="sig-param">kwargs={'alpha': 0.15</em>, <em class="sig-param">'linewidth': 0.5}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure.plot_all_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure.plot_all_species" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots a fatbandstructure instance with all species overlaid.</p>
 <p>Shares attributes with the in-built plot function. Gives an error if invoked with more than 5 species.</p>
-<a class="reference internal image-reference" href="_images/MoSe2_fatband_species.png"><img alt="_images/MoSe2_fatband_species.png" class="align-center" src="_images/MoSe2_fatband_species.png" style="width: 220px; height: 250px;" /></a>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>sum</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – True or False. Invokes sum_contribution() method.</p></li>
+<li><p><strong>sum</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – True or False. Sums contributions of same species.</p></li>
 <li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Keyword arguments are passed to the plot() method.</p></li>
 </ul>
 </dd>
@@ -366,16 +357,18 @@
 
 <dl class="method">
 <dt id="bandstructure.fatbandstructure.plot_mlk">
-<code class="sig-name descname">plot_mlk</code><span class="sig-paren">(</span><em class="sig-param">contribution</em>, <em class="sig-param">title=''</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">axes=None</em>, <em class="sig-param">cmap='Blues'</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">nbands=False</em>, <em class="sig-param">interpolation_step=False</em>, <em class="sig-param">kwargs={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure.plot_mlk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure.plot_mlk" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot_mlk</code><span class="sig-paren">(</span><em class="sig-param">atom</em>, <em class="sig-param">contribution</em>, <em class="sig-param">mode='lines'</em>, <em class="sig-param">title=''</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">axes=None</em>, <em class="sig-param">cmap='Blues'</em>, <em class="sig-param">var_energy_limits=1.0</em>, <em class="sig-param">fix_energy_limits=[]</em>, <em class="sig-param">nbands=False</em>, <em class="sig-param">interpolation_step=False</em>, <em class="sig-param">kwargs={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure.plot_mlk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure.plot_mlk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots a fat band structure instance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>contribution</strong> (<em>numpy array</em>) – Atomic contribution attribute, e.g., tot_contribution[“C”].</p></li>
+<li><p><strong>atom</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Index or label of atom in self.atom_indices.</p></li>
+<li><p><strong>contribution</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Spectral contribution tot, s, p, d or f or user-defined ndarray.</p></li>
+<li><p><strong>mode</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – “lines” or “scatter”. Defaults to “lines”.</p></li>
 <li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Title of the plot.</p></li>
 <li><p><strong>fig</strong> (<em>matplotlib figure</em>) – Figure to draw the plot on.</p></li>
 <li><p><strong>axes</strong> (<em>matplotlib axes</em>) – Axes to draw the plot on.</p></li>
-<li><p><strong>cmap</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Matplotlib colormap instance.</p></li>
+<li><p><strong>cmap</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Matplotlib colormap instance (e.g., “Blues”, “Oranges”, “Purples”, “Reds”, “Greens”).</p></li>
 <li><p><strong>var_energy_limits</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Variable energy range above and below the band gap to show.</p></li>
 <li><p><strong>fix_energy_limits</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – List of lower and upper energy limit to show.</p></li>
 <li><p><strong>nbands</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – False or integer. Number of bands above and below the Fermi level to colorize.</p></li>
@@ -391,11 +384,44 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="bandstructure.fatbandstructure.sum_contributions">
-<code class="sig-name descname">sum_contributions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure.sum_contributions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure.sum_contributions" title="Permalink to this definition">¶</a></dt>
+<dt id="bandstructure.fatbandstructure.sort_atoms">
+<code class="sig-name descname">sort_atoms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure.sort_atoms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure.sort_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sorts by heaviest atom.</p>
+<p>Changes atom_indices attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bandstructure.fatbandstructure.sum_all_species_contributions">
+<code class="sig-name descname">sum_all_species_contributions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure.sum_all_species_contributions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure.sum_all_species_contributions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sums (normalized) atomic contributions for the same species.</p>
-<p>This method is optional, since the atoms are not always symmetry equivalent.
-Atoms attribute will be modified and ordered by heaviest atoms.</p>
+<p>Modifies atom_spectra attribute and reduces atom_indices attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bandstructure.fatbandstructure.sum_contributions">
+<code class="sig-name descname">sum_contributions</code><span class="sig-paren">(</span><em class="sig-param">list_of_species</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure.sum_contributions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure.sum_contributions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sums contributions of species.</p>
+<p>Modifies both atom_indices and atom_spectra attribute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>list_of_species</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – List of labels ([“H”, “C”, …]) or list of indices ([1, 2, 3, …]) or mix of both is accepted.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Might give unexpected results in conjunction with custom_path. A custom k-path should be specified first before calling this option.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="bandstructure.fatbandstructure.sum_orbitals">
+<code class="sig-name descname">sum_orbitals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bandstructure.html#fatbandstructure.sum_orbitals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bandstructure.fatbandstructure.sum_orbitals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sums orbital contributions of all species.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><em>ndarray</em> – shape (nkpoints, nstates, [index, eigenvalue, occupation, atom, spin, total, s, p, d, f, g])</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>

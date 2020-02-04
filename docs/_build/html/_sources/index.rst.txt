@@ -13,6 +13,7 @@ AIMS_tools's documentation
    intro
    preparing_aims
    handling_aims
+   effective_mass_intro
 
 .. toctree::
    :maxdepth: 3
@@ -30,6 +31,7 @@ AIMS_tools's documentation
    dos
    phonons
    hirshfeld
+   eff_mass
 
 Indices and tables
 ==================

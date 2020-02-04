@@ -2,9 +2,9 @@ import numpy as np
 import glob, sys, os, math
 from pathlib import Path as Path
 import ase.io, ase.cell
-from AIMS_tools.structuretools import structure
 
-Angstroem_to_bohr = 1.889725989
+from AIMS_tools.structuretools import structure
+from AIMS_tools.misc import *
 
 
 class postprocess:
@@ -53,8 +53,9 @@ class postprocess:
                 self.outputfile = Path(outputfile)
                 self.path = self.outputfile.parent
                 self.success = True
+                logging.info("Found outputfile {}".format(self.outputfile))
             else:
-                print("Calculation did not converge!")
+                logging.error("Calculation did not converge!")
                 self.success = False
 
         elif Path(outputfile).is_dir():
@@ -67,16 +68,18 @@ class postprocess:
                     self.path = self.outputfile.parent
                     self.success = True
                     found = True
+                    logging.info("Found outputfile {}".format(self.outputfile))
             if found == False:
-                print("Calculation did not converge!")
+                logging.error("Calculation did not converge!")
                 self.success = False
         else:
-            print("Could not find outputfile.")
+            logging.critical("Could not find outputfile.")
             sys.exit()
 
     def __read_geometry(self):
         geometry = self.path.joinpath("geometry.in")
         self.structure = structure(geometry)
+        logging.info("Structure: {}".format(self.structure.atoms))
 
     def __read_control(self):
         control = self.path.joinpath("control.in")

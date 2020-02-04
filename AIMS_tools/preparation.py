@@ -1,11 +1,15 @@
-from ase import Atoms
 import ase.io, ase.cell
+from ase import Atoms
 from ase.calculators.aims import Aims
+
 import argparse
 from pathlib import Path as Path
 import glob, sys, os
-from AIMS_tools.structuretools import structure
+
 import numpy as np
+
+from AIMS_tools.misc import *
+from AIMS_tools.structuretools import structure
 
 
 class prepare:
@@ -129,10 +133,10 @@ class prepare:
         if self.vdw in ["MBD", "TS"]:
             if self.vdw == "TS":
                 line += "vdw_correction_hirshfeld\n"
-            elif (self.vdw == "MBD") and (self.pbc != "2D"):
+            elif (self.vdw == "MBD") and (self.xc != "pbe"):
                 line += "many_body_dispersion\n"
-            elif (self.vdw == "MBD") and (self.pbc == "2D"):
-                line += "many_body dispersion           vacuum=False:False:True\n"
+            elif (self.vdw == "MBD") and (self.xc == "pbe"):
+                line += "many_body dispersion_nl           beta=0.81 \t # switching to the more advanced MBD \n"
         return line
 
     def __adjust_scf(self, line):
@@ -161,18 +165,21 @@ class prepare:
             line += "relax_geometry    bfgs    1E-2\n"
             line += "relax_unit_cell   fixed_angles             # none, full, fixed_angles \n"
         if "phonons" in self.task:
-            line += "### phonon section \n"           
+            line += "### phonon section \n"
+            line += "sc_accuracy_forces 1E-5 # necessary for phonons \n"
             line += "phonon supercell 2 2 2 \n"
             line += "phonon displacement 0.001 \t\t # displacement in Angström (default 0.001) \n"
-            line += "symmetry_thresh 1e-6 \n"
-            line += "frequency_unit cm^-1 \n"
-            line += "phonon hessian phono-perl TDI\n"
-            for band in self.output_bands:                
+            line += "phonon symmetry_thresh 1e-6 \n"
+            line += "phonon frequency_unit cm^-1 \n"
+            line += "phonon hessian phono-perl TDI\n \n"
+            for band in self.output_bands:
                 line += band.replace("output", "phonon") + "\n"
-            line += "phonon free_energy 0 800 801 20 \t \t # Tstart Tend Tpoints qdensity \n"
-            line += "phonon dos 0 600 600 5 20 \t \t # fstart fend fpoints broad qdensity \n "
-            for mode in range(self.structure.atoms.get_global_number_of_atoms()*3):                   
-                line += "phonon animation 0 0 0 4 5 20 0 0 0 mode{n}.arc mode{n}.ascii mode{n}.xyz mode{n}.xyz_jmol \n".format(n=mode)
+            line += "\n phonon free_energy 0 800 801 20 \t \t # Tstart Tend Tpoints qdensity \n"
+            line += "phonon dos 0 600 600 5 20 \t \t # fstart fend fpoints broad qdensity \n \n "
+            for mode in range(self.structure.atoms.get_global_number_of_atoms() * 3):
+                line += "phonon animation 0 0 0 4 5 20 0 0 0 mode{n}.arc mode{n}.ascii mode{n}.xyz mode{n}.xyz_jmol \n".format(
+                    n=mode
+                )
         return line
 
     def adjust_cost(self):
@@ -187,13 +194,13 @@ class prepare:
                 self.memory = 126
                 self.ppn = 24
                 self.nodes = 4
-                self.walltime = 72
+                self.walltime = 24
             if self.cost == "high":
                 self.memory = 254
                 self.ppn = 24
                 self.nodes = 2
-                self.walltime = 72
-        if self.cluster == "t3000":
+                self.walltime = 24
+        elif self.cluster == "t3000":
             if self.cost == "low":
                 self.memory = 60
                 self.ppn = 20
@@ -271,14 +278,14 @@ mpirun -np {cpus} bash -c "ulimit -s unlimited && aims.171221_1.scalapack.mpi.x"
 #SBATCH --output=slurm.out \t\t# output
 
 module use /projects/m_chemie/privatemodules/
-module add aims/aims_2155
+module add aims/aims_200112
 
 COMPUTE_DIR=aims_$SLURM_JOB_ID
 ws_allocate -F ssd $COMPUTE_DIR 7
 export AIMS_SCRDIR=/ssd/ws/$USER-$COMPUTE_DIR
 
 export OMP_NUM_THREADS=1
-srun aims.191127.scalapack.mpi.x > {name}.out
+srun aims.200112.scalapack.mpi.x > {name}.out
             """.format(
                     name=name,
                     cpus=self.nodes * self.ppn,

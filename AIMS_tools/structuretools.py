@@ -1,12 +1,13 @@
-from ase import neighborlist, build
-import ase.io
 import sys, os, math
 from pathlib import Path as Path
 import numpy as np
 import networkx as nx
 import spglib
 
-Angstroem_to_bohr = 1.889725989
+import ase.io
+from ase import neighborlist, build
+
+from AIMS_tools.misc import *
 
 
 class structure:
@@ -20,8 +21,6 @@ class structure:
         atom_indices (dict): Dictionary of atom index and label.
         species (dict): Dictionary of atom labels and counts.
         fragments (dict): Dictionary of (index: (original_index, atoms)) pairs.
-        rec_cell (array): Reciprocal lattice vectors in 2 pi/bohr.
-        rec_cell_lengths (numpy array): Reciprocal lattice vector lengths in 2 pi/bohr. 
         attributes (dict): Collection of attributes.
     """
 
@@ -29,12 +28,6 @@ class structure:
         self.atoms = ase.io.read(geometryfile)
         self.attributes = {}
         self.find_fragments()
-        self.rec_cell = (
-            self.atoms.get_reciprocal_cell() * 2 * math.pi / Angstroem_to_bohr
-        )
-        self.rec_cell_lengths = ase.cell.Cell.new(
-            self.rec_cell
-        ).lengths()  # converting to atomic units 2 pi/bohr
         self.atom_indices = {}
         i = 1  # index to run over atoms
         with open(geometryfile, "r") as file:

@@ -15,14 +15,9 @@ from matplotlib.patches import Polygon
 import matplotlib.ticker as ticker
 import re
 from pathlib import Path as Path
-from AIMS_tools.postprocessing import postprocess
 
-plt.style.use("seaborn-ticks")
-plt.rcParams["legend.handlelength"] = 0.8
-plt.rcParams["legend.framealpha"] = 0.8
-font_name = "Arial"
-font_size = 8.5
-plt.rcParams.update({"font.sans-serif": font_name, "font.size": font_size})
+from AIMS_tools.misc import *
+from AIMS_tools.postprocessing import postprocess
 
 
 class DOS(postprocess):
@@ -55,23 +50,23 @@ class DOS(postprocess):
         - provide a function to plot orbital-resolved DOS of atom.
     """
 
-    def __init__(self, outputfile, get_SOC=True, spin=None, shift_to="middle"):
+    def __init__(self, outputfile, get_SOC=True, spin=None, shift_type="middle"):
         super().__init__(outputfile, get_SOC=get_SOC, spin=spin)
         if self.success == False:
             sys.exit("Calculation did not converge.")
         self.band_gap = self.CBM - self.VBM
         dosfiles = self.__get_raw_data(get_SOC)
         dos_per_atom = []
-        for atom in self.species.keys():
+        for atom in self.structure.species.keys():
             atomic_dos = self.__sort_dosfiles(dosfiles, atom)
             atomic_dos = self.__sum_dosfiles(atomic_dos)
             dos_per_atom.append(atomic_dos)
-        self.dos_per_atom = dict(zip(self.species.keys(), dos_per_atom))
+        self.dos_per_atom = dict(zip(self.structure.species.keys(), dos_per_atom))
         for atom in self.dos_per_atom.keys():
             self.dos_per_atom[atom][:, 1:] = (
-                self.dos_per_atom[atom][:, 1:] * self.species[atom]
+                self.dos_per_atom[atom][:, 1:] * self.structure.species[atom]
             )
-        self.shift_to(shift_to)
+        self.shift_type = shift_type
         self.total_dos = self.__get_total_dos(self.dos_per_atom)
 
     def __get_raw_data(self, get_SOC):
@@ -143,18 +138,16 @@ class DOS(postprocess):
         total_dos = np.sum(total_dos, axis=0) / len(dos_per_atom.keys())
         return total_dos
 
-    def shift_to(self, shift_type):
+    def shift_to(self, energy):
         """ Shifts Fermi level of DOS spectrum according to shift_type attribute. """
-        if self.band_gap < 0.1:
-            shift_type = None
-            for atom in self.dos_per_atom.keys():
-                self.dos_per_atom[atom][:, 0] -= self.fermi_level
-        elif shift_type == "middle":
-            for atom in self.dos_per_atom.keys():
-                self.dos_per_atom[atom][:, 0] -= (self.VBM + self.CBM) / 2
-        elif shift_type == "VBM":
-            for atom in self.dos_per_atom.keys():
-                self.dos_per_atom[atom][:, 0] -= self.VBM
+        if (self.band_gap < 0.1) or (self.shift_type == None):
+            pass
+            # energy -= self.fermi_level
+        elif self.shift_type == "middle":
+            energy -= (self.VBM + self.CBM) / 2
+        elif self.shift_type == "VBM":
+            energy -= self.VBM
+        return energy
 
     def plot_single_atomic_dos(
         self,
@@ -164,7 +157,7 @@ class DOS(postprocess):
         fig=None,
         axes=None,
         title="",
-        fill="gradient",
+        fill=None,
         var_energy_limits=1.0,
         fix_energy_limits=[],
         kwargs={},
@@ -197,6 +190,7 @@ class DOS(postprocess):
         else:
             xy = self.dos_per_atom[atom][:, [0, orbitals[orbital]]]
 
+        xy[:, 0] = self.shift_to(xy[:, 0])
         if fix_energy_limits == []:
             lower_ylimit = -self.band_gap - var_energy_limits
             upper_ylimit = self.band_gap + var_energy_limits
@@ -206,7 +200,7 @@ class DOS(postprocess):
 
         ### The y-range is cut out for two reasons: Scaling the plotted range
         ### and having the gradients with better colors.
-        xy = xy[(xy[:, 0] > lower_ylimit - 3) & (xy[:, 0] < upper_ylimit + 3)]
+        # xy = xy[(xy[:, 0] > lower_ylimit - 10) & (xy[:, 0] < upper_ylimit + 6)]
         x = xy[:, 1]
         y = xy[:, 0]
 
@@ -243,17 +237,25 @@ class DOS(postprocess):
             The data values of the line.
         Additional arguments are passed on to matplotlib's ``plot`` function.
         """
+        from matplotlib.path import Path
+        from matplotlib.patches import PathPatch
+
         z = np.empty((1, 100, 4), dtype=float)
         rgb = mcolors.colorConverter.to_rgb(color)
         z[:, :, :3] = rgb
-        z[:, :, -1] = np.linspace(0, 0.9, 100)[None, :]
-        _, xmax, ymin, ymax = x.min(), x.max(), y.min(), y.max()
-        im = axes.imshow(z, aspect="auto", extent=[0, xmax, ymin, ymax], origin="upper")
+        z[:, :, -1] = np.linspace(0, 1, 100)[None, :]
+        xmin, xmax, ymin, ymax = x.min(), x.max(), y.min(), y.max()
+        im = axes.imshow(
+            z, aspect="auto", extent=[xmin, xmax, ymin, ymax], origin="upper"
+        )
         xy = np.column_stack([x, y])
-        xy = np.vstack([[ymin, 0], xy, [ymin, xmax], [ymin, 0]])
-        clip_path = Polygon(xy, facecolor="none", edgecolor="none", closed=True)
-        axes.add_patch(clip_path)
-        im.set_clip_path(clip_path)
+        poly_codes = [Path.MOVETO] + (len(xy) - 2) * [Path.LINETO] + [Path.CLOSEPOLY]
+        path = Path(xy, poly_codes)
+        patch = PathPatch(path, facecolor="none", edgecolor="none")
+        # xy = np.vstack([[0, ymax], xy, [0, ymin], [0, 0]])
+        # clip_path = Polygon(xy, facecolor="none", edgecolor="none", closed=False)
+        axes.add_patch(patch)
+        im.set_clip_path(patch)
 
     def plot_all_atomic_dos(
         self,
