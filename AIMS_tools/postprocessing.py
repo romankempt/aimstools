@@ -41,8 +41,8 @@ class postprocess:
         self.__read_output()
         self.__def_color_dictionary()
 
-    def __repr__(self):
-        return repr(str(self.path.parts[-1]))
+    # def __repr__(self):
+    #     return repr(str(self.path.parts[-1]))
 
     def __check_output(self, outputfile):
         if Path(outputfile).is_file():

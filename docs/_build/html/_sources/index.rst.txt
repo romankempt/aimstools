@@ -10,14 +10,15 @@ AIMS_tools's documentation
    :maxdepth: 3
    :caption: Introduction:
 
-   intro
-   preparing_aims
-   handling_aims
-   effective_mass_intro
+   intros/intro
+   intros/preparing_aims
+   intros/handling_aims
+   intros/effective_mass_intro
+   intros/boltztrap2
 
 .. toctree::
    :maxdepth: 3
-   :caption: File Handling:
+   :caption: Tools for Pre- and Postprocessing:
    
    structuretools
    preparation
@@ -25,7 +26,7 @@ AIMS_tools's documentation
 
 .. toctree::
    :maxdepth: 3
-   :caption: Analysis and Plotting:   
+   :caption: Tools for Analysis and Plotting:   
 
    bandstructure
    dos

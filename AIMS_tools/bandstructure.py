@@ -60,11 +60,9 @@ class bandstructure(postprocess):
             return "Abort"
         self.shift_type = shift_type
         self.bandfiles = self.__get_bandfiles(get_SOC)
+        self.kpath = [i[0] for i in self.ksections]
+        self.kpath += [self.ksections[-1][1]]  # retrieves the endpoint of the path        
         self.ksections = dict(zip(self.ksections, self.bandfiles))
-        self.kpath = [i[0] for i in self.ksections.keys()]
-        self.kpath += [
-            list(self.ksections.keys())[-1][1]
-        ]  # retrieves the endpoint of the path
         self.bandsegments = self.__read_bandfiles()
         self.spectrum = self.__create_spectrum()
 
@@ -255,9 +253,10 @@ class bandstructure(postprocess):
         CBM = np.min(energy[energy > 0])
         self.band_gap = CBM - VBM
         if (self.band_gap < 0.1) or (self.spin != None):
-            shift_type = None
-        elif self.shift_type == None:
+            self.shift_type = None
+        if self.shift_type == None:
             energy += self.fermi_level
+            self.shift_type = None
         elif self.shift_type == "middle":
             energy -= (VBM + CBM) / 2
         elif self.shift_type == "VBM":
@@ -296,8 +295,8 @@ class bandstructure(postprocess):
         x = self.spectrum[:, 0]
         y = self.spectrum[:, 1:]
         y = self.__shift_to(y)
-        VBM = np.max(y[y < 0])
-        CBM = np.min(y[y > 0])
+        VBM = np.max(y[y < 0]) if self.shift_type != None else self.fermi_level
+        CBM = np.min(y[y > 0]) if self.shift_type != None else self.fermi_level
         axes.plot(x, y, color=color, **kwargs)
         if fix_energy_limits == []:
             lower_ylimit = VBM - var_energy_limits
@@ -324,7 +323,7 @@ class bandstructure(postprocess):
         axes.set_xlabel("")
         if self.shift_type == None:
             axes.axhline(y=self.fermi_level, color="k", alpha=0.5, linestyle="--")
-            axes.set_ylabel("E w.r.t. vacuum [eV]")
+            axes.set_ylabel("E [eV]")
         else:
             axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")            
             axes.set_ylabel("E-E$_\mathrm{F}$ [eV]")

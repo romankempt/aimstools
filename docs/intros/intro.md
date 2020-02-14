@@ -61,4 +61,4 @@ I'm working on the documentation. You can preview it [here](http://htmlpreview.g
 - [networkx](https://networkx.github.io/documentation/stable/install.html)
 
 ### Other libraries:
-- sci-kit image for 3D isosurfaces
+- [scikit-image](https://scikit-image.org/) for 3D isosurfaces

@@ -32,7 +32,7 @@ class structure:
         i = 1  # index to run over atoms
         with open(geometryfile, "r") as file:
             for line in file.readlines():
-                if "atom" in line:
+                if ("atom" in line) and ("hessian" not in line):
                     self.atom_indices[i] = line.split()[-1]
                     i += 1
         keys = list(set(self.atom_indices.values()))

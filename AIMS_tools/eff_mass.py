@@ -482,7 +482,7 @@ class eff_mass(postprocess):
                 out.append((v - g(x, y, *params)) * weight)
             return out
 
-        guess = [1 / mxx0, 1 / mxy0, 1 / myy0, 0, 0]
+        guess = [mxx0, mxy0, myy0, 0, 0]
         sol, cov, info, msg, ier = leastsq(
             residuals,
             guess,
@@ -659,7 +659,7 @@ class eff_mass(postprocess):
                 out.append(val * weight)
             return out
 
-        guess = [1 / mxx0, 1 / mxy0, 1 / mxz0, 1 / myy0, 1 / myz0, 1 / mzz0, 0, 0, 0]
+        guess = [mxx0, mxy0, mxz0, myy0, myz0, mzz0, 0, 0, 0] # check if inverse or not
         sol, cov, info, msg, ier = leastsq(
             residuals,
             guess,

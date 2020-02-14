@@ -44,14 +44,16 @@ def combine_bs_dos(BSpath, DOSpath, title="", fix_energy_limits=[]):
     Returns:
         figure: matplotlib figure object
     """
-    fig = plt.figure(constrained_layout=True, figsize=(4, 4))
+
+    ZORA = bandstructure.bandstructure(BSpath, get_SOC=False)
+    fig = plt.figure(constrained_layout=True, figsize=(len(ZORA.kpath) / 2, 4))
     spec = gridspec.GridSpec(ncols=2, nrows=1, figure=fig, width_ratios=[3, 1])
     ax1 = fig.add_subplot(spec[0])
     ax2 = fig.add_subplot(spec[1])
 
     ## Handle bandstructures
     plt.sca(ax1)
-    ZORA = bandstructure.bandstructure(BSpath, get_SOC=False)
+
     if ZORA.active_SOC == True:
         SOC = bandstructure.bandstructure(BSpath, get_SOC=True)
         ax1 = overlay_ZORA_SOC(

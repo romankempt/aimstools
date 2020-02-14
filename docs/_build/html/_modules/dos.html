@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -81,17 +81,19 @@
             
               <p class="caption"><span class="caption-text">Introduction:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../intro.html">AIMS_tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../preparing_aims.html">Preparing AIMS calculations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../handling_aims.html">Handling AIMS calculations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intros/intro.html">AIMS_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intros/preparing_aims.html">Preparing AIMS calculations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intros/handling_aims.html">Handling AIMS calculations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intros/effective_mass_intro.html">Effective Masses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intros/boltztrap2.html">Interface to BoltzTraP2</a></li>
 </ul>
-<p class="caption"><span class="caption-text">File Handling:</span></p>
+<p class="caption"><span class="caption-text">Tools for Pre- and Postprocessing:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../structuretools.html">structuretools module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../preparation.html">preparation module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../postprocessing.html">postprocessing module</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Analysis and Plotting:</span></p>
+<p class="caption"><span class="caption-text">Tools for Analysis and Plotting:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../bandstructure.html">bandstructure module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../dos.html">dos module</a></li>
@@ -304,8 +306,8 @@
 <div class="viewcode-block" id="DOS.shift_to"><a class="viewcode-back" href="../dos.html#dos.DOS.shift_to">[docs]</a>    <span class="k">def</span> <span class="nf">shift_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">energy</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Shifts Fermi level of DOS spectrum according to shift_type attribute. &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">band_gap</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift_type</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="k">pass</span>
-            <span class="c1"># energy -= self.fermi_level</span>
+            <span class="c1"># energy += self.fermi_level</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shift_type</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift_type</span> <span class="o">==</span> <span class="s2">&quot;middle&quot;</span><span class="p">:</span>
             <span class="n">energy</span> <span class="o">-=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VBM</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">CBM</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift_type</span> <span class="o">==</span> <span class="s2">&quot;VBM&quot;</span><span class="p">:</span>
@@ -320,7 +322,7 @@
         <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">axes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="n">fill</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;gradient&quot;</span><span class="p">,</span>
         <span class="n">var_energy_limits</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
         <span class="n">fix_energy_limits</span><span class="o">=</span><span class="p">[],</span>
         <span class="n">kwargs</span><span class="o">=</span><span class="p">{},</span>
@@ -336,10 +338,7 @@
 <span class="sd">            var_energy_limits (int): Variable energy range above and below the band gap to show.</span>
 <span class="sd">            fix_energy_limits (list): List of lower and upper energy limit to show.</span>
 <span class="sd">            fill (str): Supported fill methods are None, &quot;gradient&quot;, or &quot;constant&quot;. Gradient is still a bit wonky.</span>
-<span class="sd">            **kwargs (dict): Passed to matplotlib plotting function.</span>
-<span class="sd">        </span>
-<span class="sd">        Todo:</span>
-<span class="sd">            - Improve gradient plot.</span>
+<span class="sd">            **kwargs (dict): Passed to matplotlib plotting function.        </span>
 <span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            axes: matplotlib axes object&quot;&quot;&quot;</span>
@@ -354,9 +353,19 @@
             <span class="n">xy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dos_per_atom</span><span class="p">[</span><span class="n">atom</span><span class="p">][:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">orbitals</span><span class="p">[</span><span class="n">orbital</span><span class="p">]]]</span>
 
         <span class="n">xy</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift_to</span><span class="p">(</span><span class="n">xy</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">VBM</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">xy</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">][</span><span class="n">xy</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift_type</span> <span class="o">!=</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermi_level</span>
+        <span class="p">)</span>
+        <span class="n">CBM</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">xy</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">][</span><span class="n">xy</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift_type</span> <span class="o">!=</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermi_level</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">fix_energy_limits</span> <span class="o">==</span> <span class="p">[]:</span>
-            <span class="n">lower_ylimit</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">band_gap</span> <span class="o">-</span> <span class="n">var_energy_limits</span>
-            <span class="n">upper_ylimit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">band_gap</span> <span class="o">+</span> <span class="n">var_energy_limits</span>
+            <span class="n">lower_ylimit</span> <span class="o">=</span> <span class="n">VBM</span> <span class="o">-</span> <span class="n">var_energy_limits</span>
+            <span class="n">upper_ylimit</span> <span class="o">=</span> <span class="n">CBM</span> <span class="o">+</span> <span class="n">var_energy_limits</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">lower_ylimit</span> <span class="o">=</span> <span class="n">fix_energy_limits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">upper_ylimit</span> <span class="o">=</span> <span class="n">fix_energy_limits</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -380,7 +389,12 @@
         <span class="n">axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="n">lower_ylimit</span><span class="p">,</span> <span class="n">upper_ylimit</span><span class="p">])</span>
         <span class="n">axes</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
         <span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;DOS&quot;</span><span class="p">)</span>
-        <span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;E-E$_\mathrm</span><span class="si">{F}</span><span class="s2">$ [eV]&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift_type</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fermi_level</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;E [eV]&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;E-E$_\mathrm</span><span class="si">{F}</span><span class="s2">$ [eV]&quot;</span><span class="p">)</span>
         <span class="n">ylocs</span> <span class="o">=</span> <span class="n">ticker</span><span class="o">.</span><span class="n">MultipleLocator</span><span class="p">(</span>
             <span class="n">base</span><span class="o">=</span><span class="mf">0.5</span>
         <span class="p">)</span>  <span class="c1"># this locator puts ticks at regular intervals</span>
@@ -412,10 +426,9 @@
             <span class="n">z</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">extent</span><span class="o">=</span><span class="p">[</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">],</span> <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;upper&quot;</span>
         <span class="p">)</span>
         <span class="n">xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span>
-        <span class="n">poly_codes</span> <span class="o">=</span> <span class="p">[</span><span class="n">Path</span><span class="o">.</span><span class="n">MOVETO</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xy</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="n">Path</span><span class="o">.</span><span class="n">LINETO</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">Path</span><span class="o">.</span><span class="n">CLOSEPOLY</span><span class="p">]</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">xy</span><span class="p">,</span> <span class="n">poly_codes</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymin</span><span class="p">],</span> <span class="n">xy</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span><span class="p">]])</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="n">patch</span> <span class="o">=</span> <span class="n">PathPatch</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">)</span>
-        <span class="c1"># xy = np.vstack([[0, ymax], xy, [0, ymin], [0, 0]])</span>
         <span class="c1"># clip_path = Polygon(xy, facecolor=&quot;none&quot;, edgecolor=&quot;none&quot;, closed=False)</span>
         <span class="n">axes</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span>
         <span class="n">im</span><span class="o">.</span><span class="n">set_clip_path</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span>
@@ -445,7 +458,7 @@
             <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
         <span class="n">handles</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">xmax</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">atoms</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">atoms</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">atoms</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">atom</span> <span class="o">==</span> <span class="s2">&quot;H&quot;</span><span class="p">:</span>

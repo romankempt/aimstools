@@ -141,8 +141,8 @@ class DOS(postprocess):
     def shift_to(self, energy):
         """ Shifts Fermi level of DOS spectrum according to shift_type attribute. """
         if (self.band_gap < 0.1) or (self.shift_type == None):
-            pass
-            # energy -= self.fermi_level
+            # energy += self.fermi_level
+            self.shift_type = None
         elif self.shift_type == "middle":
             energy -= (self.VBM + self.CBM) / 2
         elif self.shift_type == "VBM":
@@ -157,7 +157,7 @@ class DOS(postprocess):
         fig=None,
         axes=None,
         title="",
-        fill=None,
+        fill="gradient",
         var_energy_limits=1.0,
         fix_energy_limits=[],
         kwargs={},
@@ -173,10 +173,7 @@ class DOS(postprocess):
             var_energy_limits (int): Variable energy range above and below the band gap to show.
             fix_energy_limits (list): List of lower and upper energy limit to show.
             fill (str): Supported fill methods are None, "gradient", or "constant". Gradient is still a bit wonky.
-            **kwargs (dict): Passed to matplotlib plotting function.
-        
-        Todo:
-            - Improve gradient plot.
+            **kwargs (dict): Passed to matplotlib plotting function.        
         
         Returns:
             axes: matplotlib axes object"""
@@ -191,9 +188,19 @@ class DOS(postprocess):
             xy = self.dos_per_atom[atom][:, [0, orbitals[orbital]]]
 
         xy[:, 0] = self.shift_to(xy[:, 0])
+        VBM = (
+            np.max(xy[:, 0][xy[:, 0] < 0])
+            if self.shift_type != None
+            else self.fermi_level
+        )
+        CBM = (
+            np.min(xy[:, 0][xy[:, 0] > 0])
+            if self.shift_type != None
+            else self.fermi_level
+        )
         if fix_energy_limits == []:
-            lower_ylimit = -self.band_gap - var_energy_limits
-            upper_ylimit = self.band_gap + var_energy_limits
+            lower_ylimit = VBM - var_energy_limits
+            upper_ylimit = CBM + var_energy_limits
         else:
             lower_ylimit = fix_energy_limits[0]
             upper_ylimit = fix_energy_limits[1]
@@ -217,7 +224,12 @@ class DOS(postprocess):
         axes.set_ylim([lower_ylimit, upper_ylimit])
         axes.set_xticks([])
         axes.set_xlabel("DOS")
-        axes.set_ylabel("E-E$_\mathrm{F}$ [eV]")
+        if self.shift_type == None:
+            axes.axhline(y=self.fermi_level, color="k", alpha=0.5, linestyle="--")
+            axes.set_ylabel("E [eV]")
+        else:
+            axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")
+            axes.set_ylabel("E-E$_\mathrm{F}$ [eV]")
         ylocs = ticker.MultipleLocator(
             base=0.5
         )  # this locator puts ticks at regular intervals
@@ -249,10 +261,9 @@ class DOS(postprocess):
             z, aspect="auto", extent=[xmin, xmax, ymin, ymax], origin="upper"
         )
         xy = np.column_stack([x, y])
-        poly_codes = [Path.MOVETO] + (len(xy) - 2) * [Path.LINETO] + [Path.CLOSEPOLY]
-        path = Path(xy, poly_codes)
+        path = np.vstack([[0, ymin], xy, [0, ymax], [0, ymax], [0, ymax]])
+        path = Path(path)
         patch = PathPatch(path, facecolor="none", edgecolor="none")
-        # xy = np.vstack([[0, ymax], xy, [0, ymin], [0, 0]])
         # clip_path = Polygon(xy, facecolor="none", edgecolor="none", closed=False)
         axes.add_patch(patch)
         im.set_clip_path(patch)
@@ -282,7 +293,7 @@ class DOS(postprocess):
             axes = plt.subplot2grid((1, 1), (0, 0), fig=fig)
         handles = []
         xmax = []
-        atoms = list(self.species.keys())
+        atoms = list(self.structure.species.keys())
         atoms.sort()
         for atom in atoms:
             if atom == "H":

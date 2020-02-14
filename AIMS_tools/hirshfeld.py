@@ -41,7 +41,7 @@ class hirshfeld(postprocess):
                     if "Hirshfeld charge        :" in line:
                         charges.append(float(line.split()[-1]))
                         i += 1
-                        if i == self.structure.atoms.get_number_of_atoms():
+                        if i == self.structure.atoms.get_global_number_of_atoms():
                             read = False
         charges = dict(zip(ats, charges))
         return charges
