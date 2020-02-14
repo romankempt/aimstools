@@ -49,7 +49,7 @@ export AIMS_SPECIES_DIR="path/to/directory"
 
 
 ## Documentation
-The documentation is now available at [ReadTheDocs](aims-tools.readthedocs.io).
+The documentation is now available at [ReadTheDocs](https://readthedocs.org/projects/aims-tools/).
 
 
 ## Requirements
