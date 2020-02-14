@@ -126,7 +126,7 @@ pse = {
 import matplotlib
 import matplotlib.pyplot as plt
 
-matplotlib.use("TKAgg")
+#matplotlib.use("TKAgg")
 plt.style.use("seaborn-ticks")
 plt.rcParams["legend.handlelength"] = 0.8
 plt.rcParams["legend.framealpha"] = 0.8
