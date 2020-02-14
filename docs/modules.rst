@@ -8,7 +8,6 @@ AIMS_tools
    dos
    eff_mass
    hirshfeld
-   misc
    multiplots
    phonons
    postprocessing
