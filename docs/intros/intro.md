@@ -49,7 +49,7 @@ export AIMS_SPECIES_DIR="path/to/directory"
 
 
 ## Documentation
-I'm working on the documentation. You can preview it [here](http://htmlpreview.github.io/?https://github.com/romankempt/AIMS_tools/blob/master/docs/_build/html/index.html) or in the docs/_build/html folder.
+The documentation is now available at [ReadTheDocs](aims-tools.readthedocs.io).
 
 
 ## Requirements
@@ -60,5 +60,5 @@ I'm working on the documentation. You can preview it [here](http://htmlpreview.g
 - [seaborn](https://seaborn.pydata.org/)
 - [networkx](https://networkx.github.io/documentation/stable/install.html)
 
-### Other libraries:
+### Other libraries
 - [scikit-image](https://scikit-image.org/) for 3D isosurfaces
