@@ -1,8 +1,7 @@
-import numpy as np
-from pathlib import Path as Path
 import re
 import ase.io
-import os, sys
+
+from AIMS_tools.misc import *
 from AIMS_tools.postprocessing import postprocess
 from AIMS_tools.structuretools import structure
 

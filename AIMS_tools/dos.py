@@ -1,26 +1,17 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Oct 10 17:25:27 2019
-
-@author: Roman Kempt
-"""
-
-import numpy as np
-import glob, sys, os
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.ticker import FormatStrFormatter
 import matplotlib.colors as mcolors
 from matplotlib.patches import Polygon
 import matplotlib.ticker as ticker
+
 import re
-from pathlib import Path as Path
 
 from AIMS_tools.misc import *
 from AIMS_tools.postprocessing import postprocess
 
 
-class DOS(postprocess):
+class density_of_states(postprocess):
     """ Density-of-states object. Inherits from postprocess.
     
     Contains all information about a DOS instance, such as the DOS per atom. 
@@ -29,8 +20,8 @@ class DOS(postprocess):
         >>> from AIMS_tools import dos
         >>> import matplotlib.pyplot as plt
         >>> import numpy as np
-        >>> dosplot = dos.DOS("outputfile")
-        >>> dosplot.plot_all_atomic_dos()
+        >>> ds = dos.density_of_states("outputfile")
+        >>> ds.plot_all_atomic_dos()
         >>> plt.show()
         >>> plt.savefig("Name.png", dpi=300, transparent=False, bbox_inches="tight", facecolor="white")
 
@@ -68,6 +59,9 @@ class DOS(postprocess):
             )
         self.shift_type = shift_type
         self.total_dos = self.__get_total_dos(self.dos_per_atom)
+
+    def __str__(self):
+        return "DOS"
 
     def __get_raw_data(self, get_SOC):
         """ Get .raw.out files.
@@ -229,7 +223,7 @@ class DOS(postprocess):
             axes.set_ylabel("E [eV]")
         else:
             axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")
-            axes.set_ylabel("E-E$_\mathrm{F}$ [eV]")
+            axes.set_ylabel(r"E-E$_\mathrm{F}$ [eV]")
         ylocs = ticker.MultipleLocator(
             base=0.5
         )  # this locator puts ticks at regular intervals

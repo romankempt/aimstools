@@ -12,4 +12,5 @@ AIMS_tools
    phonons
    postprocessing
    preparation
+   preparation
    structuretools

@@ -5,9 +5,12 @@ import networkx as nx
 import spglib
 
 import ase.io
+import ase.spacegroup
 from ase import neighborlist, build
 
 from AIMS_tools.misc import *
+
+from collections import namedtuple
 
 
 class structure:
@@ -20,14 +23,12 @@ class structure:
         atoms (Atoms): ASE atoms object.
         atom_indices (dict): Dictionary of atom index and label.
         species (dict): Dictionary of atom labels and counts.
-        fragments (dict): Dictionary of (index: (original_index, atoms)) pairs.
-        attributes (dict): Collection of attributes.
+        sg (spacegroup): Spglib spacegroup object.
+        lattice (str): Description of Bravais lattice.
     """
 
     def __init__(self, geometryfile):
         self.atoms = ase.io.read(geometryfile)
-        self.attributes = {}
-        self.find_fragments()
         self.atom_indices = {}
         i = 1  # index to run over atoms
         with open(geometryfile, "r") as file:
@@ -39,22 +40,47 @@ class structure:
         numbers = []
         for key in keys:
             numbers.append(list(self.atom_indices.values()).count(key))
+        self.sg = ase.spacegroup.get_spacegroup(self.atoms, symprec=1e-4)
+        self.lattice = self.__get_lattice()
         self.species = dict(zip(keys, numbers))
+        self.fragments = self.find_fragments(self.atoms)
 
     def __repr__(self):
-        return self.atoms
+        return self.atoms.get_chemical_formula()
 
-    def find_fragments(self):
+    def __get_lattice(self):
+        nr = self.sg.no
+        if nr <= 2:
+            return "triclinic"
+        elif nr <= 15:
+            return "monoclinic"
+        elif nr <= 74:
+            return "orhothombic"
+        elif nr <= 142:
+            return "tetragonal"
+        elif nr <= 167:
+            return "trigonal"
+        elif nr <= 194:
+            return "hexagonal"
+        else:
+            return "cubic"
+
+    def find_fragments(self, atoms):
         """ Finds unconnected structural fragments by constructing
         the first-neighbor topology matrix and the resulting graph
         of connected vortices. 
+
+        Args:
+            atoms (atoms): ASE atoms object.
         
         Note:
             Requires networkx library.
+        
+        Returns:
+            dict: Dictionary with named tuples of indices and atoms, sorted by average z-value.
 
         """
 
-        atoms = self.atoms
         nl = neighborlist.NeighborList(
             ase.neighborlist.natural_cutoffs(atoms),
             self_interaction=False,
@@ -80,22 +106,31 @@ class structure:
         pairs = set(pairs)
 
         graph = nx.from_edgelist(pairs)  # converting to a graph
-        con_tuples = list(nx.connected_components(graph))  # beauty of graph theory
+        con_tuples = list(
+            nx.connected_components(graph)
+        )  # graph theory can be pretty handy
 
         fragments = {}
         i = 0
         for tup in con_tuples:
-            fragments[i] = ase.Atoms()
+            fragment = namedtuple("fragment", ["indices", "atoms"])
+            ats = ase.Atoms()
             indices = []
             for entry in tup:
-                fragments[i].append(atoms[entry])
+                ats.append(atoms[entry])
                 indices.append(entry)
-            fragments[i].cell = atoms.cell
-            fragments[i].pbc = atoms.pbc
-            fragments[i] = (indices, fragments[i])
+            ats.cell = atoms.cell
+            ats.pbc = atoms.pbc
+            fragments[i] = fragment(indices, ats)
             i += 1
-        self.attributes["number_of_fragments"] = len(fragments)
-        self.fragments = fragments
+        fragments = {
+            k: v
+            for k, v in sorted(
+                fragments.items(),
+                key=lambda item: np.average(item[1][1].get_positions()[:, 2]),
+            )
+        }
+        return fragments
 
     def calculate_interlayer_distances(self, fragment1, fragment2):
         """ A specialised method for 2D layered systems to determine the interlayer distance and interstitial distance.
@@ -119,32 +154,41 @@ class structure:
         av_c_1 = np.average(fragment1.get_positions()[:, 2])
         av_c_2 = np.average(fragment2.get_positions()[:, 2])
         av_c = np.abs(av_c_2 - av_c_1)
-        self.attributes["average_layer_distance"] = av_c
+        logging.info("Average layer distance: \t {: 10.3f} Angström".format(av_c))
 
         if av_c_2 > av_c_1:
             a = np.min(fragment2.get_positions()[:, 2])
             b = np.max(fragment1.get_positions()[:, 2])
-            print(a, b)
             int_d = a - b
-            self.attributes["interstitial_distance"] = int_d
+            logging.info("Interstitial distance: \t {: 10.3f} Angström".format(int_d))
         elif av_c_1 > av_c_2:
             a = np.min(fragment1.get_positions()[:, 2])
             b = np.max(fragment2.get_positions()[:, 2])
-            print(a, b)
             int_d = a - b
-            self.attributes["interstitial_distance"] = int_d
+            logging.info("Interstitial distance: \t {: 10.3f} Angström".format(int_d))
 
-    def standardize(self):
-        """ Standardizes to the conventional unit cell employing the space group library. """
+    def standardize(self, to_primitive=False, symprec=1e-4):
+        """ Wrapper of the spglib standardize() function.
+        
+        Args:
+            to_primitive (bool): Reduces to primitive cell or not.
+            symprec (float): Precision to determine new cell.
+
+        Note:
+            The combination of to_primitive=True and a larger value of symprec (1e-3) can be used to symmetrize a structure.
+        """
         lattice, positions, numbers = (
             self.atoms.get_cell(),
             self.atoms.get_scaled_positions(),
             self.atoms.numbers,
         )
         cell = (lattice, positions, numbers)
-        newcell = spglib.standardize_cell(cell, to_primitive=False, no_idealize=False)
+        newcell = spglib.standardize_cell(
+            cell, to_primitive=to_primitive, no_idealize=False, symprec=symprec
+        )
         if newcell == None:
-            sys.exit("Cell could not be standardized.")
+            logging.error("Cell could not be standardized.")
+            return None
         else:
             self.atoms = ase.Atoms(
                 scaled_positions=newcell[1],
@@ -153,16 +197,83 @@ class structure:
                 pbc=self.atoms.pbc,
             )
 
-    def enforce_2d(self):
-        """ Enforces a 2D system by setting all z-components of the lattice basis to zero
-        and puts an orthogonal c-axis of 100 Angström."""
-        newcell = self.atoms.cell
-        scaled_positions = self.atoms.get_scaled_positions()
-        z_positions = self.atoms.get_positions()[:, 2]
+    def enforce_2d(self, atoms):
+        """ Enforces a 2D system.
+        
+        Sets all z-components of the lattice basis to zero and adds vacuum space.
+
+        Args:
+            atoms (atoms): ASE atoms object.
+
+        Returns:
+            atoms: Modified atoms object.
+        """
+
+        atoms.center()
+        newcell = atoms.cell
+        scaled_positions = atoms.get_scaled_positions()
+        z_positions = atoms.get_positions()[:, 2]
+        span = np.max(z_positions) - np.min(z_positions)
         newcell[0, 2] = newcell[1, 2] = newcell[2, 0] = newcell[2, 1] = 0
-        newcell[2, 2] = 100.0
-        self.atoms.cell = newcell
-        self.atoms.pbc = [True, True, False]
-        self.atoms.positions = scaled_positions * self.atoms.cell.lengths()
-        self.atoms.positions[:, 2] = z_positions
+        newcell[2, 2] = span * 40.0
+        atoms.cell = newcell
+        atoms.pbc = [True, True, False]
+        atoms.positions = scaled_positions * atoms.cell.lengths()
+        atoms.positions[:, 2] = z_positions
+        assert self.is_2d(atoms) == True, "Enforcing 2D system failed."
+        return atoms
+
+    def is_2d(self, atoms):
+        """ Evaluates if given structure is qualitatively two-dimensional.
+
+        A 2D structure has to fulfill three criterions:
+            - more than one distinct unbonded fragments
+            - a vacuum gap between at least one pair of closest fragments of at least 50 Angström
+            - continouos in-plane connectivity within 50 Angström and periodicity
+        
+        Note:
+            The current code might fail for large structures with a small vacuum gap. Please report any
+            cases where the result is wrong.
+
+        Returns:
+            bool: 2D or not to 2D, that is the question.
+        """
+
+        crit_1 = False  # criterion of distinct fragments
+        crit_2 = False  # criterion of separated fragments
+        crit_3 = False  # criterion of 2D periodicity and connectivity
+        sc = ase.build.make_supercell(atoms, 2 * np.identity(3), wrap=True)
+        fragments = self.find_fragments(sc)
+        if len(fragments) > 1:
+            crit_1 = True
+        av_z = []
+        for index, tup in fragments.items():
+            zval = tup[1].get_positions()[:, 2]
+            zval = np.average(zval)
+            av_z.append(zval)
+        av_z = sorted(av_z)
+        for j in range(len(av_z) - 1):
+            nearest_d = av_z[j + 1] - av_z[j]
+            if nearest_d >= 50.0:
+                crit_2 = True
+                break
+
+        if len(fragments) > 1:
+            av_xy = []
+            for index, tup in fragments.items():
+                xy = tup[1].get_positions()[:, [0, 1]]
+                xy = np.average(np.linalg.norm(xy, axis=1))
+                av_xy.append(xy)
+            av_xy = sorted(av_xy)
+            for j in range(len(av_xy) - 1):
+                nearest_d = av_xy[j + 1] - av_xy[j]
+                if nearest_d >= 50.0:
+                    break
+            else:
+                crit_3 = True
+
+        if crit_1 * crit_2 * crit_3 == True:
+            return True
+        else:
+            return False
 

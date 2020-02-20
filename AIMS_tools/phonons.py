@@ -1,11 +1,7 @@
-import numpy as np
-import glob, sys, os, math
-
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import matplotlib.gridspec as gridspec
 
-from pathlib import Path as Path
 import ase.io, ase.cell
 
 from AIMS_tools.misc import *

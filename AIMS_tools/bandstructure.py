@@ -5,16 +5,12 @@ Created on Fri Mar 15 17:11:40 2019
 @author: Roman Kempt
 """
 
-import numpy as np
-import glob, sys, os, math
-
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
 import matplotlib.ticker as ticker
 
-from pathlib import Path as Path
 from scipy import interpolate
 import ase.io, ase.cell
 
@@ -57,14 +53,17 @@ class bandstructure(postprocess):
         super().__init__(outputfile, get_SOC=get_SOC, spin=spin)
         if self.success == False:
             logging.critical("Calculation did not converge.")
-            return "Abort"
+            raise Exception()
         self.shift_type = shift_type
         self.bandfiles = self.__get_bandfiles(get_SOC)
         self.kpath = [i[0] for i in self.ksections]
-        self.kpath += [self.ksections[-1][1]]  # retrieves the endpoint of the path        
+        self.kpath += [self.ksections[-1][1]]  # retrieves the endpoint of the path
         self.ksections = dict(zip(self.ksections, self.bandfiles))
         self.bandsegments = self.__read_bandfiles()
         self.spectrum = self.__create_spectrum()
+
+    def __str__(self):
+        return "band structure"
 
     def properties(self):
         """ Prints out key properties of the band structure. """
@@ -93,11 +92,7 @@ class bandstructure(postprocess):
                 )
             )
 
-        print(
-            "Band gap: {:2f} eV (spin channel = {})".format(
-                self.band_gap, self.spin
-            )
-        )
+        print("Band gap: {:2f} eV (spin channel = {})".format(self.band_gap, self.spin))
         print(self.smallest_direct_gap)
         print("Path: ", self.kpath)
         import ase.spacegroup
@@ -105,8 +100,8 @@ class bandstructure(postprocess):
         brav_latt = self.structure.atoms.cell.get_bravais_lattice(
             pbc=self.structure.atoms.pbc
         )
-        sg = ase.spacegroup.get_spacegroup(self.structure.atoms)
-        print("Space group: {} (Nr. {})".format(sg.symbol, sg.no))
+        sg = ase.spacegroup.get_spacegroup(self.structure.atoms, symprec=1e-2)
+        print("Space group: {} (Nr. {}) \t precision = 1e-2".format(sg.symbol, sg.no))
         print("Bravais lattice: {}".format(brav_latt))
 
     def __get_bandfiles(self, get_SOC):
@@ -120,51 +115,27 @@ class bandstructure(postprocess):
             self.active_SOC == False
         ):  ### That's the ZORA case if SOC was not calculated.
             bandfiles = [
-                self.path.joinpath(stem + "00" + str(i + 1) + ".out")
+                self.path.joinpath(stem + "{:03d}.out".format(i + 1))
                 for i in range(len(self.ksections))
-                if i < 9
             ]
-            bandfiles += [
-                self.path.joinpath(stem + "0" + str(i + 1) + ".out")
-                for i in range(len(self.ksections))
-                if i > 8
-            ]  # inconsistent naming of files sucks
-        elif (
-            self.active_SOC == True and get_SOC == False
-        ):  ### That's the ZORA case if SOC was calculated.
+        elif self.active_SOC == True and get_SOC == False:
+            ### That's the ZORA case if SOC was calculated.
             bandfiles = [
-                self.path.joinpath(stem + "00" + str(i + 1) + ".out.no_soc")
+                self.path.joinpath(stem + "{:03d}.out.no_soc".format(i + 1))
                 for i in range(len(self.ksections))
-                if i < 9
-            ]
-            bandfiles += [
-                self.path.joinpath(stem + "0" + str(i + 1) + ".out.no_soc")
-                for i in range(len(self.ksections))
-                if i > 8
             ]
         elif self.active_SOC == True and get_SOC == True:
+            ### That's the SOC case if SOC was calculated.
             bandfiles = [
-                self.path.joinpath(stem + "00" + str(i + 1) + ".out")
+                self.path.joinpath(stem + "{:03d}.out".format(i + 1))
                 for i in range(len(self.ksections))
-                if i < 9
-            ]
-            bandfiles += [
-                self.path.joinpath(stem + "0" + str(i + 1) + ".out")
-                for i in range(len(self.ksections))
-                if i > 8
             ]
         if (
             self.active_SOC == False and self.active_GW == True
         ):  ### That's the ZORA case with GW.
             bandfiles = [
-                self.path.joinpath("GW_" + stem + "00" + str(i + 1) + ".out")
+                self.path.joinpath("GW_" + stem + "{:03d}.out".format(i + 1))
                 for i in range(len(self.ksections))
-                if i < 9
-            ]
-            bandfiles += [
-                self.path.joinpath("GW_" + stem + "0" + str(i + 1) + ".out")
-                for i in range(len(self.ksections))
-                if i > 8
             ]
         return bandfiles
 
@@ -173,6 +144,9 @@ class bandstructure(postprocess):
         
         Returns:
             dict : (kpoints, eigenvalues) tuple of ndarrays.
+        
+        Note:
+            Automatically generates the reversed path sections.
         """
         bandsegments = {}
         for section, bandfile in self.ksections.items():
@@ -185,6 +159,12 @@ class bandstructure(postprocess):
             eigenvalues = array[:, list(range(5, array.shape[1], 2))]
             array[:, 1:4] *= 2 * np.pi / (self.structure.atoms.cell.lengths() * bohr)
             bandsegments[section] = (kpoints, eigenvalues)
+            ### Adding the reversed paths
+            reverse = (section[1], section[0])
+            if reverse not in self.ksections.keys():
+                kpoints = kpoints[::-1]
+                eigenvalues = eigenvalues[::-1]
+                bandsegments[reverse] = (kpoints, eigenvalues)
         return bandsegments
 
     def __create_spectrum(self):
@@ -233,7 +213,7 @@ class bandstructure(postprocess):
         check = [(newpath[i], newpath[i + 1]) for i in range(len(newpath) - 1)]
         for pair in check:
             try:
-                self.ksections[pair]
+                self.bandsegments[pair]
             except KeyError:
                 print(
                     "The path {}-{} has not been calculated.".format(pair[0], pair[1])
@@ -241,7 +221,7 @@ class bandstructure(postprocess):
                 break
         else:
             self.kpath = newpath
-            self.__create_spectrum()
+            self.spectrum = self.__create_spectrum()
 
     def __shift_to(self, energy):
         """ Shifts Fermi level of spectrum according to shift_type attribute.
@@ -289,7 +269,7 @@ class bandstructure(postprocess):
             Returns:
                 axes: matplotlib axes object"""
         if fig == None:
-            fig = plt.figure(figsize=(len(self.kpath) / 2, 3))
+            fig = plt.figure(figsize=(len(self.kpath) / 1.5, 3))
         if axes == None:
             axes = plt.gca()
         x = self.spectrum[:, 0]
@@ -312,7 +292,7 @@ class bandstructure(postprocess):
         xlabels = []
         for i in range(len(self.kpath)):
             if self.kpath[i] == "G":
-                xlabels.append("$\Gamma$")
+                xlabels.append(r"$\Gamma$")
             else:
                 xlabels.append(self.kpath[i])
         axes.set_xticklabels(xlabels)
@@ -325,8 +305,8 @@ class bandstructure(postprocess):
             axes.axhline(y=self.fermi_level, color="k", alpha=0.5, linestyle="--")
             axes.set_ylabel("E [eV]")
         else:
-            axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")            
-            axes.set_ylabel("E-E$_\mathrm{F}$ [eV]")
+            axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")
+            axes.set_ylabel(r"E-E$_\mathrm{F}$ [eV]")
         axes.grid(which="major", axis="x", linestyle=":")
         axes.set_title(str(title), loc="center")
         return axes
@@ -361,6 +341,7 @@ class fatbandstructure(bandstructure):
         spin=None,
         shift_type="middle",
         filter_species=[],
+        readmode=False,
     ):
         super().__init__(outputfile, get_SOC=get_SOC, shift_type=shift_type, spin=spin)
         # get_SOC is true because for mulliken bands, both spin channels are written to the same file.
@@ -383,9 +364,16 @@ class fatbandstructure(bandstructure):
         self.ksections = dict(
             zip(list(self.ksections.keys()), list(self.mlk_bandfiles))
         )
-        self.mlk_bandsegments = self.__read_mlk_bandfiles()
-        self.atom_contributions = self.__collect_contributions()
-        self.atom_spectra = self.__create_spectra()
+        if readmode == False:
+            self.mlk_bandsegments = self.__read_mlk_bandfiles()
+            self.atom_contributions = self.__collect_contributions()
+            self.atom_spectra = self.__create_spectra()
+        if readmode == True:
+            pass
+            # I think here I have to change how the sum_contributions attribute works. I should not alter the atoms attribute.
+
+    def __str__(self):
+        return "fat band structure"
 
     def __get_mlk_bandfiles(self, get_SOC):
         # """Sort bandfiles that have mulliken information.
@@ -398,51 +386,13 @@ class fatbandstructure(bandstructure):
             self.active_SOC == False
         ):  ### That's the ZORA case if SOC was not calculated.
             bandfiles = [
-                self.path.joinpath(stem + "00" + str(i + 1) + ".out")
+                self.path.joinpath(stem + "{:03d}.out".format(i + 1))
                 for i in range(len(self.ksections))
-                if i < 9
-            ]
-            bandfiles += [
-                self.path.joinpath(stem + "0" + str(i + 1) + ".out")
-                for i in range(len(self.ksections))
-                if i > 8
-            ]  # inconsistent naming of files sucks
-        elif (
-            self.active_SOC == True and get_SOC == False
-        ):  ### That's the ZORA case if SOC was calculated. For mlk calculations it doesn't exist.
-            bandfiles = [
-                self.path.joinpath(stem + "00" + str(i + 1) + ".out.no_soc")
-                for i in range(len(self.ksections))
-                if i < 9
-            ]
-            bandfiles += [
-                self.path.joinpath(stem + "0" + str(i + 1) + ".out.no_soc")
-                for i in range(len(self.ksections))
-                if i > 8
             ]
         elif self.active_SOC == True and get_SOC == True:
             bandfiles = [
-                self.path.joinpath(stem + "00" + str(i + 1) + ".out")
+                self.path.joinpath(stem + "{:03d}.out".format(i + 1))
                 for i in range(len(self.ksections))
-                if i < 9
-            ]
-            bandfiles += [
-                self.path.joinpath(stem + "0" + str(i + 1) + ".out")
-                for i in range(len(self.ksections))
-                if i > 8
-            ]
-        if (
-            self.active_SOC == False and self.active_GW == True
-        ):  ### That's the ZORA case with GW.
-            bandfiles = [
-                self.path.joinpath("GW_" + stem + "00" + str(i + 1) + ".out")
-                for i in range(len(self.ksections))
-                if i < 9
-            ]
-            bandfiles += [
-                self.path.joinpath("GW_" + stem + "0" + str(i + 1) + ".out")
-                for i in range(len(self.ksections))
-                if i > 8
             ]
         return bandfiles
 
@@ -561,6 +511,11 @@ class fatbandstructure(bandstructure):
                     kpoints.shape[0], int(self.nstates / 2), self.ncons
                 )
             segments[section] = (kaxis, ev)
+            ### Adding the reversed paths
+            reverse = (section[1], section[0])
+            if reverse not in self.ksections.keys():
+                ev = ev[::-1, :, :]
+                segments[reverse] = (kpoints, ev)
         return segments
 
     def __collect_contributions(self):
@@ -596,9 +551,9 @@ class fatbandstructure(bandstructure):
                 klength = self.atom_contributions[atom][section][0] + klabel_coords[-1]
                 klabel_coords.append(klength[-1])
                 end_index = start_index + klength.shape[0]
-                kaxis[start_index : end_index] = klength
+                kaxis[start_index:end_index] = klength
                 cons = self.atom_contributions[atom][section][1]
-                spectrum[start_index : end_index, :, :] = cons
+                spectrum[start_index:end_index, :, :] = cons
                 start_index = end_index
             atom_spectrum[atom] = (kaxis, spectrum)
             self.klabel_coords = klabel_coords
@@ -673,6 +628,10 @@ class fatbandstructure(bandstructure):
         self.atom_indices[new_index] = label
         self.atom_spectra[new_index] = (kaxis, sum_cons)
 
+    # def write_contributions(self):
+    #     for index, atom in self.atom_indices.items():
+    #         np.save("{}{}_AIMS_tool_cons".format(atom, index), self.atom_spectra[atom])
+
     def sort_atoms(self):
         """ Sorts by heaviest atom. 
         
@@ -702,7 +661,7 @@ class fatbandstructure(bandstructure):
         check = [(newpath[i], newpath[i + 1]) for i in range(len(newpath) - 1)]
         for pair in check:
             try:
-                self.ksections[pair]
+                self.mlk_bandsegments[pair]
             except KeyError:
                 print(
                     "The path {}-{} has not been calculated.".format(pair[0], pair[1])
@@ -750,7 +709,7 @@ class fatbandstructure(bandstructure):
             Returns:
                 axes: matplotlib axes object"""
         if fig == None:
-            fig = plt.figure(figsize=(len(self.kpath) / 2, 3))
+            fig = plt.figure(figsize=(len(self.kpath) / 1.5, 3))
         if axes == None:
             axes = plt.gca()
         x = self.atom_spectra[1][0]
@@ -773,11 +732,11 @@ class fatbandstructure(bandstructure):
         xlabels = []
         for i in range(len(self.kpath)):
             if self.kpath[i] == "G":
-                xlabels.append("$\Gamma$")
+                xlabels.append(r"$\Gamma$")
             else:
                 xlabels.append(self.kpath[i])
         axes.set_xticklabels(xlabels)
-        axes.set_ylabel("E-E$_\mathrm{F}$ [eV]")
+        axes.set_ylabel(r"E-E$_\mathrm{F}$ [eV]")
         ylocs = ticker.MultipleLocator(
             base=0.5
         )  # this locator puts ticks at regular intervals
@@ -823,7 +782,7 @@ class fatbandstructure(bandstructure):
         Returns:
             axes: matplotlib axes object"""
         if fig == None:
-            fig = plt.figure(figsize=(len(self.kpath) / 2, 3))
+            fig = plt.figure(figsize=(len(self.kpath) / 1.5, 3))
         if axes == None:
             axes = plt.gca()
         con_dict = {"tot": 5, "s": 6, "p": 7, "d": 8, "f": 9}
@@ -907,11 +866,11 @@ class fatbandstructure(bandstructure):
         xlabels = []
         for i in range(len(self.kpath)):
             if self.kpath[i] == "G":
-                xlabels.append("$\Gamma$")
+                xlabels.append(r"$\Gamma$")
             else:
                 xlabels.append(self.kpath[i])
         axes.set_xticklabels(xlabels)
-        axes.set_ylabel("E-E$_\mathrm{F}$ [eV]")
+        axes.set_ylabel(r"E-E$_\mathrm{F}$ [eV]")
         ylocs = ticker.MultipleLocator(
             base=0.5
         )  # this locator puts ticks at regular intervals
@@ -933,7 +892,7 @@ class fatbandstructure(bandstructure):
         fix_energy_limits=[],
         nbands=False,
         interpolation_step=False,
-        kwargs={"alpha":0.15, "linewidth":0.5},
+        kwargs={"alpha": 0.15, "linewidth": 0.5},
     ):
         """ Plots a fatbandstructure instance with all species overlaid.
         
@@ -946,18 +905,14 @@ class fatbandstructure(bandstructure):
         Returns:
             axes: matplotlib axes object"""
         if fig == None:
-            fig = plt.figure(figsize=(len(self.kpath) / 2, 4))
+            fig = plt.figure(figsize=(len(self.kpath) / 1.5, 4))
         if axes != None:
             axes = plt.gca()
         else:
             axes = plt.subplot2grid((1, 1), (0, 0), fig=fig)
         # plotting background energy
         axes = self.plot(
-            fig=fig,
-            axes=axes,
-            color="lightgray",
-            mark_gap=False,
-            kwargs=kwargs
+            fig=fig, axes=axes, color="lightgray", mark_gap=False, kwargs=kwargs
         )
 
         if sum == True:
@@ -979,8 +934,7 @@ class fatbandstructure(bandstructure):
         colors = ["darkblue", "darkorange", "darkgreen", "darkviolet", "darkred"]
         handles = []
         i = 0
-        for atom in self.atom_indices.keys():
-            label = self.atom_indices[atom]
+        for atom, label in self.atom_indices.items():
             self.plot_mlk(
                 atom,
                 "tot",
@@ -993,7 +947,6 @@ class fatbandstructure(bandstructure):
                 fix_energy_limits=fix_energy_limits,
                 nbands=nbands,
                 interpolation_step=interpolation_step,
-                **kwargs
             )
             handles.append(Line2D([0], [0], color=colors[i], label=label, lw=1.5))
             i += 1
@@ -1002,8 +955,8 @@ class fatbandstructure(bandstructure):
             frameon=True,
             fancybox=False,
             borderpad=0.4,
-            loc="upper left",
-            bbox_to_anchor=(1, 1),
+            loc="upper right",
+            # bbox_to_anchor=(1, 1),
         )
         return axes
 
@@ -1031,7 +984,7 @@ class fatbandstructure(bandstructure):
         fix_energy_limits=[],
         nbands=False,
         interpolation_step=False,
-        kwargs={"alpha":0.15, "linewidth":0.5},
+        kwargs={"alpha": 0.15, "linewidth": 0.5},
     ):
         """ Plots a fatbandstructure instance with all orbital characters overlaid.
         
@@ -1043,7 +996,7 @@ class fatbandstructure(bandstructure):
         Returns:
             axes: matplotlib axes object """
         if fig == None:
-            fig = plt.figure(figsize=(len(self.kpath) / 2, 4))
+            fig = plt.figure(figsize=(len(self.kpath) / 1.5, 4))
         if axes != None:
             axes = plt.gca()
         else:
@@ -1051,11 +1004,7 @@ class fatbandstructure(bandstructure):
 
         # plotting background energy
         axes = self.plot(
-            fig=fig,
-            axes=axes,
-            color="lightgray",
-            mark_gap=False,
-            kwargs=kwargs,
+            fig=fig, axes=axes, color="lightgray", mark_gap=False, kwargs=kwargs
         )
 
         if interpolation_step != False:

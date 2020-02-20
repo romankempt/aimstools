@@ -126,13 +126,12 @@ pse = {
 import matplotlib
 import matplotlib.pyplot as plt
 
-#matplotlib.use("TKAgg")
 plt.style.use("seaborn-ticks")
 plt.rcParams["legend.handlelength"] = 0.8
 plt.rcParams["legend.framealpha"] = 0.8
-font_name = "Arial"
+# font_name = "Arial"
 font_size = 8.5
-plt.rcParams.update({"font.sans-serif": font_name, "font.size": font_size})
+plt.rcParams.update({"font.size": font_size})
 
 
 # Logging settings
@@ -141,3 +140,8 @@ import time
 
 logging.basicConfig(format="%(levelname)s | %(message)s", level=logging.INFO)
 
+
+# general module imports
+import glob, sys, os, shutil, math
+from pathlib import Path as Path
+import numpy as np

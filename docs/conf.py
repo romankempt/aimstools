@@ -28,7 +28,14 @@ copyright = "2019, Roman Kempt"
 author = "Roman Kempt"
 
 # The full version, including alpha/beta/rc tags
-release = "0.07"
+def find_version():
+    with open("../setup.py", "r") as file:
+        line = [line for line in file.readlines() if "version=" in line][0]
+        version = line.split("=")[-1]
+    return version
+
+
+release = find_version()
 
 
 # -- General configuration ---------------------------------------------------
@@ -107,10 +114,16 @@ todo_include_todos = True
 
 
 # At the bottom of conf.py
-github_doc_root = 'https://github.com/rtfd/recommonmark/tree/master/doc/'
+github_doc_root = "https://github.com/rtfd/recommonmark/tree/master/doc/"
+
+
 def setup(app):
-    app.add_config_value('recommonmark_config', {
-            'url_resolver': lambda url: github_doc_root + url,
-            'auto_toc_tree_section': 'Contents',
-            }, True)
+    app.add_config_value(
+        "recommonmark_config",
+        {
+            "url_resolver": lambda url: github_doc_root + url,
+            "auto_toc_tree_section": "Contents",
+        },
+        True,
+    )
     app.add_transform(AutoStructify)

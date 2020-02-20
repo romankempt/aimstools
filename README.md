@@ -2,32 +2,6 @@
 
 This library contains a personal collection of scripts to handle AIMS calculations. It's mainly meant for private use or to be shared with students and colleagues.
 
-## Currently implemented features
-
-- **Handling AIMS calculations:**
-    > The installation adds command line tools to your /.local/bin folder which can set up the files for different tasks employing the ASE, sort and analyse results.
-
-    > The **structuretools.py** module contains helper functions to fragment and analyze structures in order to set up different tasks or extract information after a finished calculation.
-
-- **Analyzing results:**
-    > The **postprocessing.py** module contains helper functions to extract useful data from finished calculations, such as energies.
-
-    > The **hirshfeld.py** module extracts and evaluates hirshfeld charges.
-
-    > The **eff_mass.py** module can evaluate effective masses in 2 and 3 dimensions.
-
-    > The **phonons.py** module plots phonon spectra from phonopy-FHI aims calculations.
-
-- **Plotting functionalities:**
-  
-    The plotting modules are designed for flexible, combinatorial plotting. It's very easy to overlay, compare and arrange plots in different fashions with the in-built classes.
-
-    > The **bandstructure.py** module handles band structure plots with scalar relativity, SOC, spin, and mulliken-projection ("fatbands").
-
-    > The **dos.py** module handles atom-projected densities of states.
-
-    > The **multiplots.py** module contains helper functions to combine plots in different fashions, for example overlaying ZORA and ZORA+SOC bandstructures or combining bandstructures and DOS.
-
 ## Installation
 
 I recommend using Anaconda to manage package dependencies and updates. See [here](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html).
@@ -49,7 +23,7 @@ export AIMS_SPECIES_DIR="path/to/directory"
 
 
 ## Documentation
-The documentation is now available at [ReadTheDocs](https://readthedocs.org/projects/aims-tools/).
+The documentation is now available at [ReadTheDocs](https://aims-tools.readthedocs.io/en/master/).
 
 
 ## Requirements
@@ -59,6 +33,3 @@ The documentation is now available at [ReadTheDocs](https://readthedocs.org/proj
 - [Scientific Python](https://www.scipy.org/) scipy (including numpy, matplotlib and pandas)
 - [seaborn](https://seaborn.pydata.org/)
 - [networkx](https://networkx.github.io/documentation/stable/install.html)
-
-### Other libraries
-- [scikit-image](https://scikit-image.org/) for 3D isosurfaces

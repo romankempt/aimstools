@@ -1,6 +1,3 @@
-import numpy as np
-import glob, sys, os, math
-from pathlib import Path as Path
 import ase.io, ase.cell
 
 from AIMS_tools.structuretools import structure
@@ -41,8 +38,8 @@ class postprocess:
         self.__read_output()
         self.__def_color_dictionary()
 
-    # def __repr__(self):
-    #     return repr(str(self.path.parts[-1]))
+    def __repr__(self):
+        return str(self.outputfile)
 
     def __check_output(self, outputfile):
         if Path(outputfile).is_file():
@@ -79,7 +76,6 @@ class postprocess:
     def __read_geometry(self):
         geometry = self.path.joinpath("geometry.in")
         self.structure = structure(geometry)
-        logging.info("Structure: {}".format(self.structure.atoms))
 
     def __read_control(self):
         control = self.path.joinpath("control.in")

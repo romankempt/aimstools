@@ -1,8 +1,3 @@
-import numpy as np
-import glob, sys, os, shutil
-from pathlib import Path as Path
-from scipy import interpolate, misc
-
 import ase.io, ase.cell, ase.spacegroup
 import math
 import scipy
@@ -10,6 +5,7 @@ from scipy.optimize import curve_fit, leastsq, least_squares
 from scipy.interpolate import NearestNDInterpolator as ndi
 from scipy.interpolate import LinearNDInterpolator as ldi
 from scipy import spatial
+from scipy import interpolate, misc
 
 from AIMS_tools.misc import *
 from AIMS_tools.postprocessing import postprocess
@@ -21,7 +17,6 @@ class eff_mass(postprocess):
     Employs band fitting algorithm combined with finite differences to calculate effective masses in 2 or 3 dimensions.
     
     Args:
-        pbc (str): Periodic boundary conditions ("2D" or "3D"). Defaults to "3D".
         VBM (bool): Evaluate effective masses for valence band maximum. Defaults to true.
         CBM (bool): Evaluate effective masses for conduction minimum. Defaults to true.
         scale (int): Number of steps to take in each direction around evaluated point.
@@ -31,9 +26,8 @@ class eff_mass(postprocess):
         3D boundary conditions are problematic.
     """
 
-
     def __init__(
-        self, outputfile, get_SOC=True, spin=None, pbc="3D", VBM=True, CBM=True, scale=3, nbands=1
+        self, outputfile, get_SOC=True, spin=None, VBM=True, CBM=True, scale=3, nbands=1
     ):
         super().__init__(outputfile, get_SOC=get_SOC, spin=spin)
         if self.spin == None:
@@ -42,17 +36,17 @@ class eff_mass(postprocess):
         self.kpoints, self.eigenvalues = self.__read_AIMS_eigenvalues(
             self.path.joinpath("Final_KS_eigenvalues.dat")
         )
-        self.pbc = pbc
-        self.force_symms = force_symms
-        self.scale=scale
+        is_2D = self.structure.is_2d()
+        self.pbc = "3D" if is_2D == False else "2D"
+        self.scale = scale
         self.__determine_stepsize(scale)
 
         if VBM == True:
-            self.VBM_routine(spin, nbands=nbands)
+            self.__VBM_routine(spin, nbands=nbands)
         if CBM == True:
-            self.CBM_routine(spin, nbands=nbands)
+            self.__CBM_routine(spin, nbands=nbands)
 
-    def VBM_routine(self, spin, nbands=1):
+    def __VBM_routine(self, spin, nbands=1):
         """ Performs effective mass evaluation for the valence band maximum.
 
         Automatically detects and analysis VBM.
@@ -61,7 +55,7 @@ class eff_mass(postprocess):
             spin (int): 0 or 1 for spin channel. Defaults to 0.
             nbands (int): Number of bands to perform analysis, couting down from the VBM band. Defaults to 1.
 
-        Attributs:
+        Attributes:
             VBM (float): VBM energy in Hartree
             VBMloc (ndarray): Fractional k-point coordinates of VBM.
             VBMband (int): Band index of VBM.
@@ -87,9 +81,9 @@ class eff_mass(postprocess):
             elif self.pbc == "3D":
                 fit, g = self.__fit_3D(self.cut, self.VBMloc)
                 self.axplot_3D(fit, g, self.cut)
-        logging.info("----------------")                
+        logging.info("----------------")
 
-    def CBM_routine(self, spin, nbands=1):
+    def __CBM_routine(self, spin, nbands=1):
         """ Performs effective mass evaluation for the conduction band minimum.
 
         Automatically detects and analysis CBM.
@@ -98,12 +92,12 @@ class eff_mass(postprocess):
             spin (int): 0 or 1 for spin channel. Defaults to 0.
             nbands (int): Number of bands to perform analysis, couting up from the CBM band. Defaults to 1.
 
-        Attributs:
+        Attributes:
             CBM (float): CBM energy in Hartree
             CBMloc (ndarray): Fractional k-point coordinates of CBM.
             CBMband (int): Band index of CBM.
             cut (ndarray): Cutted band range around CBMloc.
-        """        
+        """
         logging.info("Initializing routine for conduction bands ...")
         self.CBM = np.min(
             self.eigenvalues[spin, :, :][self.eigenvalues[spin, :, :] > 0]
@@ -138,25 +132,24 @@ class eff_mass(postprocess):
             >>> efm.point_routine(point, VBM, VBM_band, spin=0, nbands=1)
             >>> efm.point_routine(point, CBM, CBM_band, spin=0, nbands=1)
 
-        Note:
-            Points on the edge of the Brillouin Zone might be problematic.
-
         Args:
             energy (float): Energy of extreme point.
             band (int): Band index for extreme point.
             spin (int): 0 or 1 for spin channel. Defaults to 0.
             nbands (int): Number of bands to perform analysis, couting up from the CBM band. Defaults to 1.
 
-        """                
-        logging.info("Initializing routine for user-defined point k = ( {: 10.6f} {: 10.6f} {: 10.6f} ) :".format(*point))
-        self.check_energy_equivalence(point, energy, spin=spin)        
+        """
+        logging.info(
+            "Initializing routine for user-defined point k = ( {: 10.6f} {: 10.6f} {: 10.6f} ) :".format(
+                *point
+            )
+        )
+        self.check_energy_equivalence(point, energy, spin=spin)
         for j in range(nbands):
-            j = j if energy < 0 else (-1)* j
+            j = j if energy < 0 else (-1) * j
             logging.info("---- point routine ----")
             logging.info(
-                "Beginning effective mass evaluation for band {}:".format(
-                    band + j
-                )
+                "Beginning effective mass evaluation for band {}:".format(band + j)
             )
             self.cut = self.__cut_box(point, band + j, scale=self.scale)
             if self.pbc == "2D":
@@ -165,7 +158,7 @@ class eff_mass(postprocess):
             elif self.pbc == "3D":
                 fit, g = self.__fit_3D(self.cut, point)
                 self.axplot_3D(fit, g, self.cut)
-        logging.info("----------------")        
+        logging.info("----------------")
 
     def __read_AIMS_eigenvalues(self, filename="Final_KS_eigenvalues.dat"):
         """Read in a Final_KS_eigenvalues.dat file in AIMS format.
@@ -253,6 +246,7 @@ class eff_mass(postprocess):
 
     def check_energy_equivalence(self, point, energy, spin=0):
         """ Checks energy equivalencies of given point. """
+
         def closest_point(point, points):
             tree = spatial.KDTree(points)
             idx = tree.query(point)[1]
@@ -267,11 +261,11 @@ class eff_mass(postprocess):
                 sites[row][1] -= 1
             if sites[row][2] > 0.5:
                 sites[row][2] -= 1
-            if sites[row][0] < -0.5:
+            if sites[row][0] <= -0.5:
                 sites[row][0] += 1
-            if sites[row][1] < -0.5:
+            if sites[row][1] <= -0.5:
                 sites[row][1] += 1
-            if sites[row][2] < -0.5:
+            if sites[row][2] <= -0.5:
                 sites[row][2] += 1
         mpoint = -1 * point
         logging.info(
@@ -401,7 +395,7 @@ class eff_mass(postprocess):
                 "Reciprocal volume for analysis is {: .6f} [1 / bohr^3] large.".format(
                     vol
                 )
-            )        
+            )
 
     def __cut_box(self, loc, band, scale=3.1, spin=0):
         """ Cuts 2D or 3D area / volume around point. 
@@ -412,27 +406,36 @@ class eff_mass(postprocess):
 
         kpoints = self.kpoints - loc
         indices = np.argwhere(
-            (np.abs(kpoints[:, 0]) <= (scale * self.xstep)*1.05)
-            & (np.abs(kpoints[:, 1]) <= (scale * self.ystep)*1.05)
-            & (np.abs(kpoints[:, 2]) <= (scale * self.zstep)*1.05)
+            (
+                (np.abs(kpoints[:, 0]) <= (scale * self.xstep) * 1.05)
+                | (np.abs(kpoints[:, 0] - 1) <= (scale * self.xstep) * 1.05)
+            )
+            & (
+                (np.abs(kpoints[:, 1]) <= (scale * self.ystep) * 1.05)
+                | (np.abs(kpoints[:, 1] - 1) <= (scale * self.ystep) * 1.05)
+            )
+            & (
+                (np.abs(kpoints[:, 2]) <= (scale * self.zstep) * 1.05)
+                | (np.abs(kpoints[:, 2] - 1) <= (scale * self.zstep) * 1.05)
+            )
         )
         kpoints = kpoints[indices[:, 0]]
+        for row in range(kpoints.shape[0]):
+            if kpoints[row][0] > 0.5:
+                kpoints[row][0] -= 1
+            if kpoints[row][1] > 0.5:
+                kpoints[row][1] -= 1
+            if kpoints[row][2] > 0.5:
+                kpoints[row][2] -= 1
+            if kpoints[row][0] <= -0.5:
+                kpoints[row][0] += 1
+            if kpoints[row][1] <= -0.5:
+                kpoints[row][1] += 1
+            if kpoints[row][2] <= -0.5:
+                kpoints[row][2] += 1
         kpoints *= 2 * np.pi / (self.structure.atoms.cell.lengths() * bohr)
         eigenvalues = self.eigenvalues[spin, indices[:, 0], band]
         ar = np.column_stack((kpoints, eigenvalues))
-        # if self.force_symms == True:
-        #     ### enforce local parabolicity:
-        #     forced_symms = []
-        #     def is_row_in_array(row , arr):
-        #         return np.any(np.sum(np.abs(arr-row), axis=1) <= 1e-5)
-        #     for row in range(ar.shape[0]):                
-        #         j = [-ar[row, 0], -ar[row, 1], -ar[row, 2], ar[row, 3]]
-        #         if (j not in forced_symms) and not is_row_in_array(j, ar):
-        #             forced_symms.append(j)
-        #     if len(forced_symms) > 0:
-        #         forced_symms = np.array(forced_symms)            
-        #         ar = np.vstack((ar, forced_symms))
-        #         logging.info("Enforced local inversion symmetry for {} points. This is particularly important for points on the edge of the Brillouin Zone.".format(len(forced_symms)))
         if self.pbc == "2D":
             ar = ar[ar[:, 2] == 0]
             ar = ar[:, [0, 1, 3]]
@@ -497,7 +500,7 @@ class eff_mass(postprocess):
         mtens = np.linalg.inv(mtens)
         logging.info(
             "Fit derivatives: \n \t d^2/dx^2: {: 10.6f} \n \t d^2/dxdy: {: 10.6f} \n \t d^2/dy^2: {: 10.6f}".format(
-                2*mxx, mxy, 2*myy
+                2 * mxx, mxy, 2 * myy
             )
         )
         w, vl = scipy.linalg.eigh(mtens, eigvals_only=False)
@@ -530,8 +533,8 @@ class eff_mass(postprocess):
         vl = np.fromiter((g(x, 0, *masses) for x in dl * self.xstep), np.float)
         ax[1].plot(*zip(*sorted(xdata)), ls="", marker="o", label="data")
         ax[1].plot(dl * self.xstep, vl, color="crimson", label="fit")
-        ax[1].set_ylabel("E - E$_F$ [a. u.]")
-        ax[1].set_xlabel("$\Delta k_{xx}$ [a. u.]")
+        ax[1].set_ylabel(r"E - E$_F$ [a. u.]")
+        ax[1].set_xlabel(r"$\Delta k_{xx}$ [a. u.]")
         ax[1].set_title("xx direction")
 
         #### xy
@@ -541,11 +544,11 @@ class eff_mass(postprocess):
         ax[2].plot(dl * self.xstep, vl, color="crimson", label="fit")
         ax[3].plot(*zip(*sorted(xydata)), ls="", marker="o", label="data")
         ax[3].plot(dl * self.ystep, vl, color="crimson", label="fit")
-        ax[2].set_ylabel("E - E$_F$ [a. u.]")
-        ax[2].set_xlabel("$\Delta k_{xy}$ [a. u.]")
+        ax[2].set_ylabel(r"E - E$_F$ [a. u.]")
+        ax[2].set_xlabel(r"$\Delta k_{xy}$ [a. u.]")
         ax[2].set_title("xy direction")
-        ax[3].set_ylabel("E - E$_F$ [a. u.]")
-        ax[3].set_xlabel("$\Delta k_{yx}$ [a. u.]")
+        ax[3].set_ylabel(r"E - E$_F$ [a. u.]")
+        ax[3].set_xlabel(r"$\Delta k_{yx}$ [a. u.]")
         ax[3].set_title("yx direction")
 
         #### yy
@@ -553,8 +556,8 @@ class eff_mass(postprocess):
         vl = np.fromiter((g(0, y, *masses) for y in dl * self.ystep), np.float)
         ax[4].plot(*zip(*sorted(yydata)), ls="", marker="o", label="data")
         ax[4].plot(dl * self.ystep, vl, color="crimson", label="fit")
-        ax[4].set_ylabel("E - E$_F$ [a. u.]")
-        ax[4].set_xlabel("$\Delta k_{yy}$ [a. u.]")
+        ax[4].set_ylabel(r"E - E$_F$ [a. u.]")
+        ax[4].set_xlabel(r"$\Delta k_{yy}$ [a. u.]")
         ax[4].set_title("yy direction")
         ax[4].legend()
 
@@ -578,9 +581,9 @@ class eff_mass(postprocess):
         fit = ax.plot_trisurf(x, y, zf, cmap=cm.plasma, linewidth=0.1)
         fig.colorbar(fit, shrink=0.5, aspect=5)
         ax.set_title("2D fit (difference below)")
-        ax.set_xlabel("$\Delta k_{xx}$ [a.u.]")
-        ax.set_ylabel("$\Delta k_{yy}$ [a.u.]")
-        ax.set_zlabel("E - E$_F$ [a.u.]")
+        ax.set_xlabel(r"$\Delta k_{xx}$ [a.u.]")
+        ax.set_ylabel(r"$\Delta k_{yy}$ [a.u.]")
+        ax.set_zlabel(r"E - E$_F$ [a.u.]")
         plt.show()
 
     def __gridvalue_3D(self, x, y, z):
@@ -655,11 +658,11 @@ class eff_mass(postprocess):
             out = list()
             for x, y, z, v in indata:
                 val = v - g(x, y, z, *params)
-                weight = 1 / (1 + 0.5*np.sqrt(x ** 2 + y ** 2 + z ** 2))
+                weight = 1 / (1 + 0.5 * np.sqrt(x ** 2 + y ** 2 + z ** 2))
                 out.append(val * weight)
             return out
 
-        guess = [mxx0, mxy0, mxz0, myy0, myz0, mzz0, 0, 0, 0] # check if inverse or not
+        guess = [mxx0, mxy0, mxz0, myy0, myz0, mzz0, 0, 0, 0]  # check if inverse or not
         sol, cov, info, msg, ier = leastsq(
             residuals,
             guess,
@@ -746,17 +749,17 @@ class eff_mass(postprocess):
         """ Plots dispersion relation as two-dimensional planes for xy, xz and yz."""
         from mpl_toolkits.mplot3d import Axes3D
         from matplotlib import cm
-        
+
         fig = plt.figure(figsize=plt.figaspect(0.3))
-        ax1 = fig.add_subplot(1, 3, 1, projection='3d')
+        ax1 = fig.add_subplot(1, 3, 1, projection="3d")
         xy = cut[cut[:, 2] == 0]
         x = xy[:, 0]
         y = xy[:, 1]
         z = xy[:, 3]
         surf = ax1.plot_trisurf(x, y, z, cmap=cm.plasma, linewidth=0.1)
         ax1.set_title("xy plane")
-        
-        ax2 = fig.add_subplot(1, 3, 2, projection='3d')
+
+        ax2 = fig.add_subplot(1, 3, 2, projection="3d")
         xz = cut[cut[:, 1] == 0]
         x = xz[:, 0]
         y = xz[:, 2]
@@ -764,12 +767,12 @@ class eff_mass(postprocess):
         surf2 = ax2.plot_trisurf(x, y, z, cmap=cm.plasma, linewidth=0.1)
         ax2.set_title("xz plane")
 
-        ax3 = fig.add_subplot(1, 3, 3, projection='3d')
+        ax3 = fig.add_subplot(1, 3, 3, projection="3d")
         xz = cut[cut[:, 0] == 0]
         x = xz[:, 1]
         y = xz[:, 2]
         z = xz[:, 3]
-        surf3 = ax3.plot_trisurf(x, y, z, cmap=cm.plasma, linewidth=0.1)        
+        surf3 = ax3.plot_trisurf(x, y, z, cmap=cm.plasma, linewidth=0.1)
         ax3.set_title("yz plane")
 
         fig.colorbar(surf, shrink=0.5, aspect=5)
@@ -791,8 +794,8 @@ class eff_mass(postprocess):
         vl = np.fromiter((f(x, 0, 0, *masses) for x in dl * self.xstep), np.float)
         ax[1].plot(*zip(*sorted(xdata)), ls="", marker="o", label="data")
         ax[1].plot(dl * self.xstep, vl, color="crimson", label="fit")
-        ax[1].set_ylabel("E - E$_F$ [a. u.]")
-        ax[1].set_xlabel("$\Delta k_{xx}$ [a. u.]")
+        ax[1].set_ylabel(r"E - E$_F$ [a. u.]")
+        ax[1].set_xlabel(r"$\Delta k_{xx}$ [a. u.]")
         ax[1].set_title("xx direction")
 
         #### xy
@@ -802,8 +805,8 @@ class eff_mass(postprocess):
         vl = np.fromiter((f(xy, xy, 0, *masses) for xy in dl * self.xstep), np.float)
         ax[2].plot(*zip(*sorted(xydata)), ls="", marker="o", label="data")
         ax[2].plot(dl * self.xstep, vl, color="crimson", label="fit")
-        ax[2].set_ylabel("E - E$_F$ [a. u.]")
-        ax[2].set_xlabel("$\Delta k_{xy}$ [a. u.]")
+        ax[2].set_ylabel(r"E - E$_F$ [a. u.]")
+        ax[2].set_xlabel(r"$\Delta k_{xy}$ [a. u.]")
         ax[2].set_title("xy direction")
 
         #### xz
@@ -813,8 +816,8 @@ class eff_mass(postprocess):
         vl = np.fromiter((f(xz, 0, xz, *masses) for xz in dl * self.xstep), np.float)
         ax[3].plot(*zip(*sorted(xzdata)), ls="", marker="o", label="data")
         ax[3].plot(dl * self.xstep, vl, color="crimson", label="fit")
-        ax[3].set_ylabel("E - E$_F$ [a. u.]")
-        ax[3].set_xlabel("$\Delta k_{xz}$ [a. u.]")
+        ax[3].set_ylabel(r"E - E$_F$ [a. u.]")
+        ax[3].set_xlabel(r"$\Delta k_{xz}$ [a. u.]")
         ax[3].set_title("xz direction")
 
         #### yx
@@ -824,8 +827,8 @@ class eff_mass(postprocess):
         vl = np.fromiter((f(xy, xy, 0, *masses) for xy in dl * self.ystep), np.float)
         ax[4].plot(*zip(*sorted(xydata)), ls="", marker="o", label="data")
         ax[4].plot(dl * self.ystep, vl, color="crimson", label="fit")
-        ax[4].set_ylabel("E - E$_F$ [a. u.]")
-        ax[4].set_xlabel("$\Delta k_{yx}$ [a. u.]")
+        ax[4].set_ylabel(r"E - E$_F$ [a. u.]")
+        ax[4].set_xlabel(r"$\Delta k_{yx}$ [a. u.]")
         ax[4].set_title("yx direction")
 
         #### yy
@@ -833,8 +836,8 @@ class eff_mass(postprocess):
         vl = np.fromiter((f(0, y, 0, *masses) for y in dl * self.ystep), np.float)
         ax[5].plot(*zip(*sorted(ydata)), ls="", marker="o", label="data")
         ax[5].plot(dl * self.ystep, vl, color="crimson", label="fit")
-        ax[5].set_ylabel("E - E$_F$ [a. u.]")
-        ax[5].set_xlabel("$\Delta k_{yy}$ [a. u.]")
+        ax[5].set_ylabel(r"E - E$_F$ [a. u.]")
+        ax[5].set_xlabel(r"$\Delta k_{yy}$ [a. u.]")
         ax[5].set_title("yy direction")
 
         #### yz
@@ -844,9 +847,9 @@ class eff_mass(postprocess):
         vl = np.fromiter((f(0, yz, yz, *masses) for yz in dl * self.ystep), np.float)
         ax[6].plot(*zip(*sorted(yzdata)), ls="", marker="o", label="data")
         ax[6].plot(dl * self.ystep, vl, color="crimson", label="fit")
-        ax[6].set_ylabel("E - E$_F$ [a. u.]")
-        ax[6].set_xlabel("$\Delta k_{yz}$ [a. u.]")
-        ax[6].set_title("yz direction")        
+        ax[6].set_ylabel(r"E - E$_F$ [a. u.]")
+        ax[6].set_xlabel(r"$\Delta k_{yz}$ [a. u.]")
+        ax[6].set_title("yz direction")
 
         #### xyz diagonal
         ddata = [
@@ -855,9 +858,9 @@ class eff_mass(postprocess):
         vl = np.fromiter((f(d, d, d, *masses) for d in dl * self.zstep), np.float)
         ax[7].plot(*zip(*sorted(ddata)), ls="", marker="o", label="data")
         ax[7].plot(dl * self.zstep, vl, color="crimson", label="fit")
-        ax[7].set_ylabel("E - E$_F$ [a. u.]")
-        ax[7].set_xlabel("$\Delta k_{xyz}$ [a. u.]")
-        ax[7].set_title("xyz diagonal")          
+        ax[7].set_ylabel(r"E - E$_F$ [a. u.]")
+        ax[7].set_xlabel(r"$\Delta k_{xyz}$ [a. u.]")
+        ax[7].set_title("xyz diagonal")
 
         #### xy-z diagonal
         ddata = [
@@ -865,22 +868,20 @@ class eff_mass(postprocess):
         ]
         vl = np.fromiter((f(d, d, -d, *masses) for d in dl * self.zstep), np.float)
         ax[8].plot(*zip(*sorted(ddata)), ls="", marker="o", label="data")
-        ax[8].plot(dl * self.zstep, vl, color="crimson", label="fit")        
-        ax[8].set_ylabel("E - E$_F$ [a. u.]")
-        ax[8].set_xlabel("$\Delta k_{xy-z}$ [a. u.]")
-        ax[8].set_title("xy -z diagonal")          
-
+        ax[8].plot(dl * self.zstep, vl, color="crimson", label="fit")
+        ax[8].set_ylabel(r"E - E$_F$ [a. u.]")
+        ax[8].set_xlabel(r"$\Delta k_{xy-z}$ [a. u.]")
+        ax[8].set_title("xy -z diagonal")
 
         #### zz
         zdata = [[z, v] for x, y, z, v in data if (abs(x) < 1e-4 and abs(y) < 1e-4)]
         vl = np.fromiter((f(0, 0, z, *masses) for z in dl * self.zstep), np.float)
         ax[9].plot(*zip(*sorted(zdata)), ls="", marker="o", label="data")
         ax[9].plot(dl * self.zstep, vl, color="crimson", label="fit")
-        ax[9].set_ylabel("E - E$_F$ [a. u.]")
-        ax[9].set_xlabel("$\Delta k_{zz}$ [a. u.]")
+        ax[9].set_ylabel(r"E - E$_F$ [a. u.]")
+        ax[9].set_xlabel(r"$\Delta k_{zz}$ [a. u.]")
         ax[9].set_title("zz direction")
         ax[9].legend()
-
 
         plt.tight_layout()
         plt.show()
@@ -891,30 +892,52 @@ class eff_mass(postprocess):
         Returns:
             tuple : closest k-point (ndarray), VBM energy (float), VBM band index (int), CBM energy (float), CBM band index (int)
         """
+
         def closest_point(point, points):
             tree = spatial.KDTree(points)
             idx = tree.query(point)[1]
             return idx
+
         idx = closest_point(point, self.kpoints)
         closest_k = self.kpoints[idx]
-        VBM_at_site = np.max(self.eigenvalues[spin, idx, :][self.eigenvalues[spin, idx, :] < 0])        
-        CBM_at_site = np.min(self.eigenvalues[spin, idx, :][self.eigenvalues[spin, idx, :] > 0])
+        VBM_at_site = np.max(
+            self.eigenvalues[spin, idx, :][self.eigenvalues[spin, idx, :] < 0]
+        )
+        CBM_at_site = np.min(
+            self.eigenvalues[spin, idx, :][self.eigenvalues[spin, idx, :] > 0]
+        )
         VBM_band = np.argwhere(
-            np.isclose(self.eigenvalues[spin, idx, :], VBM_at_site, rtol=1e-5, atol=1e-7)
+            np.isclose(
+                self.eigenvalues[spin, idx, :], VBM_at_site, rtol=1e-5, atol=1e-7
+            )
         )
         CBM_band = np.argwhere(
-            np.isclose(self.eigenvalues[spin, idx, :], CBM_at_site, rtol=1e-5, atol=1e-7)
+            np.isclose(
+                self.eigenvalues[spin, idx, :], CBM_at_site, rtol=1e-5, atol=1e-7
+            )
         )
         VBM_band = [max(x) for x in VBM_band][0]
         CBM_band = [min(x) for x in CBM_band][0]
-        logging.info("Found valence band energy of {} Hartree for band {} at point k = ( {: 10.6f} {: 10.6f} {: 10.6f})".format(VBM_at_site, VBM_band, *closest_k))
-        logging.info("Found conduction band energy of {} Hartree for band {} at point k = ( {: 10.6f} {: 10.6f} {: 10.6f})".format(CBM_at_site, CBM_band, *closest_k))
+        logging.info(
+            "Found valence band energy of {} Hartree for band {} at point k = ( {: 10.6f} {: 10.6f} {: 10.6f})".format(
+                VBM_at_site, VBM_band, *closest_k
+            )
+        )
+        logging.info(
+            "Found conduction band energy of {} Hartree for band {} at point k = ( {: 10.6f} {: 10.6f} {: 10.6f})".format(
+                CBM_at_site, CBM_band, *closest_k
+            )
+        )
         return closest_k, VBM_at_site, VBM_band, CBM_at_site, CBM_band
 
 
-#test = eff_mass("/mnt/e/Dropbox/ThC/Persons/Raul_Guerrero/transport/KS_eigenvalues", pbc="2D", VBM=False, CBM=False)
-#point, VBM, VBM_band, CBM, CBM_band = test.pick_band([0.46,0,0])
-#test.point_routine(point, VBM, VBM_band, spin=0, nbands=1)
-#test.point_routine(point, CBM, CBM_band, spin=0, nbands=1)
-
+# test = eff_mass(
+#     "/mnt/c/Users/admin/Dropbox/ThC/Persons/Raul_Guerrero/transport/KS_eigenvalues",
+#     pbc="2D",
+#     VBM=False,
+#     CBM=False,
+# )
+# point, VBM, VBM_band, CBM, CBM_band = test.pick_band([0.46, 0, 0])
+# test.point_routine(point, VBM, VBM_band, spin=0, nbands=1)
+# test.point_routine(point, CBM, CBM_band, spin=0, nbands=1)
 

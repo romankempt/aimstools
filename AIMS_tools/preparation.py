@@ -3,10 +3,6 @@ from ase import Atoms
 from ase.calculators.aims import Aims
 
 import argparse
-from pathlib import Path as Path
-import glob, sys, os
-
-import numpy as np
 
 from AIMS_tools.misc import *
 from AIMS_tools.structuretools import structure
@@ -24,54 +20,43 @@ class prepare:
         basis (str): Basis set quality. Defaults to tight.
         tier (int): Basis set tier. Defaults to 2.
         k_grid (list): List of integers for k-point sampling. Defaults to [6,6,6].
-        SOC (bool): Include spin-orbit coupling. Defaults to False.
-        pbc (str): "2D" or None. Defaults to None. Enforces 2D boundary conditions.
-        vdw (str): TS, MBD or None. Defaults to None. Enables dispersion corrections.
-        task (list): List of tasks to perform. Defaults to []. Currently available: BS, DOS, GO, phonons.
+        task (list): List of tasks to perform. Defaults to []. Currently available: BS, DOS, GO, fatBS, phonons.
 
     Other Parameters:        
-        cluster (str): HPC cluster. Defaults to None.
-        cost (str): Low, medium or high. Defaults to None. Automatically adjusts nodes and walltimes depending on the cluster.
-        memory (int): Memory requirements per node in GB. Defaults to 63.
-        nodes (int): Number of nodes. Defaults to 4.
-        ppn (int): Processors per node. Defaults to 20.
-        walltime (int): Walltime in hours. Defaults to 24.
-        
+        cluster (str): HPC cluster. Defaults to taurus.
+        cost (str): low, medium or high. Automatically adjusts nodes and walltimes depending on the cluster.        
     """
 
     def __init__(self, geometryfile, *args, **kwargs):
         # Arguments
-        self.geometry = geometryfile
-        self.cluster = kwargs.get("cluster", None)
-        self.cost = kwargs.get("cost", None)
-        self.memory = kwargs.get("memory", 63)
-        self.nodes = kwargs.get("nodes", 4)
-        self.ppn = kwargs.get("ppn", 20)
-        self.walltime = kwargs.get("walltime", 24)
+        self.path = Path(geometryfile).parent
+        self.cluster = kwargs.get("cluster", "taurus")
+        self.cost = kwargs.get("cost", "low")
         self.xc = kwargs.get("xc", "pbe")
         self.spin = kwargs.get("spin", None)
         self.tier = kwargs.get("tier", 2)
         self.basis = kwargs.get("basis", "tight")
         self.k_grid = kwargs.get("k_grid", [6, 6, 6])
-        self.SOC = kwargs.get("SOC", False)
         self.task = kwargs.get("task", [])
-        self.pbc = kwargs.get("pbc", None)
-        self.vdw = kwargs.get("vdw", None)
         # Initialisation
-        self.species_dir = os.getenv("AIMS_SPECIES_DIR")
+        try:
+            self.species_dir = os.getenv("AIMS_SPECIES_DIR")
+        except:
+            logging.critical("Basis sets not found!")
         cwd = Path.cwd()
         self.species_dir = str(cwd.joinpath(Path(self.species_dir, self.basis)))
         self.structure = structure(geometryfile)
-        if self.pbc == "2D":
+        if self.structure.is_2d(self.structure.atoms) == True:
             self.k_grid = [self.k_grid[0], self.k_grid[1], 1]
-            self.structure.enforce_2d()
-        if self.SOC != False:
-            self.SOC = True
+            logging.info("Structure is treated as 2D.")
+            self.structure.enforce_2d(self.structure.atoms)
 
     def setup_calculator(self):
         """ This function sets up the calculator object of the ASE.
         Because certain functions are not implemented yet, it simply
         writes out the input files."""
+        cwd = Path.cwd()
+        os.chdir(self.path)
         calc = Aims(
             xc=self.xc,
             spin=self.spin,
@@ -79,24 +64,21 @@ class prepare:
             tier=self.tier,
             k_grid=self.k_grid,
             relativistic=("atomic_zora", "scalar"),
-            adjust_scf="once 2",
+            adjust_scf="always 3",
         )
         self.structure.atoms.set_calculator(calc)
         calc.prepare_input_files()
+        os.chdir(cwd)
 
     def setup_bandpath(self):
-        """ This function sets up the band path according to AFLOW conventions
-        in the AIMS-specific format and stores it in self.output_bands.
-        
-        Note:
-            The ase.cell.lattice.get_bravais_lattice() method apparently does not like Gamma-angles
-            that are off 90 or 120 degrees in case of 2D systems. 
-            It then aborts with the error message "This transformation
-            changes the cell volume."
+        """ This function sets up the band path according to AFLOW conventions.
+  
+        Returns:
+            list: List of strings containing the k-path sections.
         """
         atoms = self.structure.atoms
         lattice = atoms.cell.get_bravais_lattice(pbc=atoms.pbc)
-        npoints = 31
+        npoints = 41
         points = lattice.get_special_points()
         path = [char for char in lattice.special_path.replace(",", "")]
         AFLOW = []
@@ -115,7 +97,7 @@ class prepare:
             vec1 = "{:.6f} {:.6f} {:.6f}".format(*points[AFLOW[i]])
             vec2 = "{:.6f} {:.6f} {:.6f}".format(*points[AFLOW[i + 1]])
             output_bands.append(
-                "output band {vec1}    {vec2}  {npoints}  {label1} {label2}".format(
+                "{vec1} \t {vec2} \t {npoints} \t {label1} {label2}".format(
                     label1=AFLOW[i],
                     label2=AFLOW[i + 1],
                     npoints=npoints,
@@ -123,60 +105,116 @@ class prepare:
                     vec2=vec2,
                 )
             )
-        self.output_bands = output_bands
+        return output_bands
+
+    def setup_symmetries(self):
+        """ This function sets up symmetry constraints for lattice relaxation.
+        
+        Returns:
+            str : Symmetry block to be added in geometry.in.
+        """
+        self.structure.standardize()
+        atoms = self.structure.atoms
+        lat = self.structure.lattice
+        if lat == "triclinic":
+            # no symmetries, so no need
+            return None
+        elif lat == "monoclinic":
+            # a != b != c, alpha = gamma != beta
+            nlat = 4
+            sym_params = "symmetry_params a1 b2 c2 c3"
+            latstring = "symmetry_lv a1 , 0 , 0 \nsymmetry_lv 0 , b2 , 0 \nsymmetry_lv 0 , c2 , c3\n"
+        elif lat == "orthorhombic":
+            # a != b != c, alpha = beta = gamma = 90
+            nlat = 3
+            sym_params = "symmetry_params a1 b2 c3"
+            latstring = "symmetry_lv a1 , 0 , 0 \nsymmetry_lv 0 , b2 , 0 \nsymmetry_lv 0 , 0 , c3\n"
+        elif lat == "tetragonal":
+            # a = b != c, alpha = beta = gamma = 90
+            nlat = 2
+            sym_params = "symmetry_params a1 c3"
+            latstring = "symmetry_lv a1 , 0 , 0 \nsymmetry_lv 0 , a1 , 0 \nsymmetry_lv 0 , 0 , c3\n"
+        elif (lat == "trigonal") or (lat == "hexagonal"):
+            # a = b != c, alpha = beta = 90, gamma = 120
+            nlat = 2
+            sym_params = "symmetry_params a1 c3"
+            latstring = "symmetry_lv a1 , 0 , 0 \nsymmetry_lv -a1/2 , sqrt(3.0)*a1/2 , 0 \nsymmetry_lv 0 , 0 , c3\n"
+        elif lat == "cubic":
+            # a = b = c, alpha = beta = gamma = 90
+            nlat = 1
+            sym_params = "symmetry_params a1"
+            latstring = "symmetry_lv a1 , 0 , 0 \nsymmetry_lv 0 , a1 , 0 \nsymmetry_lv 0 , 0 , a1\n"
+        nparams = "symmetry_n_params {} {} {}\n".format(
+            nlat + len(atoms) * 3, nlat, len(atoms) * 3
+        )
+        sym_frac = ""
+        for i in range(len(atoms) * 3):
+            sym_params += " x{}".format(i)
+            if (i % 3) == 0:
+                sym_frac += "symmetry_frac x{} x{} x{}\n".format(i, i + 1, i + 2)
+        logging.warning(
+            "I'm not sure yet the symmetry block is correct for every setting and handedness. Take care!"
+        )
+        return nparams + sym_params + "\n" + latstring + sym_frac
 
     def __adjust_xc(self, line):
         if "hse06" in line:
             line = "xc                                 hse06 0.11\n"
             line += "hse_unit        bohr-1\n"
             line += "exx_band_structure_version        1\n"
-        if self.vdw in ["MBD", "TS"]:
-            if self.vdw == "TS":
-                line += "vdw_correction_hirshfeld\n"
-            elif (self.vdw == "MBD") and (self.xc != "pbe"):
-                line += "many_body_dispersion\n"
-            elif (self.vdw == "MBD") and (self.xc == "pbe"):
-                line += "many_body dispersion_nl           beta=0.81 \t # switching to the more advanced MBD \n"
+
+        line += "# include_spin_orbit\n"
+        line += "# vdw_correction_hirshfeld\n"
+        line += "# many_body_dispersion_nl \t beta=0.81\n"
         return line
 
     def __adjust_scf(self, line):
         line = "### SCF settings \n"
-        if "GO" not in self.task:
-            line += "adjust_scf     once        2\n"
-        else:
-            line += "adjust_scf     always      2\n"
+        line += "adjust_scf \t always \t 3 \n"
+        line += "# frozen_core_scf \t .true. \n"
         line += "# charge_mix_param  0.05\n"
-        line += "# sc_accuracy_eev   1E-3                       # sum of eigenvalues convergence\n"
-        line += "# sc_accuracy_etot  1E-6                       # total energy convergence\n"
-        line += "# sc_accuracy_rho   1E-3                       # electron density convergence\n"
+        line += "# occupation_type \t gaussian \t 0.01 \n"
+        line += "# sc_accuracy_eev   1E-3 \t \t # sum of eigenvalues convergence\n"
+        line += "# sc_accuracy_etot  1E-6 \t \t # total energy convergence\n"
+        line += "# sc_accuracy_rho   1E-3 \t \t # electron density convergence\n"
         return line
 
     def __adjust_task(self, line):
         if "BS" in self.task:
+            output_bands = self.setup_bandpath()
             line += "### band structure section \n"
-            for band in self.output_bands:
-                line += band + "\n"
+            for band in output_bands:
+                line += "output band " + band + "\n"
+        if "fatBS" in self.task:
+            output_bands = self.setup_bandpath()
+            line += "### band structure section \n"
+            for band in output_bands:
+                line += "output band_mulliken " + band + "\n"
         if "DOS" in self.task:
             line += "### DOS section \n"
             line += "output atom_proj_dos  -10 0 300 0.05       # Estart Eend n_points broadening\n"
             line += "dos_kgrid_factors 4 4 4                    # auxiliary k-grid\n"
         if "GO" in self.task:
             line += "### geometry optimisation section\n"
-            line += "relax_geometry    bfgs    1E-2\n"
-            line += "relax_unit_cell   fixed_angles             # none, full, fixed_angles \n"
+            line += "relax_geometry \t bfgs \t 1E-2\n"
+            line += "relax_unit_cell \t full \n"
         if "phonons" in self.task:
-            line += "### phonon section \n"
+            line += "### phonon band structure \n"
             line += "sc_accuracy_forces 1E-5 # necessary for phonons \n"
+            line += "final_forces_cleaned \t .true. \n"
             line += "phonon supercell 2 2 2 \n"
-            line += "phonon displacement 0.001 \t\t # displacement in Angström (default 0.001) \n"
+            line += "phonon displacement 0.001 \t\t # displacement in Angström \n"
             line += "phonon symmetry_thresh 1e-6 \n"
             line += "phonon frequency_unit cm^-1 \n"
-            line += "phonon hessian phono-perl TDI\n \n"
-            for band in self.output_bands:
-                line += band.replace("output", "phonon") + "\n"
-            line += "\n phonon free_energy 0 800 801 20 \t \t # Tstart Tend Tpoints qdensity \n"
-            line += "phonon dos 0 600 600 5 20 \t \t # fstart fend fpoints broad qdensity \n \n "
-            for mode in range(self.structure.atoms.get_global_number_of_atoms() * 3):
+            line += "phonon hessian phono-perl TDI\n"
+            output_bands = self.setup_bandpath()
+            for band in output_bands:
+                line += "phonon band" + band + "\n"
+            line += "### phonon DOS \n"
+            line += "phonon free_energy 0 800 801 20 \t \t # Tstart Tend Tpoints qdensity \n"
+            line += "phonon dos 0 600 600 5 20 \t \t # fstart fend fpoints broad qdensity \n"
+            line += "### phonon animations \n"
+            for mode in range(len(self.structure.atoms) * 3):
                 line += "phonon animation 0 0 0 4 5 20 0 0 0 mode{n}.arc mode{n}.ascii mode{n}.xyz mode{n}.xyz_jmol \n".format(
                     n=mode
                 )
@@ -186,20 +224,20 @@ class prepare:
         """ This function adjusts the cluster-specific cost requirements to some defaults."""
         if self.cluster == "taurus":
             if self.cost == "low":
-                self.memory = 60
+                self.memory = 62
                 self.ppn = 24
                 self.nodes = 1
-                self.walltime = 24
+                self.walltime = 23
             if self.cost == "medium":
+                self.memory = 62
+                self.ppn = 24
+                self.nodes = 4
+                self.walltime = 23
+            if self.cost == "high":
                 self.memory = 126
                 self.ppn = 24
                 self.nodes = 4
-                self.walltime = 24
-            if self.cost == "high":
-                self.memory = 254
-                self.ppn = 24
-                self.nodes = 2
-                self.walltime = 24
+                self.walltime = 23
         elif self.cluster == "t3000":
             if self.cost == "low":
                 self.memory = 60
@@ -220,9 +258,9 @@ class prepare:
     def adjust_control(self):
         """ This function processes the control.in file to add
         comments that are currently not implemented in the ASE."""
-        with open("control.in", "r+") as file:
+        with open(self.path.joinpath("control.in"), "r+") as file:
             control = file.readlines()
-        with open("control.in", "w") as file:
+        with open(self.path.joinpath("control.in"), "w") as file:
             for line in control:
                 write = False if line.startswith("#") else True
                 if write:
@@ -230,17 +268,25 @@ class prepare:
                         line = self.__adjust_xc(line)
                     elif ("spin" in line) and ("collinear" in line):
                         line += "#default_initial_moment   0      # only necessary if not specified in geometry.in\n"
-                    elif ("atomic_zora scalar" in line) and (self.SOC == True):
-                        line += "include_spin_orbit \n"
                     elif "adjust_scf" in line:
                         line = self.__adjust_scf(line)
                         line = self.__adjust_task(line)
                 file.write(line)
 
+    def adjust_geometry(self):
+        """ This function processes the geometry.in file to add
+        symmetry constraints."""
+        with open(self.path.joinpath("geometry.in"), "a+") as file:
+            symblock = self.setup_symmetries()
+            file.write(symblock)
+
     def write_submit_t3000(self):
         """ Writes the .sh file to submit on the t3000 via qsub. """
-        name = self.geometry.split(".")[0]
-        with open(name + ".sh", "w+") as file:
+        name = self.structure.atoms.get_chemical_formula()
+        for i in self.task:
+            name += "_{}".format(i)
+        self.adjust_cost()
+        with open(self.path.joinpath(name + ".sh"), "w+") as file:
             file.write(
                 """#! /bin/sh
 #PBS -N {name}
@@ -265,8 +311,11 @@ mpirun -np {cpus} bash -c "ulimit -s unlimited && aims.171221_1.scalapack.mpi.x"
 
     def write_submit_taurus(self):
         """ Writes the .sh file to submit on the taurus via sbatch. """
-        name = self.geometry.split(".")[0]
-        with open(name + ".sh", "w+") as file:
+        name = self.structure.atoms.get_chemical_formula()
+        for i in self.task:
+            name += "_{}".format(i)
+        self.adjust_cost()
+        with open(self.path.joinpath(name + ".sh"), "w+") as file:
             file.write(
                 """#!/bin/bash
 #SBATCH --time={walltime}:00:00 \t\t# walltime in h
@@ -274,8 +323,8 @@ mpirun -np {cpus} bash -c "ulimit -s unlimited && aims.171221_1.scalapack.mpi.x"
 #SBATCH --ntasks={cpus} \t\t\t# number of cpus
 #SBATCH --mem-per-cpu={memory}MB \t\t# memory per node per cpu
 #SBATCH -J {name} \t\t\t# job name
-#SBATCH --error=slurm.err \t\t# error output
-#SBATCH --output=slurm.out \t\t# output
+#SBATCH --error=slurm.out \t\t# stdout
+#SBATCH --output=slurm.err \t\t# stderr
 
 module use /projects/m_chemie/privatemodules/
 module add aims/aims_200112
