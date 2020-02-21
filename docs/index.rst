@@ -11,8 +11,7 @@ AIMS_tools's documentation
    :caption: Introduction:
 
    intros/intro
-   intros/preparing_aims
-   intros/handling_aims
+   intros/command_line
    intros/effective_mass_intro
    intros/boltztrap2
 

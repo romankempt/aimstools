@@ -177,6 +177,7 @@ class prepare:
         line += "# sc_accuracy_eev   1E-3 \t \t # sum of eigenvalues convergence\n"
         line += "# sc_accuracy_etot  1E-6 \t \t # total energy convergence\n"
         line += "# sc_accuracy_rho   1E-3 \t \t # electron density convergence\n"
+        line += "# elsi_restart \t read_and_write \t 1000"
         return line
 
     def __adjust_task(self, line):
@@ -276,6 +277,11 @@ class prepare:
     def adjust_geometry(self):
         """ This function processes the geometry.in file to add
         symmetry constraints."""
+        logging.info("Setting up symmetries for geometry optimisation ...")
+        inp = ase.io.read(self.path.joinpath("geometry.in"), format="aims")
+        out = ase.io.write(
+            self.path.joinpath("geometry.in"), inp, format="aims", scaled=True
+        )
         with open(self.path.joinpath("geometry.in"), "a+") as file:
             symblock = self.setup_symmetries()
             file.write(symblock)

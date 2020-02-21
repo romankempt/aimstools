@@ -1,4 +1,6 @@
-# Preparing AIMS calculations
+# Command line tools
+
+## Preparing AIMS calculations
 
 The **preparation** module contains simple functionalities to set up the files needed for different tasks. This module is wrapped in the **aims_prepare** command line tool.
 The input is any file supported by the ASE containing (periodic) coordinate informations, e.g., xyz, cif or POSCAR.
@@ -39,3 +41,40 @@ aims_prepare MoS2.cif -cluster taurus -cost low -xc hse06 -basis tight -tier 2 -
 ```
 
 The job can then simply be submitted via qsub on the *.sh script (t3000) or sbatch on the *.sh script (taurus). See taurus node limitations [here](https://doc.zih.tu-dresden.de/hpc-wiki/bin/view/Compendium/SystemTaurus).
+
+
+## Sorting finished calculations
+
+```bash
+aims_sort
+```
+
+This script sorts AIMS calculations in a directory into finished ones (converged) and unfinished ones (not_converged).
+
+## Plotting band structures and densities of states
+
+The **bandstructure** and **dos** module are wrapped via the **multiplots** module in the **aims_plot** command line tool. The syntax follows the *multiplots.combine()* function.
+
+```bash
+aims_plot --help
+
+usage: aims_plot [-h] [-nrows NROWS] [-ncols NCOLS] [-ratios RATIOS [RATIOS ...]] [-titles TITLES [TITLES ...]] directories [directories ...]
+
+positional arguments:
+  directories           List of directories to plot
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -nrows NROWS          Number of rows
+  -ncols NCOLS          Number of rows
+  -ratios RATIOS [RATIOS ...]
+                        List of ratios
+  -titles TITLES [TITLES ...]
+                        List of titles
+```
+
+For example:
+
+```bash
+aims_plot bandstructure1/ dos1/ bandstructure2/ dos22/ -nrows 1 -ncols 4 -ratios 3 1 3 1
+```

@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Mar 15 17:11:40 2019
-
-@author: Roman Kempt
-"""
-
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.collections import LineCollection

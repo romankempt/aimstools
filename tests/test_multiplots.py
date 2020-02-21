@@ -8,12 +8,7 @@ import ase.io
 from AIMS_tools import (
     bandstructure,
     dos,
-    phonons,
     multiplots,
-    hirshfeld,
-    postprocessing,
-    eff_mass,
-    preparation,
 )
 
 
@@ -32,7 +27,13 @@ def test_bs_dos_combine_both_spins():
     bs2 = bandstructure.bandstructure("tests/Spin/ZORA", spin="down")
     ds1 = dos.density_of_states("tests/Spin/ZORA", spin="up")
     ds2 = dos.density_of_states("tests/Spin/ZORA", spin="down")
-    fig = multiplots.combine(1, 4, [bs1, ds1, bs2, ds2], [4, 1, 4, 1])
+    fig = multiplots.combine(
+        1,
+        4,
+        [bs1, ds1, bs2, ds2],
+        [4, 1, 4, 1],
+        list_of_titles=["spin up", "", "spin down", ""],
+    )
     if fig.lines != None and not os.path.exists("pictures/MnS2_ZORA_BS_DOS.png"):
         fig.suptitle("MnS$_2$ BS+DOS ZORA")
         plt.savefig("MnS2_ZORA_BS_DOS.png", bbox_inches="tight", dpi=300)

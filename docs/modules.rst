@@ -7,7 +7,7 @@ AIMS_tools
    bandstructure
    dos
    eff_mass
-   hirshfeld
+   multiplots
    multiplots
    phonons
    postprocessing

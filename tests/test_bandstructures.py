@@ -8,12 +8,7 @@ import ase.io
 from AIMS_tools import (
     bandstructure,
     dos,
-    phonons,
     multiplots,
-    hirshfeld,
-    postprocessing,
-    eff_mass,
-    preparation,
 )
 
 

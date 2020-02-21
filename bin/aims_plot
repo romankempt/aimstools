@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+import argparse
+from AIMS_tools.misc import *
+from AIMS_tools import bandstructure, dos, multiplots
+from AIMS_tools.postprocessing import postprocess as pp
+
+
+def parseArguments():
+    # Create argument parser
+    parser = argparse.ArgumentParser()
+
+    # Positional mandatory arguments
+    parser.add_argument(
+        "directories", help="List of directories to plot", type=str, nargs="+"
+    )
+
+    # Optional arguments
+    parser.add_argument("-nrows", help="Number of rows", type=int, default=1)
+    parser.add_argument("-ncols", help="Number of rows", type=int, default=1)
+    parser.add_argument(
+        "-ratios", help="List of ratios", type=int, nargs="+", default=[]
+    )
+    parser.add_argument(
+        "-titles", help="List of titles", type=str, nargs="+", default=[]
+    )
+
+    # Parse arguments
+    args = parser.parse_args()
+    return args
+
+
+if __name__ == "__main__":
+    args = parseArguments()
+    dirs = args.directories
+    calcs = [pp(i) for i in dirs]
+    calc_type = [j.calc_type for j in calcs]
+    runs = dict(zip(calcs, calc_type))
+    list_of_axes = []
+    logging.getLogger().setLevel(logging.ERROR)
+    for calc, task in runs.items():
+        if "BS" in task:
+            list_of_axes.append(bandstructure.bandstructure(calc.path))
+        if "DOS" in task:
+            list_of_axes.append(dos.density_of_states(calc.path))
+    assert len(list_of_axes) == (
+        args.nrows * args.ncols
+    ), "Too many axes to plot for too few nrows and ncols!"
+    fig = multiplots.combine(
+        args.nrows,
+        args.ncols,
+        list_of_axes=list_of_axes,
+        list_of_ratios=args.ratios,
+        list_of_titles=args.titles,
+    )
+    logging.getLogger().setLevel(logging.INFO)
+    plt.show()
