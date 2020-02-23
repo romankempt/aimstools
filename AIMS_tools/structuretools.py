@@ -216,10 +216,11 @@ class structure:
         span = np.max(z_positions) - np.min(z_positions)
         newcell[0, 2] = newcell[1, 2] = newcell[2, 0] = newcell[2, 1] = 0
         newcell[2, 2] = span * 40.0
-        atoms.cell = newcell
-        atoms.pbc = [True, True, False]
-        atoms.positions = scaled_positions * atoms.cell.lengths()
-        atoms.positions[:, 2] = z_positions
+        atoms.set_cell(newcell)
+        newpos = scaled_positions * atoms.cell.lengths()
+        newpos[:, 2] = z_positions
+        atoms.set_positions(newpos)
+        atoms.set_scaled_positions(newpos / atoms.cell.lengths())
         assert self.is_2d(atoms) == True, "Enforcing 2D system failed."
         return atoms
 

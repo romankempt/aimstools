@@ -319,11 +319,13 @@ class fatbandstructure(bandstructure):
     
     Args:
         filter_species (list): Only processes list of atom labels, e.g., ["W", "S"].
+        readmode (bool): To be implemented.
     
     Attributes:
         mlk_bandsegments (dict): Nested dictionary of path segments and ndarrays containing data.
         atom_contributions (dict): Nested dictionary of dictionaries containing {atom : {section : {kvalues, contributions}}}.
-        atom_spectra (dict): Nested dictionary of atom index keys and data for plotting aligned with the kpath. 
+        atom_spectra (dict): Nested dictionary of atom index keys and data for plotting aligned with the kpath.
+        atoms_to_plot (dict): Pairs of index and chemical symbols for atoms to plot.
  
     """
 
@@ -338,19 +340,15 @@ class fatbandstructure(bandstructure):
     ):
         super().__init__(outputfile, get_SOC=get_SOC, shift_type=shift_type, spin=spin)
         # get_SOC is true because for mulliken bands, both spin channels are written to the same file.
-        self.atom_indices = dict(
-            zip(
-                [(i.index + 1) for i in self.structure.atoms],
-                [i.symbol for i in self.structure.atoms],
-            )
-        )
         self.filter_species = (
-            list([str(i) for i in self.atom_indices.values()])
+            list([str(i) for i in self.structure.atom_indices.values()])
             if filter_species == []
             else filter_species
         )
-        self.atom_indices = {
-            k: v for k, v in self.atom_indices.items() if v in self.filter_species
+        self.atoms_to_plot = {
+            k: v
+            for k, v in self.structure.atom_indices.items()
+            if v in self.filter_species
         }
         self.contributions = {}
         self.mlk_bandfiles = self.__get_mlk_bandfiles(get_SOC)
@@ -362,7 +360,11 @@ class fatbandstructure(bandstructure):
             self.atom_contributions = self.__collect_contributions()
             self.atom_spectra = self.__create_spectra()
         if readmode == True:
-            pass
+            if self.path.joinpath("fatbands_atom_contributions.zip").exists():
+                self.atom_contributions = self.__read_contributions()
+                self.atom_spectra = self.__create_spectra()
+            else:
+                logging.critical("Could not find fatbands_atom_contributions.zip!")
             # I think here I have to change how the sum_contributions attribute works. I should not alter the atoms attribute.
 
     def __str__(self):
@@ -442,11 +444,9 @@ class fatbandstructure(bandstructure):
             values[kpoint] = entries
 
         values = np.array(values, dtype=float)
-        self.nkpoints[bandfile] = values.shape[0]
-        assert self.nkpoints[bandfile] == len(
-            kpoints
-        ), "Number of k-points does not match."
-        self.natoms = self.structure.atoms.get_global_number_of_atoms()
+        nkpoints = values.shape[0]
+        assert nkpoints == len(kpoints), "Number of k-points does not match."
+        self.natoms = len(self.structure.atoms)
         self.nstates = int(values.shape[1] / self.natoms)
         if (self.spin == None) and (self.active_SOC == False):
             values = np.insert(values, 4, [1] * self.nstates * self.natoms, axis=2)
@@ -466,18 +466,25 @@ class fatbandstructure(bandstructure):
         for section, bandfile in self.ksections.items():
             start = time.time()
             kpoints, eigenvalues = self.__read_mlk_bandfile(bandfile)
+            self.nkpoints[section] = kpoints.shape[0]
             end = time.time()
             duration = end - start
             logging.info("\t Processed {} in {:.2f} s.".format(bandfile.name, duration))
             segment = (kpoints, eigenvalues)
             bandsegments[section] = segment
+            ### Adding the reversed paths
+            reverse = (section[1], section[0])
+            if reverse not in self.ksections.keys():
+                eigenvalues = eigenvalues[::-1, :, :]
+                segment = (kpoints, eigenvalues)
+                bandsegments[reverse] = segment
         return bandsegments
 
     def __collect_atom_contributions(self, atom):
         """ Collects energies, k-axis and contributions per atom.
         
         Args:
-            atom (int): Index of atom in self.atom_indices.
+            atom (int): Index of atom in self.atoms_to_plot.
         
         Returns:
             dict : Keys are path section tuples (e.g. (G, Y)) values are (kaxis, values) tuples of ndarrays with shapes (nkpoints,) and (nkpoints, nstates, ncons)
@@ -504,11 +511,6 @@ class fatbandstructure(bandstructure):
                     kpoints.shape[0], int(self.nstates / 2), self.ncons
                 )
             segments[section] = (kaxis, ev)
-            ### Adding the reversed paths
-            reverse = (section[1], section[0])
-            if reverse not in self.ksections.keys():
-                ev = ev[::-1, :, :]
-                segments[reverse] = (kpoints, ev)
         return segments
 
     def __collect_contributions(self):
@@ -518,7 +520,7 @@ class fatbandstructure(bandstructure):
             dict: Nested dictionary of {atom index : ( ksection : (kaxis, values))}.
          """
         atom_contributions = {}
-        for atom in self.atom_indices.keys():
+        for atom in self.atoms_to_plot.keys():
             atom_contributions[atom] = self.__collect_atom_contributions(atom)
         return atom_contributions
 
@@ -531,11 +533,13 @@ class fatbandstructure(bandstructure):
         segments = [
             (self.kpath[i], self.kpath[i + 1]) for i in range(len(self.kpath) - 1)
         ]
-        nkpoints_per_sec = dict(zip(self.ksections.keys(), self.nkpoints.values()))
+        nkpoints_per_sec = self.nkpoints
+        reverse = {(k[1], k[0]): v for (k, v) in nkpoints_per_sec.items()}
+        nkpoints_per_sec.update(reverse)
         nkpoints = sum([v for k, v in nkpoints_per_sec.items() if k in segments])
         channels = 1 if self.spin == None else 2
         atom_spectrum = {}
-        for atom in self.atom_indices.keys():
+        for atom in self.atoms_to_plot.keys():
             klabel_coords = [0.0]
             start_index = 0
             kaxis = np.zeros((nkpoints))
@@ -557,11 +561,11 @@ class fatbandstructure(bandstructure):
     def sum_all_species_contributions(self):
         """ Sums (normalized) atomic contributions for the same species.
 
-        Modifies atom_spectra attribute and reduces atom_indices attribute.
+        Modifies atom_spectra attribute and reduces atoms_to_plot attribute.
 
         """
         logging.info("Summing up contributions of same species ...")
-        atoms = self.atom_indices
+        atoms = self.atoms_to_plot
         reverse_atoms = {}
         for key, value in atoms.items():
             reverse_atoms.setdefault(value, set()).add(key)
@@ -576,7 +580,7 @@ class fatbandstructure(bandstructure):
                 kaxis = self.atom_spectra[key][0]
                 sum_contribution += self.atom_spectra.pop(key)[1]
                 if key != new_key:
-                    self.atom_indices.pop(key)
+                    self.atoms_to_plot.pop(key)
             # Contributions are normalized, energies not:
             sum_contribution[:, :, [0, 1, 2, 3, 4]] /= number
             self.atom_spectra[new_key] = (kaxis, sum_contribution)
@@ -598,14 +602,14 @@ class fatbandstructure(bandstructure):
             species = list_of_species[entry]
             if type(species) == int:
                 assert species in list(
-                    self.atom_indices.keys()
+                    self.atoms_to_plot.keys()
                 ), "Index {} not in Atoms!".format(species)
             elif type(species) == str:
                 assert species in list(
-                    self.atom_indices.values()
+                    self.atoms_to_plot.values()
                 ), "Species {} not in Atoms!".format(species)
                 list_of_species[entry] = [
-                    k for k, v in self.atom_indices.items() if v == species
+                    k for k, v in self.atoms_to_plot.items() if v == species
                 ][0]
             else:
                 logging.error("Format type not recognised.")
@@ -613,37 +617,95 @@ class fatbandstructure(bandstructure):
         sum_cons = np.zeros(self.atom_spectra[list_of_species[0]][1].shape)
         label = ""
         for entry in list_of_species:
-            label += self.atom_indices.pop(entry)
+            label += self.atoms_to_plot.pop(entry)
             kaxis = self.atom_spectra[entry][0]
             sum_cons += self.atom_spectra.pop(entry)[1]
         sum_cons[:, :, [0, 1, 2, 3, 4]] /= len(list_of_species)
         new_index = min(list_of_species)
-        self.atom_indices[new_index] = label
+        self.atoms_to_plot[new_index] = label
         self.atom_spectra[new_index] = (kaxis, sum_cons)
 
-    # def write_contributions(self):
-    #     for index, atom in self.atom_indices.items():
-    #         np.save("{}{}_AIMS_tool_cons".format(atom, index), self.atom_spectra[atom])
+    def write_contributions(self):
+        from zipfile import ZipFile
+
+        files = []
+        for index, atom in self.atoms_to_plot.items():
+            for segment in self.mlk_bandsegments.keys():
+                name1 = "{}_{}_{}-{}_{}_fatband_kaxis.npy".format(
+                    atom, index, segment[0], segment[1], self.nkpoints[segment]
+                )
+                np.save(
+                    name1, self.atom_contributions[index][segment][0],
+                )
+                name2 = "{}_{}_{}-{}_{}_fatband_contribution.npy".format(
+                    atom, index, segment[0], segment[1], self.nkpoints[segment]
+                )
+                np.save(
+                    name2, self.atom_contributions[index][segment][1],
+                )
+                files.append(name1)
+                files.append(name2)
+        with ZipFile("fatbands_atom_contributions.zip", "w") as zipObj:
+            for n in files:
+                zipObj.write(n)
+        for n in files:
+            os.remove(n)
+
+    def __read_contributions(self):
+        import zipfile
+
+        atom_contributions = {}
+        nkpoints = {}
+        with zipfile.ZipFile(
+            self.path.joinpath("fatbands_atom_contributions.zip")
+        ) as zipref:
+            zipref.extractall(self.path)
+        kfiles = self.path.glob("*fatband*kaxis*.npy")
+        confiles = self.path.glob("*fatband*contribution*.npy")
+        for j, k in zip(kfiles, confiles):
+            atom, index, segment, nk1 = str(j).split("_")[:4]
+            segment = (segment.split("-")[0], segment.split("-")[1])
+            at2, ind2, seg2, nk2 = str(k).split("_")[:4]
+            seg2 = (seg2.split("-")[0], seg2.split("-")[1])
+            assert atom == at2, "Atom not matching."
+            assert index == ind2, "Index not matching."
+            assert segment == seg2, "Segment not matching."
+            assert nk1 == nk2, "Nkpoints not matching."
+            nk1 = int(nk1)
+            kaxis = np.load(str(j))
+            cons = np.load(str(k))
+            self.natoms = len(self.structure.atoms)
+            self.nstates = int(cons.shape[1])
+            self.ncons = int(cons.shape[2])
+            nkpoints[segment] = nk1
+            index = int(index)
+            if index not in atom_contributions.keys():
+                atom_contributions[index] = {segment: (kaxis, cons)}
+            else:
+                atom_contributions[index].update({segment: (kaxis, cons)})
+            os.remove(str(j))
+            os.remove(str(k))
+        self.nkpoints = nkpoints
+        return atom_contributions
 
     def sort_atoms(self):
         """ Sorts by heaviest atom. 
         
-        Changes atom_indices attribute.
+        Changes atoms_to_plot attribute.
         """
         logging.info("Sorting by heaviest atom...")
-        keys = list(self.atom_indices.keys())
-        vals = list(self.atom_indices.values())
+        keys = list(self.atoms_to_plot.keys())
+        vals = list(self.atoms_to_plot.values())
         pse_vals = [pse[val] for val in vals]
         sorted_keys = [
             x for _, x in sorted(zip(pse_vals, keys), key=lambda pair: pair[0])
         ]
-        self.atom_indices = {key: self.atom_indices[key] for key in sorted_keys}
+        self.atoms_to_plot = {key: self.atoms_to_plot[key] for key in sorted_keys}
 
     def custom_path(self, custompath):
         """ This function takes in a custom path of form K1-K2-K3 for plotting.
 
         Changes kpath attribute according to custompath and recreates atom_spectra according to new kpath.
-        Might give weird results if called after summing up contributions.        
 
         Args:
             custompath (str): Hyphen-separated string of path labels, e.g., "G-M-X".
@@ -662,6 +724,11 @@ class fatbandstructure(bandstructure):
                 break
         else:
             self.kpath = newpath
+            self.atoms_to_plot = {
+                k: v
+                for k, v in self.structure.atom_indices.items()
+                if v in self.filter_species
+            }
             self.atom_spectra = self.__create_spectra()
 
     def __shift_to(self, energy):
@@ -758,7 +825,7 @@ class fatbandstructure(bandstructure):
         """ Plots a fat band structure instance.
         
         Args:
-            atom (int, str): Index or label of atom in self.atom_indices.
+            atom (int, str): Index or label of atom in self.atoms_to_plot.
             contribution (str): Spectral contribution tot, s, p, d or f or user-defined ndarray.
             mode (str): "lines" or "scatter". Defaults to "lines".
             title (str): Title of the plot.
@@ -781,7 +848,7 @@ class fatbandstructure(bandstructure):
         con_dict = {"tot": 5, "s": 6, "p": 7, "d": 8, "f": 9}
 
         if type(atom) == str:
-            atom = [k for k, v in self.atom_indices.items() if v == atom][0]
+            atom = [k for k, v in self.atoms_to_plot.items() if v == atom][0]
 
         x = self.atom_spectra[atom][0]
         y = self.atom_spectra[atom][1][:, :, 1]  # energy
@@ -911,11 +978,11 @@ class fatbandstructure(bandstructure):
         if sum == True:
             self.sum_all_species_contributions()
             self.sort_atoms()
-        if len(self.atom_indices.keys()) > 5:
+        if len(self.atoms_to_plot.keys()) > 5:
             logging.error(
                 """Humans can't perceive enough colors to make a band structure plot
             possible with {} species.""".format(
-                    len(self.atom_indices.keys())
+                    len(self.atoms_to_plot.keys())
                 )
             )
             return None
@@ -927,7 +994,7 @@ class fatbandstructure(bandstructure):
         colors = ["darkblue", "darkorange", "darkgreen", "darkviolet", "darkred"]
         handles = []
         i = 0
-        for atom, label in self.atom_indices.items():
+        for atom, label in self.atoms_to_plot.items():
             self.plot_mlk(
                 atom,
                 "tot",
@@ -960,10 +1027,10 @@ class fatbandstructure(bandstructure):
             ndarray : shape (nkpoints, nstates, [index, eigenvalue, occupation, atom, spin, total, s, p, d, f, g])
          """
         orbital_contributions = np.zeros(self.atom_spectra[1][1].shape)
-        for index, species in self.atom_indices.items():
+        for index, species in self.atoms_to_plot.items():
             orbital_contributions += self.atom_spectra[index][1]
         orbital_contributions[:, :, [0, 1, 2, 3, 4]] /= len(
-            list(self.atom_indices.keys())
+            list(self.atoms_to_plot.keys())
         )
         return orbital_contributions
 

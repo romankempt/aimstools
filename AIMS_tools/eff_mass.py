@@ -930,14 +930,3 @@ class eff_mass(postprocess):
         )
         return closest_k, VBM_at_site, VBM_band, CBM_at_site, CBM_band
 
-
-# test = eff_mass(
-#     "/mnt/c/Users/admin/Dropbox/ThC/Persons/Raul_Guerrero/transport/KS_eigenvalues",
-#     pbc="2D",
-#     VBM=False,
-#     CBM=False,
-# )
-# point, VBM, VBM_band, CBM, CBM_band = test.pick_band([0.46, 0, 0])
-# test.point_routine(point, VBM, VBM_band, spin=0, nbands=1)
-# test.point_routine(point, CBM, CBM_band, spin=0, nbands=1)
-

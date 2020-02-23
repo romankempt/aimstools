@@ -189,7 +189,7 @@ class hirshfeld(postprocess):
         
         Example:
             >>> from AIMS_tools.structuretools import structure
-            >>> from AIMS_tools import hirshfeld
+            >>> from AIMS_tools.postprocessing import hirshfeld
             >>> hs = hirshfeld.hirshfeld("outputfile")
             >>> frag1 = hs.structure.fragments[0][0]
             >>> hs.sum_charges(frag1)
