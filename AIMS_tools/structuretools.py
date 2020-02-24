@@ -228,10 +228,10 @@ class structure:
         """ Evaluates if given structure is qualitatively two-dimensional.
 
         Note:
-            A 2D structure has to fulfill three criterions:
-            - more than one distinct unbonded fragments
-            - a vacuum gap between at least one pair of closest fragments of at least 50 Angström
-            - continouos in-plane connectivity within 50 Angström and periodicity
+            A 2D structure has to fulfill three criterions:\n
+            - more than one distinct unbonded fragments\n
+            - a vacuum gap between at least one pair of closest fragments of at least 50 Angström\n
+            - continouos in-plane connectivity within 50 Angström and periodicity\n
         
             The current code might fail for large structures with a small vacuum gap. Please report any
             cases where the result is wrong.

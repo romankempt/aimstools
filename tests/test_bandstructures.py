@@ -55,3 +55,17 @@ def test_zora_fatbandstructure():
         p2.set_title("MoSe$_2$ ZORA fat BS orbs")
         plt.savefig("MoSe2_ZORA_fatBS_orbs.png", bbox_inches="tight", dpi=300)
         shutil.move("MoSe2_ZORA_fatBS_orbs.png", "pictures/")
+
+
+def test_fatbs_read_and_write():
+    if os.path.exists("tests/fatbandstructures/SOC/fatbands_atom_contributions.zip"):
+        os.remove("tests/fatbandstructures/SOC/fatbands_atom_contributions.zip")
+    bs = bandstructure.fatbandstructure("tests/fatbandstructures/SOC")
+    bs2 = bandstructure.fatbandstructure("tests/fatbandstructures/SOC")
+    for index, atom in bs.atoms_to_plot.items():
+        for section in bs.mlk_bandsegments.keys():
+            k1, ev1 = bs.atom_contributions[index][section]
+            k2, ev2 = bs2.atom_contributions[index][section]
+            assert np.array_equal(k1, k2), "kaxis not matching"
+            assert np.array_equal(ev1, ev2), "eigenvalues not matching"
+

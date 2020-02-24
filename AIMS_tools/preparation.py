@@ -177,7 +177,7 @@ class prepare:
         line += "# sc_accuracy_eev   1E-3 \t \t # sum of eigenvalues convergence\n"
         line += "# sc_accuracy_etot  1E-6 \t \t # total energy convergence\n"
         line += "# sc_accuracy_rho   1E-3 \t \t # electron density convergence\n"
-        line += "# elsi_restart \t read_and_write \t 1000"
+        line += "# elsi_restart \t read_and_write \t 1000\n"
         return line
 
     def __adjust_task(self, line):

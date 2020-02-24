@@ -336,7 +336,6 @@ class fatbandstructure(bandstructure):
         spin=None,
         shift_type="middle",
         filter_species=[],
-        readmode=False,
     ):
         super().__init__(outputfile, get_SOC=get_SOC, shift_type=shift_type, spin=spin)
         # get_SOC is true because for mulliken bands, both spin channels are written to the same file.
@@ -355,17 +354,25 @@ class fatbandstructure(bandstructure):
         self.ksections = dict(
             zip(list(self.ksections.keys()), list(self.mlk_bandfiles))
         )
-        if readmode == False:
+        if not self.path.joinpath("fatbands_atom_contributions.zip").exists():
             self.mlk_bandsegments = self.__read_mlk_bandfiles()
             self.atom_contributions = self.__collect_contributions()
             self.atom_spectra = self.__create_spectra()
-        if readmode == True:
-            if self.path.joinpath("fatbands_atom_contributions.zip").exists():
-                self.atom_contributions = self.__read_contributions()
-                self.atom_spectra = self.__create_spectra()
-            else:
-                logging.critical("Could not find fatbands_atom_contributions.zip!")
-            # I think here I have to change how the sum_contributions attribute works. I should not alter the atoms attribute.
+            start = time.time()
+            self.__write_contributions()
+            end = time.time()
+            duration = end - start
+            logging.info(
+                "Contributions were written to fatbands_atom_contributions.zip in {: .4f} s.".format(
+                    duration
+                )
+            )
+        elif self.path.joinpath("fatbands_atom_contributions.zip").exists():
+            logging.info(
+                "Reading contributions from fatbands_atom_contributions.zip ..."
+            )
+            self.atom_contributions = self.__read_contributions()
+            self.atom_spectra = self.__create_spectra()
 
     def __str__(self):
         return "fat band structure"
@@ -625,7 +632,7 @@ class fatbandstructure(bandstructure):
         self.atoms_to_plot[new_index] = label
         self.atom_spectra[new_index] = (kaxis, sum_cons)
 
-    def write_contributions(self):
+    def __write_contributions(self):
         from zipfile import ZipFile
 
         files = []
@@ -645,7 +652,9 @@ class fatbandstructure(bandstructure):
                 )
                 files.append(name1)
                 files.append(name2)
-        with ZipFile("fatbands_atom_contributions.zip", "w") as zipObj:
+        with ZipFile(
+            str(self.path.joinpath("fatbands_atom_contributions.zip")), "w"
+        ) as zipObj:
             for n in files:
                 zipObj.write(n)
         for n in files:
