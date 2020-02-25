@@ -214,8 +214,8 @@ class structure:
         scaled_positions = atoms.get_scaled_positions()
         z_positions = atoms.get_positions()[:, 2]
         span = np.max(z_positions) - np.min(z_positions)
-        newcell[0, 2] = newcell[1, 2] = newcell[2, 0] = newcell[2, 1] = 0
-        newcell[2, 2] = span * 40.0
+        newcell[0, 2] = newcell[1, 2] = newcell[2, 0] = newcell[2, 1] = 0.0
+        newcell[2, 2] = span + 100.0
         atoms.set_cell(newcell)
         newpos = scaled_positions * atoms.cell.lengths()
         newpos[:, 2] = z_positions
@@ -230,8 +230,8 @@ class structure:
         Note:
             A 2D structure has to fulfill three criterions:\n
             - more than one distinct unbonded fragments\n
-            - a vacuum gap between at least one pair of closest fragments of at least 50 Angström\n
-            - continouos in-plane connectivity within 50 Angström and periodicity\n
+            - a vacuum gap between at least one pair of closest fragments of at least 30 Angström\n
+            - continouos in-plane connectivity within 30 Angström and periodicity\n
         
             The current code might fail for large structures with a small vacuum gap. Please report any
             cases where the result is wrong.
@@ -255,7 +255,7 @@ class structure:
         av_z = sorted(av_z)
         for j in range(len(av_z) - 1):
             nearest_d = av_z[j + 1] - av_z[j]
-            if nearest_d >= 50.0:
+            if nearest_d >= 30.0:
                 crit_2 = True
                 break
 
@@ -268,7 +268,7 @@ class structure:
             av_xy = sorted(av_xy)
             for j in range(len(av_xy) - 1):
                 nearest_d = av_xy[j + 1] - av_xy[j]
-                if nearest_d >= 50.0:
+                if nearest_d >= 30.0:
                     break
             else:
                 crit_3 = True
