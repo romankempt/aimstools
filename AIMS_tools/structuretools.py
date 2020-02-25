@@ -197,7 +197,7 @@ class structure:
                 pbc=self.atoms.pbc,
             )
 
-    def enforce_2d(self, atoms):
+    def enforce_2d(self):
         """ Enforces a 2D system.
         
         Sets all z-components of the lattice basis to zero and adds vacuum space.
@@ -208,7 +208,8 @@ class structure:
         Returns:
             atoms: Modified atoms object.
         """
-
+        self.standardize()
+        atoms = self.atoms
         atoms.center()
         newcell = atoms.cell
         scaled_positions = atoms.get_scaled_positions()
