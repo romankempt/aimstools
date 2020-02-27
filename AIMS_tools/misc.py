@@ -138,7 +138,7 @@ plt.rcParams.update({"font.size": font_size})
 import logging
 import time
 
-logging.basicConfig(format="%(levelname)s | %(message)s", level=logging.INFO)
+logging.basicConfig(format="{levelname:8s}│ {message:s}", style="{", level=logging.INFO)
 
 
 # general module imports

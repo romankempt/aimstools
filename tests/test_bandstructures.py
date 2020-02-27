@@ -58,8 +58,8 @@ def test_zora_fatbandstructure():
 
 
 def test_fatbs_read_and_write():
-    if os.path.exists("tests/fatbandstructures/SOC/fatbands_atom_contributions.zip"):
-        os.remove("tests/fatbandstructures/SOC/fatbands_atom_contributions.zip")
+    if Path("tests/fatbandstructures/SOC/fatbands_atom_contributions.npz").exists():
+        os.remove(Path("tests/fatbandstructures/SOC/fatbands_atom_contributions.npz"))
     bs = bandstructure.fatbandstructure("tests/fatbandstructures/SOC")
     bs2 = bandstructure.fatbandstructure("tests/fatbandstructures/SOC")
     for index, atom in bs.atoms_to_plot.items():

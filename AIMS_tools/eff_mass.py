@@ -36,7 +36,7 @@ class eff_mass(postprocess):
         self.kpoints, self.eigenvalues = self.__read_AIMS_eigenvalues(
             self.path.joinpath("Final_KS_eigenvalues.dat")
         )
-        is_2D = self.structure.is_2d()
+        is_2D = self.structure.is_2d(self.structure.atoms)
         self.pbc = "3D" if is_2D == False else "2D"
         self.scale = scale
         self.__determine_stepsize(scale)

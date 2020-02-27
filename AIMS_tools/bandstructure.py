@@ -29,7 +29,7 @@ class bandstructure(postprocess):
         outputfile (str): Path to outputfile.
         get_SOC (bool): Retrieve spectrum with or without spin-orbit coupling (True/False), if calculated.
         spin (int): Retrieve spin channel 1 or 2. Defaults to None (spin-restricted) or 1 (collinear).
-        shift_type (str): Shifts Fermi level. Options are None (default for metallic systems), "middle" for middle of band gap, and "VBM" for valence band maximum.
+        shift_type (str): Shifts Fermi level. Options are "fermi", "middle" for middle of band gap, and "VBM" for valence band maximum, and None.
     
     Attributes:
         ksections (dict): Dictionary of path segments and corresponding band file.
@@ -216,7 +216,7 @@ class bandstructure(postprocess):
             self.kpath = newpath
             self.spectrum = self.__create_spectrum()
 
-    def __shift_to(self, energy):
+    def _shift_to(self, energy):
         """ Shifts Fermi level of spectrum according to shift_type attribute.
         
         Returns:
@@ -226,10 +226,9 @@ class bandstructure(postprocess):
         CBM = np.min(energy[energy > 0])
         self.band_gap = CBM - VBM
         if (self.band_gap < 0.1) or (self.spin != None):
-            self.shift_type = None
-        if self.shift_type == None:
+            self.shift_type = "fermi"
+        if (self.shift_type == None) or (self.shift_type == "none"):
             energy += self.fermi_level
-            self.shift_type = None
         elif self.shift_type == "middle":
             energy -= (VBM + CBM) / 2
         elif self.shift_type == "VBM":
@@ -267,7 +266,7 @@ class bandstructure(postprocess):
             axes = plt.gca()
         x = self.spectrum[:, 0]
         y = self.spectrum[:, 1:]
-        y = self.__shift_to(y)
+        y = self._shift_to(y)
         VBM = np.max(y[y < 0]) if self.shift_type != None else self.fermi_level
         CBM = np.min(y[y > 0]) if self.shift_type != None else self.fermi_level
         axes.plot(x, y, color=color, **kwargs)
@@ -354,7 +353,7 @@ class fatbandstructure(bandstructure):
         self.ksections = dict(
             zip(list(self.ksections.keys()), list(self.mlk_bandfiles))
         )
-        if not self.path.joinpath("fatbands_atom_contributions.zip").exists():
+        if not self.path.joinpath("fatbands_atom_contributions.npz").exists():
             self.mlk_bandsegments = self.__read_mlk_bandfiles()
             self.atom_contributions = self.__collect_contributions()
             self.atom_spectra = self.__create_spectra()
@@ -363,13 +362,13 @@ class fatbandstructure(bandstructure):
             end = time.time()
             duration = end - start
             logging.info(
-                "Contributions were written to fatbands_atom_contributions.zip in {: .4f} s.".format(
+                "Contributions were written to fatbands_atom_contributions.npz in {: .4f} s.".format(
                     duration
                 )
             )
-        elif self.path.joinpath("fatbands_atom_contributions.zip").exists():
+        elif self.path.joinpath("fatbands_atom_contributions.npz").exists():
             logging.info(
-                "Reading contributions from fatbands_atom_contributions.zip ..."
+                "Reading contributions from fatbands_atom_contributions.npz ..."
             )
             self.atom_contributions = self.__read_contributions()
             self.atom_spectra = self.__create_spectra()
@@ -633,67 +632,47 @@ class fatbandstructure(bandstructure):
         self.atom_spectra[new_index] = (kaxis, sum_cons)
 
     def __write_contributions(self):
-        from zipfile import ZipFile
-
-        files = []
+        arrs = []
+        names = []
         for index, atom in self.atoms_to_plot.items():
             for segment in self.mlk_bandsegments.keys():
                 name1 = "{}_{}_{}-{}_{}_fatband_kaxis.npy".format(
                     atom, index, segment[0], segment[1], self.nkpoints[segment]
                 )
-                np.save(
-                    name1, self.atom_contributions[index][segment][0],
-                )
+                names.append(name1)
+                arrs.append(self.atom_contributions[index][segment][0])
                 name2 = "{}_{}_{}-{}_{}_fatband_contribution.npy".format(
                     atom, index, segment[0], segment[1], self.nkpoints[segment]
                 )
-                np.save(
-                    name2, self.atom_contributions[index][segment][1],
-                )
-                files.append(name1)
-                files.append(name2)
-        with ZipFile(
-            str(self.path.joinpath("fatbands_atom_contributions.zip")), "w"
-        ) as zipObj:
-            for n in files:
-                zipObj.write(n)
-        for n in files:
-            os.remove(n)
+                names.append(name2)
+                arrs.append(self.atom_contributions[index][segment][1])
+        np.savez_compressed(
+            self.path.joinpath("fatbands_atom_contributions.npz"),
+            **dict(zip(names, arrs))
+        )
 
     def __read_contributions(self):
-        import zipfile
-
         atom_contributions = {}
         nkpoints = {}
-        with zipfile.ZipFile(
-            self.path.joinpath("fatbands_atom_contributions.zip")
-        ) as zipref:
-            zipref.extractall(self.path)
-        kfiles = self.path.glob("*fatband*kaxis*.npy")
-        confiles = self.path.glob("*fatband*contribution*.npy")
-        for j, k in zip(kfiles, confiles):
-            atom, index, segment, nk1 = str(j).split("_")[:4]
-            segment = (segment.split("-")[0], segment.split("-")[1])
-            at2, ind2, seg2, nk2 = str(k).split("_")[:4]
-            seg2 = (seg2.split("-")[0], seg2.split("-")[1])
-            assert atom == at2, "Atom not matching."
-            assert index == ind2, "Index not matching."
-            assert segment == seg2, "Segment not matching."
-            assert nk1 == nk2, "Nkpoints not matching."
-            nk1 = int(nk1)
-            kaxis = np.load(str(j))
-            cons = np.load(str(k))
+        data = dict(np.load(str(self.path.joinpath("fatbands_atom_contributions.npz"))))
+        for j, k in {a: b for a, b in data.items() if "kaxis" in a}.items():
+            ident1 = j.split("_fatband_")
+            for l, m in {a: b for a, b in data.items() if "contribution" in a}.items():
+                ident2 = l.split("_fatband_")
+                if ident1[0] == ident2[0]:
+                    atom, index, segment, nk1 = j.split("_")[:4]
+                    segment = (segment.split("-")[0], segment.split("-")[1])
+                    kaxis = k
+                    cons = m
             self.natoms = len(self.structure.atoms)
             self.nstates = int(cons.shape[1])
             self.ncons = int(cons.shape[2])
-            nkpoints[segment] = nk1
+            nkpoints[segment] = int(nk1)
             index = int(index)
             if index not in atom_contributions.keys():
                 atom_contributions[index] = {segment: (kaxis, cons)}
             else:
                 atom_contributions[index].update({segment: (kaxis, cons)})
-            os.remove(str(j))
-            os.remove(str(k))
         self.nkpoints = nkpoints
         return atom_contributions
 
@@ -740,18 +719,6 @@ class fatbandstructure(bandstructure):
             }
             self.atom_spectra = self.__create_spectra()
 
-    def __shift_to(self, energy):
-        VBM = np.max(energy[energy[:, :] < 0])
-        CBM = np.min(energy[energy[:, :] > 0])
-        self.band_gap = CBM - VBM
-        if self.band_gap < 0.1:
-            shift_type = None
-        elif self.shift_type == "middle":
-            energy[:, :] -= (VBM + CBM) / 2
-        elif self.shift_type == "VBM":
-            energy[:, :] -= VBM
-        return energy
-
     def plot(
         self,
         title="",
@@ -783,7 +750,7 @@ class fatbandstructure(bandstructure):
             axes = plt.gca()
         x = self.atom_spectra[1][0]
         y = self.atom_spectra[1][1][:, :, 1]
-        y = self.__shift_to(y)
+        y = self._shift_to(y)
         VBM = np.max(y[y < 0])
         CBM = np.min(y[y > 0])
         axes.plot(x, y, color=color, **kwargs)
@@ -861,7 +828,7 @@ class fatbandstructure(bandstructure):
 
         x = self.atom_spectra[atom][0]
         y = self.atom_spectra[atom][1][:, :, 1]  # energy
-        y = self.__shift_to(y)
+        y = self._shift_to(y)
         if type(contribution) == str:
             con = con_dict[contribution]
             con = self.atom_spectra[atom][1][:, :, con]
