@@ -154,7 +154,7 @@ class prepare:
         for i in range(len(atoms) * 3):
             sym_params += " x{}".format(i)
             if (i % 3) == 0:
-                sym_frac += "symmetry_frac x{} x{} x{}\n".format(i, i + 1, i + 2)
+                sym_frac += "symmetry_frac x{} , x{} , x{}\n".format(i, i + 1, i + 2)
         logging.warning(
             "I'm not sure yet the symmetry block is correct for every setting and handedness. Take care!"
         )
