@@ -28,11 +28,10 @@ class density_of_states(postprocess):
     Args:
         outputfile (str): Path to outputfile.
         get_SOC (bool): Retrieve DOS with or without spin-orbit coupling (True/False), if calculated.
-        spin (int): Retrieve spin channel 1 or 2. Defaults to None (spin-restricted) or 1 (collinear).
-        __shift_to (str): Shifts Fermi level. Options are None (default for metallic systems), "middle" for middle of band gap, and "VBM" for valence band maximum.
+        spin (int): Retrieve spin channel 1 or 2. Defaults to None (spin-restricted) or 1 (collinear).        
 
     Attributes:
-        shift_type (str): Argument of __shift_to.
+        shift_type (str): Shifts Fermi level. Options are "fermi", "middle" for middle of band gap, and "VBM" for valence band maximum, and None.
         band_gap (float): Band gap energy in eV.
         dos_per_atom (dict): Dictionary of atom labels and density of states as numpy array of energy vs. DOS.
         total_dos (numpy array): Array of energy vs. DOS.
@@ -134,14 +133,17 @@ class density_of_states(postprocess):
 
     def __shift_to(self, energy):
         """ Shifts Fermi level of DOS spectrum according to shift_type attribute. """
-        if (self.band_gap < 0.1) or (self.shift_type == None):
-            # energy += self.fermi_level
-            self.shift_type = None
+        if (self.band_gap < 0.1) or (self.spin != None):
+            self.shift_type = "fermi"
+            energy -= self.fermi_level
+        elif (self.shift_type == None) or (self.shift_type == "none"):
+            #energy += self.fermi_level
+            pass
         elif self.shift_type == "middle":
-            energy -= (self.VBM + self.CBM) / 2
+            energy -= (VBM + CBM) / 2
         elif self.shift_type == "VBM":
-            energy -= self.VBM
-        return energy
+            energy -= VBM
+        return energy        
 
     def plot_single_atomic_dos(
         self,
