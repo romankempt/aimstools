@@ -149,6 +149,9 @@ class structure:
             This method also works for non-planar (curved) systems or interdented systems
             by calculating average distances of bonded fragments. The results do not have
             to make sense though.
+        
+        Args:
+            fragment1, fragment2 (Atoms): ASE atoms objects.
 
         """
         av_c_1 = np.average(fragment1.get_positions()[:, 2])

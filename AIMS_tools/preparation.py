@@ -289,7 +289,12 @@ class prepare:
         )
         with open(self.path.joinpath("geometry.in"), "a+") as file:
             symblock = self.setup_symmetries()
-            file.write(symblock)
+            try:
+                file.write(symblock)
+            except:
+                logging.error(
+                    "No symmetries written to geometry.in. Maybe the system is not symmetric enough?"
+                )
 
     def write_submit_t3000(self):
         """ Writes the .sh file to submit on the t3000 via qsub. """
