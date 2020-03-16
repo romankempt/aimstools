@@ -25,7 +25,7 @@ class postprocess:
      """
 
     def __init__(self, outputfile, get_SOC=True, spin=None):
-        self.__check_output(outputfile)
+        self.success = self.__check_output(outputfile)
         if spin in ["up", 1]:
             self.spin = 1
         elif spin in ["down", 2, "dn"]:
@@ -49,29 +49,30 @@ class postprocess:
             if "Have a nice day." in check:
                 self.outputfile = Path(outputfile)
                 self.path = self.outputfile.parent
-                self.success = True
                 logging.info("Found outputfile {}".format(self.outputfile))
+                return True
             else:
                 logging.error("Calculation did not converge!")
-                self.success = False
+                return False
 
         elif Path(outputfile).is_dir():
             outfiles = Path(outputfile).glob("*.out")
-            found = False
-            for i in outfiles:
-                check = os.popen("tail -n 10 {filepath}".format(filepath=i)).read()
-                if "Have a nice day." in check:
-                    self.outputfile = i
-                    self.path = self.outputfile.parent
-                    self.success = True
-                    found = True
-                    logging.info("Found outputfile {}".format(self.outputfile))
-            if found == False:
-                logging.error("Calculation did not converge!")
-                self.success = False
+            if len(list(outfiles)) == 0:
+                logging.critical("Output file does not exist.")
+            else:
+                for i in outfiles:
+                    check = os.popen("tail -n 10 {filepath}".format(filepath=i)).read()
+                    if "Have a nice day." in check:
+                        self.outputfile = i
+                        self.path = self.outputfile.parent
+                        logging.info("Found outputfile {}".format(self.outputfile))
+                        return True
+                else:
+                    logging.error("Calculation did not converge!")
+                    return False
         else:
             logging.critical("Could not find outputfile.")
-            sys.exit()
+            return False
 
     def __read_geometry(self):
         geometry = self.path.joinpath("geometry.in")
@@ -92,6 +93,12 @@ class postprocess:
                         self.calc_type.add("BS")
                     if "include_spin_orbit" in line:
                         self.active_SOC = True
+                    if "k_grid" in line:
+                        self.k_grid = (
+                            line.split()[-3],
+                            line.split()[-2],
+                            line.split()[-1],
+                        )
                     if "qpe_calc" in line and "gw" in line:
                         self.active_GW = True
                     if (

@@ -314,7 +314,7 @@ export OMP_NUM_THREADS=1
 
 cd $PBS_O_WORKDIR
 
-mpirun -np {cpus} bash -c "ulimit -s unlimited && aims.171221_1.scalapack.mpi.x" < /dev/null > {name}.out
+mpirun -np {cpus} bash -c "ulimit -s unlimited && aims.171221_1.scalapack.mpi.x" < /dev/null > aims.out
                 """.format(
                     name=name,
                     cpus=self.nodes * self.ppn,
@@ -350,7 +350,7 @@ ws_allocate -F ssd $COMPUTE_DIR 7
 export AIMS_SCRDIR=/ssd/ws/$USER-$COMPUTE_DIR
 
 export OMP_NUM_THREADS=1
-srun aims.200112.scalapack.mpi.x > {name}.out
+srun aims.200112.scalapack.mpi.x > aims.out
             """.format(
                     name=name,
                     cpus=self.nodes * self.ppn,

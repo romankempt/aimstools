@@ -213,18 +213,30 @@ class structure:
         """
         self.standardize()
         atoms = self.atoms
-        atoms.center()
-        newcell = atoms.cell
+        atoms.center(axis=(2))
+        mp = atoms.get_center_of_mass()
+        cp = atoms.cell[0] + atoms.cell[0] + atoms.cell[0]
+        atoms.wrap(pretty_translation=True)
+        atoms.set_positions(atoms.get_positions() + (mp - cp))
+        newcell, positions, numbers = (
+            self.atoms.get_cell(),
+            self.atoms.get_positions(),
+            self.atoms.numbers,
+        )
         scaled_positions = atoms.get_scaled_positions()
-        z_positions = atoms.get_positions()[:, 2]
+        z_positions = positions[:, 2]
         span = np.max(z_positions) - np.min(z_positions)
         newcell[0, 2] = newcell[1, 2] = newcell[2, 0] = newcell[2, 1] = 0.0
         newcell[2, 2] = span + 100.0
-        atoms.set_cell(newcell)
-        newpos = scaled_positions * atoms.cell.lengths()
+        newlengths = ase.cell.Cell.ascell(newcell).lengths()
+        print(newlengths)
+        newpos = scaled_positions * newlengths
+        print(newpos)
         newpos[:, 2] = z_positions
-        atoms.set_positions(newpos)
-        atoms.set_scaled_positions(newpos / atoms.cell.lengths())
+        print(newpos)
+        atoms = ase.Atoms(
+            positions=newpos, numbers=numbers, cell=newcell, pbc=atoms.pbc,
+        )
         assert self.is_2d(atoms) == True, "Enforcing 2D system failed."
         return atoms
 
