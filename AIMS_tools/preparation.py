@@ -50,7 +50,8 @@ class prepare:
             self.k_grid = [self.k_grid[0], self.k_grid[1], 1]
             logging.info("Structure is treated as 2D.")
             try:
-                self.structure.atoms = self.structure.enforce_2d()
+                # self.structure.atoms = self.structure.enforce_2d()
+                pass
             except:
                 logging.warning("2D could not be enforced.")
 

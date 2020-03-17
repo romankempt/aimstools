@@ -215,9 +215,14 @@ class structure:
         atoms = self.atoms
         atoms.center(axis=(2))
         mp = atoms.get_center_of_mass()
-        cp = atoms.cell[0] + atoms.cell[0] + atoms.cell[0]
+        cp = (atoms.cell[0] + atoms.cell[0] + atoms.cell[0]) / 2
+        print("mp: ", mp)
+        print("cp: ", cp)
         atoms.wrap(pretty_translation=True)
-        atoms.set_positions(atoms.get_positions() + (mp - cp))
+        pos = atoms.get_positions()
+        pos[:, 2] = (mp - cp)[2]
+        print("pos", pos)
+        atoms.set_positions(pos)
         newcell, positions, numbers = (
             self.atoms.get_cell(),
             self.atoms.get_positions(),
@@ -229,11 +234,9 @@ class structure:
         newcell[0, 2] = newcell[1, 2] = newcell[2, 0] = newcell[2, 1] = 0.0
         newcell[2, 2] = span + 100.0
         newlengths = ase.cell.Cell.ascell(newcell).lengths()
-        print(newlengths)
         newpos = scaled_positions * newlengths
-        print(newpos)
         newpos[:, 2] = z_positions
-        print(newpos)
+        print("pos", newpos)
         atoms = ase.Atoms(
             positions=newpos, numbers=numbers, cell=newcell, pbc=atoms.pbc,
         )
