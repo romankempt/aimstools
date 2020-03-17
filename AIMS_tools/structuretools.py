@@ -55,7 +55,7 @@ class structure:
         elif nr <= 15:
             return "monoclinic"
         elif nr <= 74:
-            return "orhothombic"
+            return "orthorhombic"
         elif nr <= 142:
             return "tetragonal"
         elif nr <= 167:
