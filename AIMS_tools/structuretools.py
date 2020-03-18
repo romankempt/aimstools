@@ -211,34 +211,32 @@ class structure:
         Returns:
             atoms: Modified atoms object.
         """
+        logging.info("Enforcing special 2D representation ...")
         self.standardize()
         atoms = self.atoms
-        atoms.center(axis=(2))
-        mp = atoms.get_center_of_mass()
-        cp = (atoms.cell[0] + atoms.cell[0] + atoms.cell[0]) / 2
-        print("mp: ", mp)
-        print("cp: ", cp)
         atoms.wrap(pretty_translation=True)
-        pos = atoms.get_positions()
-        pos[:, 2] = (mp - cp)[2]
-        print("pos", pos)
+        atoms.center(axis=(2))
+        mp = atoms.get_center_of_mass(scaled=False)
+        cp = (atoms.cell[0] + atoms.cell[1] + atoms.cell[2]) / 2
+        pos = atoms.get_positions(wrap=False)
+        pos[:, 2] += np.abs((mp - cp))[2]
         atoms.set_positions(pos)
-        newcell, positions, numbers = (
+        atoms.set_scaled_positions(pos / atoms.cell.lengths())
+        newcell, newpos, newscal, numbers = (
             self.atoms.get_cell(),
-            self.atoms.get_positions(),
+            self.atoms.get_positions(wrap=False),
+            atoms.get_scaled_positions(wrap=False),
             self.atoms.numbers,
         )
-        scaled_positions = atoms.get_scaled_positions()
-        z_positions = positions[:, 2]
-        span = np.max(z_positions) - np.min(z_positions)
+        z_pos = newpos[:, 2]
+        span = np.max(z_pos) - np.min(z_pos)
         newcell[0, 2] = newcell[1, 2] = newcell[2, 0] = newcell[2, 1] = 0.0
         newcell[2, 2] = span + 100.0
         newlengths = ase.cell.Cell.ascell(newcell).lengths()
-        newpos = scaled_positions * newlengths
-        newpos[:, 2] = z_positions
-        print("pos", newpos)
+        newpos = newscal * newlengths
+        newpos[:, 2] = z_pos
         atoms = ase.Atoms(
-            positions=newpos, numbers=numbers, cell=newcell, pbc=atoms.pbc,
+            positions=newpos, numbers=numbers, cell=newcell, pbc=atoms.pbc
         )
         assert self.is_2d(atoms) == True, "Enforcing 2D system failed."
         return atoms
