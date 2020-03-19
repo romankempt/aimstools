@@ -205,9 +205,6 @@ class structure:
         
         Sets all z-components of the lattice basis to zero and adds vacuum space.
 
-        Args:
-            atoms (atoms): ASE atoms object.
-
         Returns:
             atoms: Modified atoms object.
         """
@@ -221,19 +218,17 @@ class structure:
         pos = atoms.get_positions(wrap=False)
         pos[:, 2] += np.abs((mp - cp))[2]
         atoms.set_positions(pos)
-        atoms.set_scaled_positions(pos / atoms.cell.lengths())
         newcell, newpos, newscal, numbers = (
-            self.atoms.get_cell(),
-            self.atoms.get_positions(wrap=False),
+            atoms.get_cell(),
+            atoms.get_positions(wrap=False),
             atoms.get_scaled_positions(wrap=False),
-            self.atoms.numbers,
+            atoms.numbers,
         )
         z_pos = newpos[:, 2]
         span = np.max(z_pos) - np.min(z_pos)
         newcell[0, 2] = newcell[1, 2] = newcell[2, 0] = newcell[2, 1] = 0.0
         newcell[2, 2] = span + 100.0
-        newlengths = ase.cell.Cell.ascell(newcell).lengths()
-        newpos = newscal * newlengths
+        newpos = newscal @ newcell
         newpos[:, 2] = z_pos
         atoms = ase.Atoms(
             positions=newpos, numbers=numbers, cell=newcell, pbc=atoms.pbc

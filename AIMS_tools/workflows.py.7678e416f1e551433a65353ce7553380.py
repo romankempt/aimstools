@@ -188,11 +188,7 @@ class k_convergence:
         )
         axes.set_xlim([np.min(x), np.max(x)])
         axes.set_ylim(yrange)
-        print(
-            results.loc[
-                np.abs(results["kdens [nkpoints/Angström^3]"] - (third ** 3)) < 1e-5
-            ]
-        )
+        print(results.loc[np.abs(results["kdens [nkpoints/Angström^3]"] - (third**3)) < 1e-5 ])
 
         plt.show()
 

@@ -56,12 +56,14 @@ class postprocess:
                 return False
 
         elif Path(outputfile).is_dir():
-            outfiles = Path(outputfile).glob("*.out")
-            if len(list(outfiles)) == 0:
+            outfiles = list(Path(outputfile).glob("*.out"))
+            if len(outfiles) == 0:
                 logging.critical("Output file does not exist.")
             else:
                 for i in outfiles:
-                    check = os.popen("tail -n 10 {filepath}".format(filepath=i)).read()
+                    check = os.popen(
+                        "tail -n 10 {filepath}".format(filepath=str(i))
+                    ).read()
                     if "Have a nice day." in check:
                         self.outputfile = i
                         self.path = self.outputfile.parent
@@ -95,9 +97,9 @@ class postprocess:
                         self.active_SOC = True
                     if "k_grid" in line:
                         self.k_grid = (
-                            line.split()[-3],
-                            line.split()[-2],
-                            line.split()[-1],
+                            int(line.split()[-3]),
+                            int(line.split()[-2]),
+                            int(line.split()[-1]),
                         )
                     if "qpe_calc" in line and "gw" in line:
                         self.active_GW = True
@@ -147,6 +149,9 @@ class postprocess:
                     self.CBM = float(line.split()[5])
                 if "Chemical potential is" in line:
                     self.fermi_level = float(line.split()[-2])
+                if "Total energy uncorr" in line:
+                    self.total_energy = float(line.split()[-2])
+        self.band_gap = np.abs(self.CBM - self.VBM)
 
 
 class hirshfeld(postprocess):
