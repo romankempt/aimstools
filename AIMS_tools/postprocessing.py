@@ -151,6 +151,8 @@ class postprocess:
                     self.fermi_level = float(line.split()[-2])
                 if "Total energy uncorr" in line:
                     self.total_energy = float(line.split()[-2])
+                if "Begin self-consistency iteration #" in line:
+                    self.n_scf_cycles = int(line.split()[-1])
         self.band_gap = np.abs(self.CBM - self.VBM)
 
 
@@ -223,4 +225,3 @@ class hirshfeld(postprocess):
             else:
                 sum_charges[species] += self.charges[(atom, species)]
         return sum_charges
-

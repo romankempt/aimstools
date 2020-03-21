@@ -8,8 +8,8 @@ AIMS_tools
    dos
    eff_mass
    multiplots
-   multiplots
    phonons
    postprocessing
    preparation
    structuretools
+   workflows

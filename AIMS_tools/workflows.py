@@ -14,6 +14,24 @@ from collections import namedtuple
 
 
 class k_convergence:
+    """ Workflow for k-point convergence.
+    
+    Automatically sets up the calculations needed to check for k-point convergence and analyses the results.
+
+    Args:
+        geometry (str): Path to input geometry file or directory.
+    
+    Attributes:
+        submit (str): Path to submission file.
+        klimits (list): List of integers containing the lower and upper limit to check k-points per axes. Defaults to [4, 24].
+        path (Path): Path object.
+        results (dataframe): Dataframe containing results of calculations.
+        data (dict): Dictionary containing the converged values for different thresholds.
+    
+    Note:
+        The setup respects lattice symmetries. If you want to include additional k-points for the evaluation, you simply have to run the calculation in a directory with the name kconv_XX_YY_ZZ, where XX YY and ZZ are the number of points (two digits) in each direction.
+    """
+
     def __init__(self, geometry, *args, **kwargs):
         self.geometry = geometry
         self.submit = kwargs.get("submit", None)
@@ -27,25 +45,26 @@ class k_convergence:
             logging.error("Input geometry or directory not recognised.")
 
         if len(list(self.path.glob("kconv_*"))) != 0:
-            self.mode = "evaluate"
+            mode = "evaluate"
         else:
-            self.mode = "prepare"
+            mode = "prepare"
 
-        if self.mode == "prepare":
+        if mode == "prepare":
             logging.info("Preparing calculations for k-grid convergence ...")
-            self.init_prepare()
-            kgrids = self.setup_kgrids()
-            self.setup_calcs(kgrids)
-        elif self.mode == "evaluate":
+            self.__init_prepare()
+            kgrids = self.__setup_kgrids()
+            self.__setup_calcs(kgrids)
+        elif mode == "evaluate":
             logging.info("Evaluating calculations for k-grid convergence ...")
-            successes = list(self.check_success())
-            self.results = self.evaluate_energies(successes)
+            successes = list(self.__check_success())
+            self.results = self.__evaluate_results(successes)
+            logging.info("Results:\n{}".format(self.results))
             self.data = dict(
-                zip(["first", "second", "third"], list(self.interpret_results()),)
+                zip(["first", "second", "third"], list(self.__interpret_results()),)
             )
             self.plot_results()
 
-    def init_prepare(self):
+    def __init_prepare(self):
         logging.info("Preparing files for calculation ...")
         if self.path.joinpath("geometry.in").exists():
             logging.info(
@@ -69,9 +88,15 @@ class k_convergence:
         else:
             prep.setup_calculator()
             prep.adjust_control()
+        if self.submit != None:
+            logging.info(
+                "Reading submission script from {} ...".format(
+                    str(self.path.joinpath(self.submit))
+                )
+            )
         self.prep = prep
 
-    def setup_kgrids(self):
+    def __setup_kgrids(self):
         kx, ky, kz = [
             1 / i for i in self.prep.structure.atoms.cell.lengths()
         ]  # reciprocal lengths
@@ -105,7 +130,7 @@ class k_convergence:
             logging.error("K-grids were not set up with equal lengths.")
         return kgrids
 
-    def setup_calcs(self, kgrids):
+    def __setup_calcs(self, kgrids):
         import fileinput
 
         for i, j, k in kgrids:
@@ -129,7 +154,7 @@ class k_convergence:
                     line = "k_grid \t \t {} {} {}\n".format(i, j, k)
                 sys.stdout.write(line)
 
-    def check_success(self):
+    def __check_success(self):
         logger = logging.getLogger()
         logger.disabled = True
         kconvs = [str(j) for j in list(self.path.glob("kconv_*"))]
@@ -148,7 +173,7 @@ class k_convergence:
             if m == True:
                 yield p
 
-    def evaluate_energies(self, successes):
+    def __evaluate_results(self, successes):
         data = {}
         logger = logging.getLogger()
         logger.disabled = True
@@ -161,12 +186,13 @@ class k_convergence:
                 "kdens [nkpoints/Angström^3]": k_dens,
                 "total_energy [eV/atom]": pp.total_energy / len(pp.structure.atoms),
                 "gap [eV]": pp.band_gap,
+                "number of cycles": pp.n_scf_cycles,
             }
         logger.disabled = False
         data = pd.DataFrame(data).transpose()
         return data
 
-    def interpret_results(self):
+    def __interpret_results(self):
         results = self.results
         thresh = namedtuple("convergence", ["grid", "energy", "kdensity", "gap"])
         ref = results["total_energy [eV/atom]"].iloc[-1]
@@ -176,33 +202,43 @@ class k_convergence:
             econv = conv.loc[conv.index[0]]["total_energy [eV/atom]"]
             densconv = conv.loc[conv.index[0]]["kdens [nkpoints/Angström^3]"]
             gapconv = conv.loc[conv.index[0]]["gap [eV]"]
+            logging.info(
+                "The k-kgrid is converged within {: 1.1E} eV/atom for a grid of {} after {} SCF cycles.".format(
+                    lim, gridconv, conv.loc[conv.index[0]]["number of cycles"]
+                )
+            )
+            if conv.index[0] == results.index[-1]:
+                logging.warning("You might need to check denser k-grids.")
             yield thresh(gridconv, econv, densconv, gapconv)
 
-    def analyze_gaps(self):
+    def __analyze_gaps(self):
         results = self.results
         bins = results["gap [eV]"].round(2).value_counts()
-        if bins.max() > 2:
+        if bins.max() > 4:
             reps = results[
                 results["gap [eV]"].round(2) == bins[bins == bins.max()].index[0]
             ]
             magics = []
             for grid in list(reps.index):
                 magics.append(grid)
-                for stored in self.data.values():
-                    if grid == stored.grid.replace("x", "_"):
-                        logging.info(
-                            "Total energy and band gap appear converged with a k-grid of {grid}.".format(
-                                grid=grid.replace("_", "x")
-                            )
-                        )
+            colorcode = [
+                "white" if j not in magics else "purple" for j in list(results.index)
+            ]
+            magics = [j.replace("_", "x") for j in magics]
+            magics = ", ".join(magics)
+            logging.info("The k-grids {} could be magic.".format(magics))
+            return colorcode
+        else:
+            return ["white" for j in list(results.index)]
 
     def _plot_energy(self, fig, axes):
         results = self.results
         ref = results["total_energy [eV/atom]"].iloc[-1]
         x = np.array(results["kdens [nkpoints/Angström^3]"]) ** (1 / 3)
         y = np.array(results["total_energy [eV/atom]"]) - ref
-        axes.scatter(x, y, color="black", alpha=0.8, facecolor="none")
-        axes.plot(x, y, color="blue")
+        axes.plot(x, y, color="royalblue", zorder=1)
+        axes.scatter(x, y, facecolor="white", edgecolor="royalblue", alpha=1, zorder=2)
+        axes.axhline(0, linestyle="--", color="lightgray", zorder=0, alpha=0.5)
 
         colors = {"first": "gold", "second": "orange", "third": "crimson"}
         i = 0
@@ -217,7 +253,7 @@ class k_convergence:
                 entries.grid,
                 xy=(entries.kdensity ** (1 / 3), entries.energy - ref),
                 xycoords="data",
-                xytext=(0.8, 0.90 - i * 0.1),
+                xytext=(0.6 + i * 0.1, 0.90 - i * 0.1),
                 textcoords="axes fraction",
                 arrowprops=dict(
                     facecolor=colors[thresh],
@@ -247,15 +283,49 @@ class k_convergence:
     def _plot_gaps(self, fig, axes):
         x = np.array(self.results["kdens [nkpoints/Angström^3]"]) ** (1 / 3)
         y = np.array(self.results["gap [eV]"])
-        axes.scatter(x, y, color="black", alpha=0.8, facecolor="none")
-        axes.plot(x, y, color="blue")
+        axes.plot(x, y, color="royalblue", zorder=1)
+        magics = self.__analyze_gaps()
+        axes.scatter(
+            x, y, facecolors=magics, edgecolor="royalblue", zorder=2,
+        )
+
+        colors = {"first": "gold", "second": "orange", "third": "crimson"}
+        i = 0
+        for thresh, entries in self.data.items():
+            axes.annotate(
+                entries.grid,
+                xy=(entries.kdensity ** (1 / 3), entries.gap),
+                xycoords="data",
+                xytext=(0.6 + i * 0.1, 0.90 - i * 0.1),
+                textcoords="axes fraction",
+                arrowprops=dict(
+                    facecolor=colors[thresh],
+                    edgecolor="none",
+                    width=1,
+                    shrink=0.05,
+                    headwidth=5,
+                    headlength=5,
+                ),
+                horizontalalignment="right",
+                verticalalignment="top",
+            )
+            i += 1
+        if not all([i != "white" for i in magics]):
+            handles = []
+            handles.append(Line2D([0], [0], color="purple", label="magic (?)", lw=1.5))
+            axes.legend(handles=handles)
 
         axes.set_xlabel(r"$(nkpoints/volume)^{1/3}$ [1/Angström]")
-        axes.set_ylabel(r"Band gap [eV]")
+        axes.set_ylabel(r"band gap [eV]")
         axes.set_title("band gap convergence")
         return axes
 
     def plot_results(self):
+        """ Plots total energy convergence and band gap convergence.
+
+        Saves results to a file kconv.png.
+        
+        """
         fig = plt.figure(constrained_layout=True, figsize=(8, 4),)
         spec = gridspec.GridSpec(ncols=2, nrows=1, figure=fig)
         ax1 = fig.add_subplot(spec[0])
@@ -264,4 +334,11 @@ class k_convergence:
         ax1 = self._plot_energy(fig, ax1)
         ax2 = self._plot_gaps(fig, ax2)
 
-        plt.show()
+        plt.savefig(
+            str(self.path.joinpath("kconv.png")),
+            dpi=300,
+            transparent=False,
+            facecolor="white",
+            bbox_to_inches="tight",
+        )
+        logging.info("Results have been saved to kconv.png.")

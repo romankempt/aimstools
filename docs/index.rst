@@ -12,6 +12,7 @@ AIMS_tools's documentation
 
    intros/intro
    intros/command_line
+   intros/workflows
    intros/effective_mass_intro
    intros/boltztrap2
 
@@ -30,8 +31,14 @@ AIMS_tools's documentation
    bandstructure
    dos
    phonons
-   hirshfeld
+   multiplots
    eff_mass
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Workflows:
+
+   workflows
 
 Indices and tables
 ==================

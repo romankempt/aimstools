@@ -170,7 +170,7 @@ class structure:
             int_d = a - b
             logging.info("Interstitial distance: \t {: 10.3f} Angström".format(int_d))
 
-    def standardize(self, to_primitive=False, symprec=1e-4):
+    def standardize(self, to_primitive=True, symprec=1e-4):
         """ Wrapper of the spglib standardize() function.
         
         Args:
@@ -208,8 +208,9 @@ class structure:
         Returns:
             atoms: Modified atoms object.
         """
-        logging.info("Enforcing special 2D representation ...")
+        logging.info("Enforcing standardized 2D representation ...")
         self.standardize()
+        # if self.lattice is monoclinic or orthorhmobic...
         atoms = self.atoms
         atoms.wrap(pretty_translation=True)
         atoms.center(axis=(2))
@@ -233,8 +234,14 @@ class structure:
         atoms = ase.Atoms(
             positions=newpos, numbers=numbers, cell=newcell, pbc=atoms.pbc
         )
-        assert self.is_2d(atoms) == True, "Enforcing 2D system failed."
-        return atoms
+        if self.is_2d(atoms) != True:
+            logging.warning("Enforcing 2D system failed.")
+            logging.warning(
+                "This is typically the case, if the cell orientation changes because of stupid crystallographic conventions."
+            )
+            return self.atoms
+        else:
+            return atoms
 
     def is_2d(self, atoms):
         """ Evaluates if given structure is qualitatively two-dimensional.
@@ -242,7 +249,7 @@ class structure:
         Note:
             A 2D structure has to fulfill three criterions:\n
             - more than one distinct unbonded fragments\n
-            - a vacuum gap between at least one pair of closest fragments of at least 30 Angström\n
+            - a vacuum gap between at least one pair of closest fragments of at least 30 Angström along z\n
             - continouos in-plane connectivity within 30 Angström and periodicity\n
         
             The current code might fail for large structures with a small vacuum gap. Please report any
@@ -289,4 +296,3 @@ class structure:
             return True
         else:
             return False
-

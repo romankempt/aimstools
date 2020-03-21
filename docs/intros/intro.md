@@ -2,30 +2,6 @@
 
 This library contains a personal collection of scripts to handle AIMS calculations. It's mainly meant for private use or to be shared with students and colleagues.
 
-## Currently implemented features
-
-- **Handling AIMS calculations:**
-    > The installation adds command line tools to your /.local/bin folder which can set up the files for different tasks employing the ASE, sort and analyse results.
-
-    > The **structuretools** module contains helper functions to fragment and analyze structures in order to set up different tasks or extract information after a finished calculation.
-
-    > The **preparation** module modifies files and directories to run calculations.
-
-- **Analyzing results:**
-    > The **postprocessing.py** module contains helper functions to extract useful data from finished calculations, such as energies.
-
-    > The **hirshfeld.py** module extracts and evaluates hirshfeld charges.
-
-    > The **eff_mass.py** module can evaluate effective masses in 2 and 3 dimensions.
-
-- **Plotting functionalities:** 
-    > The **bandstructure.py** module handles band structure plots with scalar relativity, SOC, spin, and mulliken-projection ("fatbands").
-
-    > The **dos.py** module handles atom-projected densities of states.
-    
-    > The **phonons.py** module plots phonon spectra from phonopy-FHI aims calculations.    
-
-    > The **multiplots.py** module contains helper functions to combine plots in different fashions, for example overlaying ZORA and ZORA+SOC bandstructures or combining bandstructures and DOS.
 
 ## Installation
 
