@@ -114,7 +114,6 @@ def overlay_bandstructures(
     kpath = nr1.kpath[0]
     for j in range(1, len(nr1.kpath)):
         kpath += "-{}".format(nr1.kpath[j])
-    print(kpath)
     handles = []
     if fig == None:
         fig = plt.figure(figsize=(len(nr1.kpath) / 1.5, 3))

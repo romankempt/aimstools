@@ -41,11 +41,17 @@ class prepare:
         # Initialisation
         try:
             self.species_dir = os.getenv("AIMS_SPECIES_DIR")
+            assert self.species_dir != None, "Basis sets not found!"
         except:
             logging.critical("Basis sets not found!")
         cwd = Path.cwd()
         self.species_dir = str(cwd.joinpath(Path(self.species_dir, self.basis)))
         self.structure = structure(geometryfile)
+        self.name = (
+            str(geometryfile)
+            if str(geometryfile) != "geometry.in"
+            else self.structure.atoms.get_chemical_formula()
+        )
         if self.structure.is_2d(self.structure.atoms) == True:
             self.k_grid = [self.k_grid[0], self.k_grid[1], 1]
             logging.info("Structure is treated as 2D.")
@@ -298,7 +304,6 @@ class prepare:
 
     def write_submit_t3000(self):
         """ Writes the .sh file to submit on the t3000 via qsub. """
-        name = self.structure.atoms.get_chemical_formula()
         for i in self.task:
             name += "_{}".format(i)
         self.adjust_cost()
@@ -316,7 +321,7 @@ cd $PBS_O_WORKDIR
 
 mpirun -np {cpus} bash -c "ulimit -s unlimited && aims.171221_1.scalapack.mpi.x" < /dev/null > aims.out
                 """.format(
-                    name=name,
+                    name=self.name,
                     cpus=self.nodes * self.ppn,
                     walltime=self.walltime,
                     memory=self.memory,
@@ -327,7 +332,6 @@ mpirun -np {cpus} bash -c "ulimit -s unlimited && aims.171221_1.scalapack.mpi.x"
 
     def write_submit_taurus(self):
         """ Writes the .sh file to submit on the taurus via sbatch. """
-        name = self.structure.atoms.get_chemical_formula()
         for i in self.task:
             name += "_{}".format(i)
         self.adjust_cost()
@@ -352,7 +356,7 @@ export AIMS_SCRDIR=/ssd/ws/$USER-$COMPUTE_DIR
 export OMP_NUM_THREADS=1
 srun aims.200112.scalapack.mpi.x > aims.out
             """.format(
-                    name=name,
+                    name=self.name,
                     cpus=self.nodes * self.ppn,
                     memory=int(int(self.memory) * 1000 / (self.ppn)),
                     walltime=self.walltime,

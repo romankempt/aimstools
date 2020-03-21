@@ -5,14 +5,19 @@ from AIMS_tools.preparation import prepare
 from AIMS_tools.postprocessing import postprocess
 from AIMS_tools.misc import *
 
+from matplotlib import gridspec
+from matplotlib.pyplot import Line2D
+
 import pandas as pd
+
+from collections import namedtuple
 
 
 class k_convergence:
-    def __init__(self, *args, **kwargs):
-        self.geometry = kwargs.get("input")
+    def __init__(self, geometry, *args, **kwargs):
+        self.geometry = geometry
         self.submit = kwargs.get("submit", None)
-        self.klimits = kwargs.get("k_limits", [4, 30])
+        self.klimits = kwargs.get("k_limits", [4, 24])
 
         if os.path.isdir(self.geometry):
             self.path = Path(self.geometry)
@@ -27,14 +32,18 @@ class k_convergence:
             self.mode = "prepare"
 
         if self.mode == "prepare":
-            logging.mode("Preparing calculations for k-grid convergence ...")
+            logging.info("Preparing calculations for k-grid convergence ...")
             self.init_prepare()
             kgrids = self.setup_kgrids()
             self.setup_calcs(kgrids)
         elif self.mode == "evaluate":
             logging.info("Evaluating calculations for k-grid convergence ...")
             successes = list(self.check_success())
-            results = self.evaluate_energies(successes)
+            self.results = self.evaluate_energies(successes)
+            self.data = dict(
+                zip(["first", "second", "third"], list(self.interpret_results()),)
+            )
+            self.plot_results()
 
     def init_prepare(self):
         logging.info("Preparing files for calculation ...")
@@ -157,42 +166,102 @@ class k_convergence:
         data = pd.DataFrame(data).transpose()
         return data
 
-    def plot_results(self, results):
-        fig = plt.figure(figsize=(4, 4))
-        axes = plt.gca()
-        x = np.array(results["kdens [nkpoints/Angström^3]"])[1:] ** (1 / 3)
-        y = np.array(results["total_energy [eV/atom]"])
-        y = np.diff(y)
-        x = x[np.abs(y) < 5e-4]
-        y = y[np.abs(y) < 5e-4]
+    def interpret_results(self):
+        results = self.results
+        thresh = namedtuple("convergence", ["grid", "energy", "kdensity", "gap"])
+        ref = results["total_energy [eV/atom]"].iloc[-1]
+        for lim in [1e-4, 1e-5, 1e-6]:
+            conv = results[(results["total_energy [eV/atom]"] - ref).abs() < lim]
+            gridconv = conv.index[0].replace("_", "x")
+            econv = conv.loc[conv.index[0]]["total_energy [eV/atom]"]
+            densconv = conv.loc[conv.index[0]]["kdens [nkpoints/Angström^3]"]
+            gapconv = conv.loc[conv.index[0]]["gap [eV]"]
+            yield thresh(gridconv, econv, densconv, gapconv)
 
-        first = np.min(x[np.abs(y) < 1e-4])
-        second = np.min(x[np.abs(y) < 1e-5])
-        third = np.min(x[np.abs(y) < 1e-6])
+    def analyze_gaps(self):
+        results = self.results
+        bins = results["gap [eV]"].round(2).value_counts()
+        if bins.max() > 2:
+            reps = results[
+                results["gap [eV]"].round(2) == bins[bins == bins.max()].index[0]
+            ]
+            magics = []
+            for grid in list(reps.index):
+                magics.append(grid)
+                for stored in self.data.values():
+                    if grid == stored.grid.replace("x", "_"):
+                        logging.info(
+                            "Total energy and band gap appear converged with a k-grid of {grid}.".format(
+                                grid=grid.replace("_", "x")
+                            )
+                        )
 
-        yrange = (-5e-4, 5e-4)
-        axes.fill_between(x, -1e-4, 1e-4, color="yellow", alpha=0.2)
-        axes.fill_between(x, -1e-5, 1e-5, color="orange", alpha=0.25)
-        axes.fill_between(x, -1e-6, 1e-6, color="red", alpha=0.3)
+    def _plot_energy(self, fig, axes):
+        results = self.results
+        ref = results["total_energy [eV/atom]"].iloc[-1]
+        x = np.array(results["kdens [nkpoints/Angström^3]"]) ** (1 / 3)
+        y = np.array(results["total_energy [eV/atom]"]) - ref
         axes.scatter(x, y, color="black", alpha=0.8, facecolor="none")
         axes.plot(x, y, color="blue")
 
-        axes.axvline(
-            x=first, color="yellow", alpha=0.5, linestyle=":",
-        )
-        axes.axvline(
-            x=second, color="orange", alpha=0.5, linestyle=":",
-        )
-        axes.axvline(
-            x=third, color="red", alpha=0.5, linestyle=":",
-        )
-        axes.set_xlim([np.min(x), np.max(x)])
-        axes.set_ylim(yrange)
-        print(
-            results.loc[
-                np.abs(results["kdens [nkpoints/Angström^3]"] - (third ** 3)) < 1e-5
-            ]
-        )
+        colors = {"first": "gold", "second": "orange", "third": "crimson"}
+        i = 0
+        for thresh, entries in self.data.items():
+            axes.axvline(
+                x=entries.kdensity ** (1 / 3),
+                color=colors[thresh],
+                alpha=0.85,
+                linestyle=":",
+            )
+            axes.annotate(
+                entries.grid,
+                xy=(entries.kdensity ** (1 / 3), entries.energy - ref),
+                xycoords="data",
+                xytext=(0.8, 0.90 - i * 0.1),
+                textcoords="axes fraction",
+                arrowprops=dict(
+                    facecolor=colors[thresh],
+                    edgecolor="none",
+                    width=1,
+                    shrink=0.05,
+                    headwidth=5,
+                    headlength=5,
+                ),
+                horizontalalignment="right",
+                verticalalignment="top",
+            )
+            i += 1
+
+        axes.set_xlim([np.min(x) * 0.95, np.max(x) * 1.05])
+        axes.set_ylim([-0.0005, 0.0005])
+        handles = []
+        handles.append(Line2D([0], [0], color="gold", label="< 1e-4 eV/atom", lw=1.5))
+        handles.append(Line2D([0], [0], color="orange", label="< 1e-5 eV/atom", lw=1.5))
+        handles.append(Line2D([0], [0], color="red", label="< 1e-6 eV/atom", lw=1.5))
+        axes.legend(handles=handles, loc="lower right")
+        axes.set_xlabel(r"$(nkpoints/volume)^{1/3}$ [1/Angström]")
+        axes.set_ylabel(r"$E(k) - E(k_{max})$ [eV /atom]")
+        axes.set_title("total energy convergence")
+        return axes
+
+    def _plot_gaps(self, fig, axes):
+        x = np.array(self.results["kdens [nkpoints/Angström^3]"]) ** (1 / 3)
+        y = np.array(self.results["gap [eV]"])
+        axes.scatter(x, y, color="black", alpha=0.8, facecolor="none")
+        axes.plot(x, y, color="blue")
+
+        axes.set_xlabel(r"$(nkpoints/volume)^{1/3}$ [1/Angström]")
+        axes.set_ylabel(r"Band gap [eV]")
+        axes.set_title("band gap convergence")
+        return axes
+
+    def plot_results(self):
+        fig = plt.figure(constrained_layout=True, figsize=(8, 4),)
+        spec = gridspec.GridSpec(ncols=2, nrows=1, figure=fig)
+        ax1 = fig.add_subplot(spec[0])
+        ax2 = fig.add_subplot(spec[1])
+
+        ax1 = self._plot_energy(fig, ax1)
+        ax2 = self._plot_gaps(fig, ax2)
 
         plt.show()
-
