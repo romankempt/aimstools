@@ -25,6 +25,6 @@ def test_prepare():
         os.path.exists("tests/structures/tmp/control.in") == True
     ), "control.in not written"
     assert (
-        os.path.exists("tests/structures/tmp/MoS2_BS_DOS_GO_phonons.sh") == True
+        os.path.exists("tests/structures/tmp/MoS2_ML_BS_DOS_GO_phonons.sh") == True
     ), "submit script not written"
     shutil.rmtree("tests/structures/tmp", ignore_errors=True)

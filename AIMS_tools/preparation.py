@@ -48,7 +48,7 @@ class prepare:
         self.species_dir = str(cwd.joinpath(Path(self.species_dir, self.basis)))
         self.structure = structure(geometryfile)
         self.name = (
-            str(geometryfile)
+            str(Path(geometryfile).parts[-1]).split(".")[0]
             if str(geometryfile) != "geometry.in"
             else self.structure.atoms.get_chemical_formula()
         )
@@ -305,7 +305,7 @@ class prepare:
     def write_submit_t3000(self):
         """ Writes the .sh file to submit on the t3000 via qsub. """
         for i in self.task:
-            name += "_{}".format(i)
+            self.name += "_{}".format(i)
         self.adjust_cost()
         with open(self.path.joinpath(name + ".sh"), "w+") as file:
             file.write(
@@ -333,9 +333,9 @@ mpirun -np {cpus} bash -c "ulimit -s unlimited && aims.171221_1.scalapack.mpi.x"
     def write_submit_taurus(self):
         """ Writes the .sh file to submit on the taurus via sbatch. """
         for i in self.task:
-            name += "_{}".format(i)
+            self.name += "_{}".format(i)
         self.adjust_cost()
-        with open(self.path.joinpath(name + ".sh"), "w+") as file:
+        with open(self.path.joinpath(self.name + ".sh"), "w+") as file:
             file.write(
                 """#!/bin/bash
 #SBATCH --time={walltime}:00:00 \t\t# walltime in h

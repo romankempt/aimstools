@@ -137,13 +137,13 @@ class density_of_states(postprocess):
             self.shift_type = "fermi"
             energy -= self.fermi_level
         elif (self.shift_type == None) or (self.shift_type == "none"):
-            #energy += self.fermi_level
+            # energy += self.fermi_level
             pass
         elif self.shift_type == "middle":
-            energy -= (VBM + CBM) / 2
+            energy -= (self.VBM + self.CBM) / 2
         elif self.shift_type == "VBM":
-            energy -= VBM
-        return energy        
+            energy -= self.VBM
+        return energy
 
     def plot_single_atomic_dos(
         self,
@@ -309,4 +309,3 @@ class density_of_states(postprocess):
         axes.legend(handles=handles, frameon=True, loc="center right", fancybox=False)
         axes.set_xlim([0, max(xmax)])
         return axes
-
