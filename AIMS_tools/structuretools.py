@@ -40,7 +40,7 @@ class structure:
         numbers = []
         for key in keys:
             numbers.append(list(self.atom_indices.values()).count(key))
-        self.sg = ase.spacegroup.get_spacegroup(self.atoms, symprec=1e-4)
+        self.sg = ase.spacegroup.get_spacegroup(self.atoms, symprec=1e-2)
         self.lattice = self.__get_lattice()
         self.species = dict(zip(keys, numbers))
         self.fragments = self.find_fragments(self.atoms)
@@ -170,7 +170,7 @@ class structure:
             int_d = a - b
             logging.info("Interstitial distance: \t {: 10.3f} Angström".format(int_d))
 
-    def standardize(self, to_primitive=True, symprec=1e-4):
+    def standardize(self, to_primitive=False, symprec=1e-4):
         """ Wrapper of the spglib standardize() function.
         
         Args:
@@ -193,6 +193,8 @@ class structure:
             logging.error("Cell could not be standardized.")
             return None
         else:
+            if len(newcell[2]) != len(self.atoms):
+                logging.warning("Number of atoms changed due to standardization.")
             self.atoms = ase.Atoms(
                 scaled_positions=newcell[1],
                 numbers=newcell[2],
@@ -209,9 +211,17 @@ class structure:
             atoms: Modified atoms object.
         """
         logging.info("Enforcing standardized 2D representation ...")
-        self.standardize()
-        # if self.lattice is monoclinic or orthorhmobic...
         atoms = self.atoms
+        try:
+            self.standardize()
+            assert len(atoms) == len(
+                self.atoms
+            ), "Number of atoms changed due to standardization. Reverting."
+        except:
+            self.atoms = atoms
+            logging.warning("Reverting spglib standardization.")
+        finally:
+            atoms.set_cell(atoms.cell.standard_form()[0])
         atoms.wrap(pretty_translation=True)
         atoms.center(axis=(2))
         mp = atoms.get_center_of_mass(scaled=False)
