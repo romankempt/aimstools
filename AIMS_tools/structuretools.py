@@ -193,8 +193,6 @@ class structure:
             logging.error("Cell could not be standardized.")
             return None
         else:
-            if len(newcell[2]) != len(self.atoms):
-                logging.warning("Number of atoms changed due to standardization.")
             self.atoms = ase.Atoms(
                 scaled_positions=newcell[1],
                 numbers=newcell[2],
@@ -219,6 +217,7 @@ class structure:
             ), "Number of atoms changed due to standardization. Reverting."
         except:
             self.atoms = atoms
+            logging.warning("Number of atoms changed due to standardization.")
             logging.warning("Reverting spglib standardization.")
         finally:
             atoms.set_cell(atoms.cell.standard_form()[0])

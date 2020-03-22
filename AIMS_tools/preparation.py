@@ -124,8 +124,15 @@ class prepare:
         Returns:
             str : Symmetry block to be added in geometry.in.
         """
-        self.structure.standardize()
         atoms = self.structure.atoms
+        try:
+            self.structure.standardize()
+            assert len(self.structure.atoms) == len(
+                atoms
+            ), "Number of atoms changed due to standardization."
+        except:
+            self.structure.atoms = atoms
+            atoms.set_cell(atoms.cell.standard_form()[0])
         lat = self.structure.lattice
         if lat == "triclinic":
             # no symmetries, so no need
