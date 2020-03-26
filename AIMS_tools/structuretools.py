@@ -41,14 +41,14 @@ class structure:
         for key in keys:
             numbers.append(list(self.atom_indices.values()).count(key))
         self.sg = ase.spacegroup.get_spacegroup(self.atoms, symprec=1e-2)
-        self.lattice = self.__get_lattice()
+        self.lattice = self.get_lattice()
         self.species = dict(zip(keys, numbers))
         self.fragments = self.find_fragments(self.atoms)
 
     def __repr__(self):
         return self.atoms.get_chemical_formula()
 
-    def __get_lattice(self):
+    def __get_lattice_based_on_symmetry(self):
         nr = self.sg.no
         if nr <= 2:
             return "triclinic"
@@ -64,6 +64,86 @@ class structure:
             return "hexagonal"
         else:
             return "cubic"
+
+    def __get_lattice_based_on_lengths_and_angles(self, symprec=1e-5):
+        a, b, c, alpha, beta, gamma = self.atoms.get_cell_lengths_and_angles()
+
+        def eq(val1, val2, symprec=symprec):
+            if np.abs(val1 - val2) <= symprec:
+                return True
+            else:
+                return False
+
+        if (
+            eq(a, b)
+            and eq(b, c)
+            and eq(alpha, beta)
+            and eq(beta, gamma)
+            and (np.abs(gamma - 90) <= symprec)
+        ):
+            return "cubic"
+        elif (
+            eq(a, b)
+            and not eq(b, c)
+            and eq(alpha, beta)
+            and eq(beta, gamma)
+            and (np.abs(gamma - 90) <= symprec)
+        ):
+            return "tetragonal"
+        elif (
+            eq(a, b)
+            and not eq(b, c)
+            and eq(alpha, beta)
+            and (np.abs(beta - 90) <= symprec)
+            and ((np.abs(gamma - 120) <= symprec) or (np.abs(gamma - 60) <= symprec))
+        ):
+            return "hexagonal"
+        elif (
+            not eq(a, b)
+            and not eq(b, c)
+            and eq(alpha, beta)
+            and eq(beta, gamma)
+            and (np.abs(gamma - 90) <= symprec)
+        ):
+            return "orthorhombic"
+        elif (
+            not eq(a, b)
+            and not eq(b, c)
+            and eq(alpha, beta)
+            and (np.abs(beta - 90) <= symprec)
+            and not eq(beta, gamma)
+        ):
+            return "monoclinic"
+        else:
+            return "triclinic"
+
+    def get_lattice(self):
+        """Determines Bravais lattice.
+
+        Bases lattice recognition on constraints on angles and lengths or on the space group via spglib. Returns the lattice with higher symmetry.
+
+        Note:
+            A full lattice recognition (including 2D lattices) can be done via the ASE by:\n
+            >>> atoms.cell.get_bravais_lattice(pbc=atoms.pbc).lattice_type \n            
+        
+        Returns:
+            str: Lattice family.
+        """
+        symorder = {
+            "triclinic": 0,
+            "monoclinic": 1,
+            "orthorhombic": 2,
+            "tetragonal": 3,
+            "trigonal": 4,
+            "hexagonal": 5,
+            "cubic": 6,
+        }
+        symmbased = self.__get_lattice_based_on_symmetry()
+        latbased = self.__get_lattice_based_on_lengths_and_angles()
+        if symorder[symmbased] > symorder[latbased]:
+            return symmbased
+        else:
+            return latbased
 
     def find_fragments(self, atoms):
         """ Finds unconnected structural fragments by constructing
@@ -201,9 +281,9 @@ class structure:
             )
 
     def enforce_2d(self):
-        """ Enforces a 2D system.
+        """ Enforces a special representation of a two-dimensional system.
         
-        Sets all z-components of the lattice basis to zero and adds vacuum space.
+        Sets all z-components of the lattice basis to zero and adds vacuum space such that the layers are centered in the unit cell.
 
         Returns:
             atoms: Modified atoms object.

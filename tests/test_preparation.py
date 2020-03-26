@@ -23,3 +23,10 @@ def test_prepare():
     prep.adjust_geometry()
     prep.write_submit_taurus()
     shutil.rmtree(dirpath)
+
+
+def test_symmetry_setup():
+    files = Path("tests/structures").glob("*.xyz")
+    for file in files:
+        prep = preparation.prepare(file)
+        prep.setup_symmetries()

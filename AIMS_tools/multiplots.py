@@ -45,7 +45,9 @@ def combine(nrows=1, ncols=1, list_of_axes=[], list_of_ratios=[], list_of_titles
         plt.sca(axes)
         if str(var) == "band structure":
             if var.active_SOC == True:
-                axes = __overlay_ZORA_SOC(var.path, axes=axes, fig=fig)
+                axes = __overlay_ZORA_SOC(
+                    var.path, axes=axes, fig=fig, var_energy_limits=2
+                )
                 if ax == 0:
                     ymin, ymax = axes.get_ylim()
                 if ax != 0:

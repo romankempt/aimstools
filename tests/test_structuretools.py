@@ -18,3 +18,17 @@ def test_is_2D():
     molecule = structuretools.structure("tests/structures/atom_in.xyz")
     assert False == molecule.is_2d(molecule.atoms), "molecule not recognised"
 
+
+def test_get_lattice():
+    files = Path("tests/structures").glob("*.xyz")
+    for file in files:
+        strc = structuretools.structure(file)
+        assert strc.lattice in [
+            "monoclinic",
+            "triclinic",
+            "hexagonal",
+            "trigonal",
+            "cubic",
+            "orthorhombic",
+            "tetragonal",
+        ], "Lattice recognition failed."

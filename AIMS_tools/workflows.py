@@ -179,11 +179,20 @@ class k_convergence:
         logger.disabled = True
         for suc in successes:
             pp = postprocess(suc)
-            k_dens = (
-                pp.k_grid[0] * pp.k_grid[1] * pp.k_grid[2]
-            ) / pp.structure.atoms.cell.volume
+            if pp.structure.is_2d(pp.structure.atoms) == False:
+                k_dens = (
+                    (pp.k_grid[0] * pp.k_grid[1] * pp.k_grid[2])
+                    / pp.structure.atoms.cell.volume
+                ) ** (1 / 3)
+            else:
+                k_dens = (
+                    (pp.k_grid[0] * pp.k_grid[1])
+                    / np.linalg.norm(
+                        np.cross(pp.structure.atoms.cell[0], pp.structure.atoms.cell[1])
+                    )
+                ) ** (1 / 2)
             data["{}_{}_{}".format(*pp.k_grid)] = {
-                "kdens [nkpoints/Angström^3]": k_dens,
+                "mean kdens [nkpoints/angström]": k_dens,
                 "total_energy [eV/atom]": pp.total_energy / len(pp.structure.atoms),
                 "gap [eV]": pp.band_gap,
                 "number of cycles": pp.n_scf_cycles,
@@ -200,7 +209,7 @@ class k_convergence:
             conv = results[(results["total_energy [eV/atom]"] - ref).abs() < lim]
             gridconv = conv.index[0].replace("_", "x")
             econv = conv.loc[conv.index[0]]["total_energy [eV/atom]"]
-            densconv = conv.loc[conv.index[0]]["kdens [nkpoints/Angström^3]"]
+            densconv = conv.loc[conv.index[0]]["mean kdens [nkpoints/angström]"]
             gapconv = conv.loc[conv.index[0]]["gap [eV]"]
             logging.info(
                 "The k-kgrid is converged within {: 1.1E} eV/atom for a grid of {} after {} SCF cycles.".format(
@@ -213,10 +222,13 @@ class k_convergence:
 
     def __analyze_gaps(self):
         results = self.results
-        bins = results["gap [eV]"].round(2).value_counts()
-        if bins.max() > 4:
+        for index, row in results.iterrows():
+            if row["gap [eV]"] < 0.2:  # metallic broadening
+                results.loc[index] = 0.0
+        bins = results["gap [eV]"].round(3).value_counts()
+        if bins.max() > 3:
             reps = results[
-                results["gap [eV]"].round(2) == bins[bins == bins.max()].index[0]
+                results["gap [eV]"].round(3) == bins[bins == bins.max()].index[0]
             ]
             magics = []
             for grid in list(reps.index):
@@ -234,7 +246,7 @@ class k_convergence:
     def _plot_energy(self, fig, axes):
         results = self.results
         ref = results["total_energy [eV/atom]"].iloc[-1]
-        x = np.array(results["kdens [nkpoints/Angström^3]"]) ** (1 / 3)
+        x = np.array(results["mean kdens [nkpoints/angström]"])
         y = np.array(results["total_energy [eV/atom]"]) - ref
         axes.plot(x, y, color="royalblue", zorder=1)
         axes.scatter(x, y, facecolor="white", edgecolor="royalblue", alpha=1, zorder=2)
@@ -244,14 +256,11 @@ class k_convergence:
         i = 0
         for thresh, entries in self.data.items():
             axes.axvline(
-                x=entries.kdensity ** (1 / 3),
-                color=colors[thresh],
-                alpha=0.85,
-                linestyle=":",
+                x=entries.kdensity, color=colors[thresh], alpha=0.85, linestyle=":",
             )
             axes.annotate(
                 entries.grid,
-                xy=(entries.kdensity ** (1 / 3), entries.energy - ref),
+                xy=(entries.kdensity, entries.energy - ref),
                 xycoords="data",
                 xytext=(0.6 + i * 0.1, 0.90 - i * 0.1),
                 textcoords="axes fraction",
@@ -275,13 +284,13 @@ class k_convergence:
         handles.append(Line2D([0], [0], color="orange", label="< 1e-5 eV/atom", lw=1.5))
         handles.append(Line2D([0], [0], color="red", label="< 1e-6 eV/atom", lw=1.5))
         axes.legend(handles=handles, loc="lower right")
-        axes.set_xlabel(r"$(nkpoints/volume)^{1/3}$ [1/Angström]")
+        axes.set_xlabel(r"mean $k$-density per Angström")
         axes.set_ylabel(r"$E(k) - E(k_{max})$ [eV /atom]")
         axes.set_title("total energy convergence")
         return axes
 
     def _plot_gaps(self, fig, axes):
-        x = np.array(self.results["kdens [nkpoints/Angström^3]"]) ** (1 / 3)
+        x = np.array(self.results["mean kdens [nkpoints/angström]"])
         y = np.array(self.results["gap [eV]"])
         axes.plot(x, y, color="royalblue", zorder=1)
         magics = self.__analyze_gaps()
@@ -294,7 +303,7 @@ class k_convergence:
         for thresh, entries in self.data.items():
             axes.annotate(
                 entries.grid,
-                xy=(entries.kdensity ** (1 / 3), entries.gap),
+                xy=(entries.kdensity, entries.gap),
                 xycoords="data",
                 xytext=(0.6 + i * 0.1, 0.90 - i * 0.1),
                 textcoords="axes fraction",
@@ -315,7 +324,7 @@ class k_convergence:
             handles.append(Line2D([0], [0], color="purple", label="magic (?)", lw=1.5))
             axes.legend(handles=handles)
 
-        axes.set_xlabel(r"$(nkpoints/volume)^{1/3}$ [1/Angström]")
+        axes.set_xlabel(r"mean $k$-density per Angström")
         axes.set_ylabel(r"band gap [eV]")
         axes.set_title("band gap convergence")
         return axes

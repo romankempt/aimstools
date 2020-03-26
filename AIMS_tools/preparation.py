@@ -135,8 +135,9 @@ class prepare:
             atoms.set_cell(atoms.cell.standard_form()[0])
         lat = self.structure.lattice
         if lat == "triclinic":
-            # no symmetries, so no need
-            return None
+            nlat = 9
+            sym_params = "symmetry_params a1 a2 a3 b1 b2 b3 c1 c2 c3"
+            latstring = "symmetry_lv a1 , a2 , a3 \nsymmetry_lv b1 , b2 , b3 \nsymmetry_lv c1 , c2 , c3\n"
         elif lat == "monoclinic":
             # a != b != c, alpha = gamma != beta
             nlat = 4
@@ -228,10 +229,10 @@ class prepare:
             line += "phonon hessian phono-perl TDI\n"
             output_bands = self.setup_bandpath()
             for band in output_bands:
-                line += "phonon band" + band + "\n"
+                line += "phonon band " + band + "\n"
             line += "### phonon DOS \n"
-            line += "phonon free_energy 0 800 801 20 \t \t # Tstart Tend Tpoints qdensity \n"
-            line += "phonon dos 0 600 600 5 20 \t \t # fstart fend fpoints broad qdensity \n"
+            line += "phonon free_energy 0 800 801 20\n"
+            line += "phonon dos 0 600 600 5 20\n"
             line += "### phonon animations \n"
             for mode in range(len(self.structure.atoms) * 3):
                 line += "phonon animation 0 0 0 4 5 20 0 0 0 mode{n}.arc mode{n}.ascii mode{n}.xyz mode{n}.xyz_jmol \n".format(

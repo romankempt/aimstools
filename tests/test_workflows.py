@@ -30,3 +30,11 @@ def test_kconv_evaluate():
     path = Path("tests/workflows/kconv/evaluate")
     workflows.k_convergence(path)
     shutil.move(path.joinpath("kconv.png"), "pictures/MoS2_kconv.png")
+
+
+def test_kconv_testcases():
+    path = Path("tests/workflows/kconv/testcases")
+    for d in path.glob("*"):
+        workflows.k_convergence(d)
+        name = str(d.parts[-1])
+        shutil.move(d.joinpath("kconv.png"), "pictures/{}_kconv.png".format(name))
