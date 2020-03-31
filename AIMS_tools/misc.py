@@ -129,7 +129,6 @@ import matplotlib.pyplot as plt
 plt.style.use("seaborn-ticks")
 plt.rcParams["legend.handlelength"] = 0.8
 plt.rcParams["legend.framealpha"] = 0.8
-# font_name = "Arial"
 font_size = 8.5
 plt.rcParams.update({"font.size": font_size})
 

@@ -12,7 +12,7 @@ from AIMS_tools.postprocessing import postprocess
 
 
 class density_of_states(postprocess):
-    """ Density-of-states object. Inherits from postprocess.
+    """ Density-of-states object.
     
     Contains all information about a DOS instance, such as the DOS per atom. 
     
@@ -21,7 +21,7 @@ class density_of_states(postprocess):
         >>> import matplotlib.pyplot as plt
         >>> import numpy as np
         >>> ds = dos.density_of_states("outputfile")
-        >>> ds.plot_all_atomic_dos()
+        >>> ds.plot_all_species()
         >>> plt.show()
         >>> plt.savefig("Name.png", dpi=300, transparent=False, bbox_inches="tight", facecolor="white")
 
@@ -31,8 +31,6 @@ class density_of_states(postprocess):
         spin (int): Retrieve spin channel 1 or 2. Defaults to None (spin-restricted) or 1 (collinear).        
 
     Attributes:
-        shift_type (str): Shifts Fermi level. Options are "fermi", "middle" for middle of band gap, and "VBM" for valence band maximum, and None.
-        band_gap (float): Band gap energy in eV.
         dos_per_atom (dict): Dictionary of atom labels and density of states as numpy array of energy vs. DOS.
         total_dos (numpy array): Array of energy vs. DOS.
     
@@ -131,43 +129,28 @@ class density_of_states(postprocess):
         total_dos = np.sum(total_dos, axis=0) / len(dos_per_atom.keys())
         return total_dos
 
-    def __shift_to(self, energy):
+    def __shift_to(self, energy, shift_type):
         """ Shifts Fermi level of DOS spectrum according to shift_type attribute. """
         if (self.band_gap < 0.1) or (self.spin != None):
-            self.shift_type = "fermi"
+            shift_type = "fermi"
             energy -= self.fermi_level
-        elif (self.shift_type == None) or (self.shift_type == "none"):
+        elif (shift_type == None) or (shift_type == "none"):
             # energy += self.fermi_level
             pass
-        elif self.shift_type == "middle":
+        elif shift_type == "middle":
             energy -= (self.VBM + self.CBM) / 2
-        elif self.shift_type == "VBM":
+        elif shift_type == "VBM":
             energy -= self.VBM
         return energy
 
-    def plot_single_atomic_dos(
-        self,
-        atom,
-        color,
-        orbital=None,
-        fig=None,
-        axes=None,
-        title="",
-        fill="gradient",
-        var_energy_limits=1.0,
-        fix_energy_limits=[],
-        kwargs={},
-    ):
+    def plot(self, atom, orbital=None, fig=None, axes=None, fill="gradient", **kwargs):
         """ Plots the DOS of a single species.
             
         Args:
             atom (str): Species label.
-            color (str): Color for plotting.
             orbital (int): None --> total DOS; 0 --> s, 1 --> p, 2 --> d, 3 --> f etc.
             fig (matplotlib figure): Figure to draw the plot on.
             axes (matplotlib axes): Axes to draw the plot on.
-            var_energy_limits (int): Variable energy range above and below the band gap to show.
-            fix_energy_limits (list): List of lower and upper energy limit to show.
             fill (str): Supported fill methods are None, "gradient", or "constant". Gradient is still a bit wonky.
             **kwargs (dict): Passed to matplotlib plotting function.        
         
@@ -183,37 +166,34 @@ class density_of_states(postprocess):
         else:
             xy = self.dos_per_atom[atom][:, [0, orbitals[orbital]]]
 
-        xy[:, 0] = self.__shift_to(xy[:, 0])
-        VBM = (
-            np.max(xy[:, 0][xy[:, 0] < 0])
-            if self.shift_type != None
-            else self.fermi_level
-        )
-        CBM = (
-            np.min(xy[:, 0][xy[:, 0] > 0])
-            if self.shift_type != None
-            else self.fermi_level
-        )
-        if fix_energy_limits == []:
-            lower_ylimit = VBM - var_energy_limits
-            upper_ylimit = CBM + var_energy_limits
-        else:
-            lower_ylimit = fix_energy_limits[0]
-            upper_ylimit = fix_energy_limits[1]
+        for key in list(kwargs.keys()):
+            if key in self._postprocess__global_plotproperties.keys():
+                setattr(
+                    self, key, kwargs.pop(key),
+                )
+            else:
+                self._postprocess__mplkwargs[key] = kwargs[key]
 
-        ### The y-range is cut out for two reasons: Scaling the plotted range
-        ### and having the gradients with better colors.
-        # xy = xy[(xy[:, 0] > lower_ylimit - 10) & (xy[:, 0] < upper_ylimit + 6)]
+        xy[:, 0] = self.__shift_to(xy[:, 0], self.shift_type)
+        VBM = np.max(xy[:, 0][xy[:, 0] < 0]) if self.shift_type != None else self.VBM
+        CBM = np.min(xy[:, 0][xy[:, 0] > 0]) if self.shift_type != None else self.CBM
+        if self.fix_energy_limits == []:
+            lower_ylimit = VBM - self.var_energy_limits
+            upper_ylimit = CBM + self.var_energy_limits
+        else:
+            lower_ylimit = self.fix_energy_limits[0]
+            upper_ylimit = self.fix_energy_limits[1]
+
         x = xy[:, 1]
         y = xy[:, 0]
 
         if fill == None:
-            axes.plot(x, y, color=color, **kwargs)
+            axes.plot(x, y, color=self.color, **self._postprocess__mplkwargs)
         elif fill == "gradient":
-            axes.plot(x, y, color=color, alpha=0.9)
-            self.__gradient_fill(x, y, axes, color)
+            axes.plot(x, y, color=self.color, alpha=0.9, **kwargs)
+            self.__gradient_fill(x, y, axes, self.color)
         elif fill == "constant":
-            axes.fill_betweenx(y, 0, x, color=color)
+            axes.fill_betweenx(y, 0, x, color=self.color)
 
         xy = xy[(xy[:, 0] > lower_ylimit) & (xy[:, 0] < upper_ylimit)]
         axes.set_xlim([0, np.max(xy[:, 1]) + 0.1])
@@ -231,7 +211,7 @@ class density_of_states(postprocess):
         )  # this locator puts ticks at regular intervals
         axes.yaxis.set_major_locator(ylocs)
         axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")
-        axes.set_title(str(title), loc="center")
+        axes.set_title(str(self.title), loc="center")
         return axes
 
     def __gradient_fill(self, x, y, axes, color):
@@ -264,20 +244,16 @@ class density_of_states(postprocess):
         axes.add_patch(patch)
         im.set_clip_path(patch)
 
-    def plot_all_atomic_dos(
-        self,
-        fig=None,
-        axes=None,
-        var_energy_limits=1.0,
-        fix_energy_limits=[],
-        kwargs={},
-    ):
+    def plot_all_species(self, fig=None, axes=None, fill="gradient", **kwargs):
         """ Plot the DOS of all species colored by color_dict.
         
-        Shares attributes with the plot_single_atomic_dos() method.
+        Shares attributes with the plot() method.
         
         Args:
-            **kwargs (dict): Keyword arguments are passed to plot_single_atomic_dos() method.
+            fig (matplotlib figure): Figure to draw the plot on.
+            axes (matplotlib axes): Axes to draw the plot on.
+            fill (str): Supported fill methods are None, "gradient", or "constant". Gradient is still a bit wonky.
+            **kwargs (dict): Passed to matplotlib plotting function.       
         
         Returns:
             axes: matplotlib axes object"""
@@ -295,15 +271,7 @@ class density_of_states(postprocess):
             if atom == "H":
                 continue
             color = self.color_dict[atom]
-            axes = self.plot_single_atomic_dos(
-                atom,
-                color,
-                var_energy_limits=var_energy_limits,
-                fix_energy_limits=fix_energy_limits,
-                fig=fig,
-                axes=axes,
-                kwargs=kwargs,
-            )
+            axes = self.plot(atom, color=color, fig=fig, axes=axes, **kwargs)
             xmax.append(axes.get_xlim()[1])
             handles.append(Line2D([0], [0], color=color, label=atom, lw=1.0))
         axes.legend(handles=handles, frameon=True, loc="center right", fancybox=False)

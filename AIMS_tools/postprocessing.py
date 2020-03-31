@@ -35,8 +35,11 @@ class postprocess:
 
         self.__read_geometry()
         self.__read_control()
-        self.__read_output()
+        if self.success == True:
+            self.__read_output()
         self.color_dict = color_dict
+        self.__set_global_plotproperties()
+        self.__mplkwargs = {}
 
     def __repr__(self):
         return str(self.outputfile)
@@ -49,16 +52,17 @@ class postprocess:
             if "Have a nice day." in check:
                 self.outputfile = Path(outputfile)
                 self.path = self.outputfile.parent
-                logging.info("Found outputfile {}".format(self.outputfile))
                 return True
             else:
                 logging.error("Calculation did not converge!")
                 return False
 
         elif Path(outputfile).is_dir():
+            self.path = Path(outputfile)
             outfiles = list(Path(outputfile).glob("*.out"))
             if len(outfiles) == 0:
                 logging.critical("Output file does not exist.")
+                return False
             else:
                 for i in outfiles:
                     check = os.popen(
@@ -67,7 +71,6 @@ class postprocess:
                     if "Have a nice day." in check:
                         self.outputfile = i
                         self.path = self.outputfile.parent
-                        logging.info("Found outputfile {}".format(self.outputfile))
                         return True
                 else:
                     logging.error("Calculation did not converge!")
@@ -78,10 +81,16 @@ class postprocess:
 
     def __read_geometry(self):
         geometry = self.path.joinpath("geometry.in")
+        if geometry.exists() == False:
+            logging.critical("File geometry.in not found!")
+            return None
         self.structure = structure(geometry)
 
     def __read_control(self):
         control = self.path.joinpath("control.in")
+        if control.exists() == False:
+            logging.critical("File control.in not found!")
+            return None
         bandlines = []
         self.active_SOC = False
         self.active_GW = False
@@ -154,6 +163,29 @@ class postprocess:
                 if "Begin self-consistency iteration #" in line:
                     self.n_scf_cycles = int(line.split()[-1])
         self.band_gap = np.abs(self.CBM - self.VBM)
+
+    def __set_global_plotproperties(self):
+        d = dict()
+
+        # general plotsettings for bs, dos, fatbas
+        d["title"] = ""
+        d["color"] = "k"
+        d["shift_type"] = "middle"
+        d["fix_energy_limits"] = []
+        d["var_energy_limits"] = 1.0
+        d["linewidths"] = 1.5
+
+        # more specific to bs
+        d["mark_gap"] = "lightgray"
+        d["cmap"] = "Blues"
+        d["nbands"] = False
+        d["interpolation_step"] = False
+        d["mode"] = "lines"
+        d["capstyle"] = "round"
+
+        self.__global_plotproperties = d
+        for key, item in d.items():
+            setattr(self, key, item)
 
 
 class hirshfeld(postprocess):

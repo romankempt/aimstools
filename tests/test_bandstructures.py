@@ -17,10 +17,8 @@ def test_zora_bandstructure():
     assert bs.structure.atoms == ase.io.read(
         "tests/bandstructures/ZORA_no_spin/geometry.in"
     ), " zora geometry not correctly read"
-    assert bs.kpath == ["G", "M", "K", "G"], "zora kpath reading not working"
-    bs.custom_path("G-M-K-M-G")
+    p1 = bs.plot(kpath="G-M-K-M-G")
     assert bs.kpath == ["G", "M", "K", "M", "G"], "zora custom path not working"
-    p1 = bs.plot()
     if p1.lines != None and not os.path.exists("pictures/MoS2_ZORA_BS.png"):
         p1.set_title("MoS$_2$ ZORA")
         plt.savefig("MoS2_ZORA_BS.png", bbox_inches="tight", dpi=300)
@@ -32,10 +30,8 @@ def test_soc_bandstructure():
     assert bs.structure.atoms == ase.io.read(
         "tests/bandstructures/SOC_no_spin/geometry.in"
     ), " soc geometry not correctly read"
-    assert bs.kpath == ["G", "M", "K", "G"], "soc kpath reading not working"
-    bs.custom_path("G-M-K-M-G")
+    p1 = bs.plot(kpath="G-M-K-M-G")
     assert bs.kpath == ["G", "M", "K", "M", "G"], "soc custom path not working"
-    p1 = bs.plot()
     if p1.lines != None and not os.path.exists("pictures/MoS2_soc_BS.png"):
         p1.set_title("MoS$_2$ SOC")
         plt.savefig("MoS2_SOC_BS.png", bbox_inches="tight", dpi=300)
@@ -68,4 +64,3 @@ def test_fatbs_read_and_write():
             k2, ev2 = bs2.atom_contributions[index][section]
             assert np.array_equal(k1, k2), "kaxis not matching"
             assert np.array_equal(ev1, ev2), "eigenvalues not matching"
-

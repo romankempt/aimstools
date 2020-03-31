@@ -43,22 +43,14 @@ aims_prepare MoS2.cif -cluster taurus -cost low -xc hse06 -basis tight -tier 2 -
 The job can then simply be submitted via qsub on the *.sh script (t3000) or sbatch on the *.sh script (taurus). See taurus node limitations [here](https://doc.zih.tu-dresden.de/hpc-wiki/bin/view/Compendium/SystemTaurus).
 
 
-## Sorting finished calculations
-
-```bash
-aims_sort
-```
-
-This script sorts AIMS calculations in a directory into finished ones (converged) and unfinished ones (not_converged).
 
 ## Plotting band structures and densities of states
 
 The **bandstructure** and **dos** module are wrapped via the **multiplots** module in the **aims_plot** command line tool. The syntax follows the *multiplots.combine()* function.
 
 ```bash
-aims_plot --help
-
-usage: aims_plot [-h] [-nrows NROWS] [-ncols NCOLS] [-ratios RATIOS [RATIOS ...]] [-titles TITLES [TITLES ...]] directories [directories ...]
+usage: aims_plot [-h] [-nrows NROWS] [-ncols NCOLS] [-ratios RATIOS [RATIOS ...]] [-titles TITLES [TITLES ...]] [-s KEY=VALUE [KEY=VALUE ...]] [-w WRITE]
+                 directories [directories ...]
 
 positional arguments:
   directories           List of directories to plot
@@ -71,10 +63,14 @@ optional arguments:
                         List of ratios
   -titles TITLES [TITLES ...]
                         List of titles
+  -s KEY=VALUE [KEY=VALUE ...], --set KEY=VALUE [KEY=VALUE ...]
+                        Set arbitrary number of key-value pairs for plotting. Pay attention that there is no space before and after the '='. Example: --set color='red'
+  -w WRITE, --write WRITE
+                        Saves figure with given filename.
 ```
 
 For example:
 
 ```bash
-aims_plot bandstructure1/ dos1/ bandstructure2/ dos22/ -nrows 1 -ncols 4 -ratios 3 1 3 1
+aims_plot bandstructure1/ dos1/ bandstructure2/ dos2/ -nrows 1 -ncols 4 -ratios 3 1 3 1 -s linewidth=2 -w test.png
 ```

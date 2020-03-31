@@ -19,7 +19,6 @@ class bandstructure(postprocess):
     Example:    
         >>> from AIMS_tools import bandstructure
         >>> import matplotlib.pyplot as plt
-        >>> import numpy as np
         >>> bs = bandstructure.bandstructure("outputfile")
         >>> bs.plot()
         >>> plt.savefig("Name.png", dpi=300, transparent=False, bbox_inches="tight", facecolor="white")
@@ -42,12 +41,11 @@ class bandstructure(postprocess):
   
     """
 
-    def __init__(self, outputfile, get_SOC=True, spin=None, shift_type="middle"):
+    def __init__(self, outputfile, get_SOC=True, spin=None):
         super().__init__(outputfile, get_SOC=get_SOC, spin=spin)
         if self.success == False:
             logging.critical("Calculation did not converge.")
             raise Exception()
-        self.shift_type = shift_type
         self.bandfiles = self.__get_bandfiles(get_SOC)
         self.kpath = [i[0] for i in self.ksections]
         self.kpath += [self.ksections[-1][1]]  # retrieves the endpoint of the path
@@ -193,7 +191,7 @@ class bandstructure(postprocess):
         self.band_gap = CBM - VBM
         return spectrum
 
-    def custom_path(self, custompath):
+    def __set_kpath(self, custompath):
         """ This function takes in a custom path of form K1-K2-K3 for plotting.
 
         Args:
@@ -216,7 +214,7 @@ class bandstructure(postprocess):
             self.kpath = newpath
             self.spectrum = self.__create_spectrum()
 
-    def _shift_to(self, energy):
+    def _shift_to(self, energy, shift_type):
         """ Shifts Fermi level of spectrum according to shift_type attribute.
         
         Returns:
@@ -226,37 +224,31 @@ class bandstructure(postprocess):
         CBM = np.min(energy[energy > 0])
         self.band_gap = CBM - VBM
         if (self.band_gap < 0.1) or (self.spin != None):
-            self.shift_type = "fermi"
-        if (self.shift_type == None) or (self.shift_type == "none"):
+            shift_type = "fermi"
+        if (shift_type == None) or (shift_type == "none"):
             energy += self.fermi_level
-        elif self.shift_type == "middle":
+        elif shift_type == "middle":
             energy -= (VBM + CBM) / 2
-        elif self.shift_type == "VBM":
+        elif shift_type == "VBM":
             energy -= VBM
         return energy
 
-    def plot(
-        self,
-        title="",
-        fig=None,
-        axes=None,
-        color="k",
-        var_energy_limits=1.0,
-        fix_energy_limits=[],
-        mark_gap="lightgray",
-        kwargs={},
-    ):
+    def plot(self, fig=None, axes=None, **kwargs):
         """Plots a band structure instance.
             
             Args:
-                title (str): Title of the plot.
                 fig (matplotlib figure): Figure to draw the plot on.
                 axes (matplotlib axes): Axes to draw the plot on.
-                color (str): Color of the lines.
-                var_energy_limits (int): Variable energy range above and below the band gap to show.
-                fix_energy_limits (list): List of lower and upper energy limits to show.
-                mark_gap (str): Color to fill the band gap with or None.
-                **kwargs (dict): Passed to matplotlib plotting function.
+            
+            Keyword Args:
+                title (str): Title of the plot.
+                color (str): Color of the lines, defaults to "black".
+                var_energy_limits (int): Variable energy range above and below the band gap to show, defaults to 1.0.
+                fix_energy_limits (list): List of lower and upper energy limits to show, defaults to None.
+                mark_gap (str): Color to fill the band gap with, can be "none. Defaults to "lightgray".
+                shift_type (str): Shifts Fermi level. Accepted strings are "fermi", "middle", "none" and "VBM". Defaults to "middle".
+                kpath (str): Hyphen-separated string of path sections to plot, e.g., "G-M-X".
+                **kwargs (dict): Any additional keyword arguments accepted by matplotlib.pyplot.plot().
 
             Returns:
                 axes: matplotlib axes object"""
@@ -264,20 +256,37 @@ class bandstructure(postprocess):
             fig = plt.figure(figsize=(len(self.kpath) / 1.5, 3))
         if axes == None:
             axes = plt.gca()
+
+        kpath = kwargs.pop("kpath", "")
+        if kpath not in ["", None, False, "none"]:
+            self.__set_kpath(kpath)
+        for key in list(kwargs.keys()):
+            if key in self._postprocess__global_plotproperties.keys():
+                setattr(
+                    self, key, kwargs.pop(key),
+                )
+            else:
+                self._postprocess__mplkwargs[key] = kwargs[key]
+
         x = self.spectrum[:, 0]
         y = self.spectrum[:, 1:]
-        y = self._shift_to(y)
+        y = self._shift_to(y, self.shift_type)
+
         VBM = np.max(y[y < 0]) if self.shift_type != None else self.fermi_level
         CBM = np.min(y[y > 0]) if self.shift_type != None else self.fermi_level
-        axes.plot(x, y, color=color, **kwargs)
-        if fix_energy_limits == []:
-            lower_ylimit = VBM - var_energy_limits
-            upper_ylimit = CBM + var_energy_limits
+        axes.plot(x, y, color=self.color, **self._postprocess__mplkwargs)
+        if self.fix_energy_limits == []:
+            lower_ylimit = VBM - self.var_energy_limits
+            upper_ylimit = CBM + self.var_energy_limits
         else:
-            lower_ylimit = fix_energy_limits[0]
-            upper_ylimit = fix_energy_limits[1]
-        if (CBM - VBM) > 0.1 and (mark_gap != False) and (self.spin == None):
-            axes.fill_between(x, VBM, CBM, color=mark_gap, alpha=0.6)
+            lower_ylimit = self.fix_energy_limits[0]
+            upper_ylimit = self.fix_energy_limits[1]
+        if (
+            (CBM - VBM) > 0.1
+            and (self.mark_gap not in [None, "None", "none", False, ""])
+            and (self.spin == None)
+        ):
+            axes.fill_between(x, VBM, CBM, color=self.mark_gap, alpha=0.6)
         axes.set_ylim([lower_ylimit, upper_ylimit])
         axes.set_xlim([0, np.max(x)])
         axes.set_xticks(self.klabel_coords)
@@ -300,17 +309,18 @@ class bandstructure(postprocess):
             axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")
             axes.set_ylabel(r"E-E$_\mathrm{F}$ [eV]")
         axes.grid(which="major", axis="x", linestyle=":")
-        axes.set_title(str(title), loc="center")
+        axes.set_title(str(self.title), loc="center")
         return axes
 
 
 class fatbandstructure(bandstructure):
-    """ Band structure object. Inherits from bandstructure class. 
+    """ Mulliken-projected band structure object.
+
+    A fat band structure shows the momentum-resolved Mulliken contribution of each atom to the energy.
 
     Example:    
         >>> from AIMS_tools import bandstructure
         >>> import matplotlib.pyplot as plt
-        >>> import numpy as np
         >>> bs = bandstructure.fatbandstructure("outputfile")
         >>> bs.plot_all_orbitals()
         >>> plt.savefig("Name.png", dpi=300, transparent=False, bbox_inches="tight", facecolor="white")
@@ -318,7 +328,6 @@ class fatbandstructure(bandstructure):
     
     Args:
         filter_species (list): Only processes list of atom labels, e.g., ["W", "S"].
-        readmode (bool): To be implemented.
     
     Attributes:
         mlk_bandsegments (dict): Nested dictionary of path segments and ndarrays containing data.
@@ -329,14 +338,9 @@ class fatbandstructure(bandstructure):
     """
 
     def __init__(
-        self,
-        outputfile,
-        get_SOC=True,
-        spin=None,
-        shift_type="middle",
-        filter_species=[],
+        self, outputfile, get_SOC=True, spin=None, filter_species=[],
     ):
-        super().__init__(outputfile, get_SOC=get_SOC, shift_type=shift_type, spin=spin)
+        super().__init__(outputfile, get_SOC=get_SOC, spin=spin)
         # get_SOC is true because for mulliken bands, both spin channels are written to the same file.
         self.filter_species = (
             list([str(i) for i in self.structure.atom_indices.values()])
@@ -562,6 +566,9 @@ class fatbandstructure(bandstructure):
             self.klabel_coords = klabel_coords
         energy = atom_spectrum[1][1][:, :, 1]
         self.band_gap = np.abs(np.min(energy[energy > 0]) - np.max(energy[energy < 0]))
+        self.spectrum = np.column_stack(
+            [atom_spectrum[1][0], atom_spectrum[1][1][:, :, 1]]
+        )
         return atom_spectrum
 
     def sum_all_species_contributions(self):
@@ -598,10 +605,7 @@ class fatbandstructure(bandstructure):
 
         Args:
             list_of_species (list): List of labels (["H", "C", ...]) or list of indices ([1, 2, 3, ...]) or mix of both is accepted.
-        
-        Note:
-            Might give unexpected results in conjunction with custom_path. A custom k-path should be specified first before calling this option.
-        
+               
         """
         assert type(list_of_species) == list
         for entry in range(len(list_of_species)):
@@ -690,7 +694,7 @@ class fatbandstructure(bandstructure):
         ]
         self.atoms_to_plot = {key: self.atoms_to_plot[key] for key in sorted_keys}
 
-    def custom_path(self, custompath):
+    def __set_kpath(self, custompath):
         """ This function takes in a custom path of form K1-K2-K3 for plotting.
 
         Changes kpath attribute according to custompath and recreates atom_spectra according to new kpath.
@@ -719,102 +723,30 @@ class fatbandstructure(bandstructure):
             }
             self.atom_spectra = self.__create_spectra()
 
-    def plot(
-        self,
-        title="",
-        fig=None,
-        axes=None,
-        color="k",
-        var_energy_limits=1.0,
-        fix_energy_limits=[],
-        mark_gap="lightgray",
-        kwargs={"alpha": 0.25, "linewidth": 0.5},
-    ):
-        """Plots a band structure instance.
-            
-            Args:
-                title (str): Title of the plot.
-                fig (matplotlib figure): Figure to draw the plot on.
-                axes (matplotlib axes): Axes to draw the plot on.
-                color (str): Color of the lines.
-                var_energy_limits (int): Variable energy range above and below the band gap to show.
-                fix_energy_limits (list): List of lower and upper energy limits to show.
-                mark_gap (str): Color to fill the band gap with or None.
-                **kwargs (dict): Passed to matplotlib plotting function.
-
-            Returns:
-                axes: matplotlib axes object"""
-        if fig == None:
-            fig = plt.figure(figsize=(len(self.kpath) / 1.5, 3))
-        if axes == None:
-            axes = plt.gca()
-        x = self.atom_spectra[1][0]
-        y = self.atom_spectra[1][1][:, :, 1]
-        y = self._shift_to(y)
-        VBM = np.max(y[y < 0])
-        CBM = np.min(y[y > 0])
-        axes.plot(x, y, color=color, **kwargs)
-        if fix_energy_limits == []:
-            lower_ylimit = VBM - var_energy_limits
-            upper_ylimit = CBM + var_energy_limits
-        else:
-            lower_ylimit = fix_energy_limits[0]
-            upper_ylimit = fix_energy_limits[1]
-        if (CBM - VBM) > 0.1 and (mark_gap != False) and (self.spin == None):
-            axes.fill_between(x, VBM, CBM, color=mark_gap, alpha=0.6)
-        axes.set_ylim([lower_ylimit, upper_ylimit])
-        axes.set_xlim([0, np.max(x)])
-        axes.set_xticks(self.klabel_coords)
-        xlabels = []
-        for i in range(len(self.kpath)):
-            if self.kpath[i] == "G":
-                xlabels.append(r"$\Gamma$")
-            else:
-                xlabels.append(self.kpath[i])
-        axes.set_xticklabels(xlabels)
-        axes.set_ylabel(r"E-E$_\mathrm{F}$ [eV]")
-        ylocs = ticker.MultipleLocator(
-            base=0.5
-        )  # this locator puts ticks at regular intervals
-        axes.yaxis.set_major_locator(ylocs)
-        axes.set_xlabel("")
-        axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")
-        axes.grid(which="major", axis="x", linestyle=":")
-        axes.set_title(str(title), loc="center")
-        return axes
-
-    def plot_mlk(
-        self,
-        atom,
-        contribution,
-        mode="lines",
-        title="",
-        fig=None,
-        axes=None,
-        cmap="Blues",
-        var_energy_limits=1.0,
-        fix_energy_limits=[],
-        nbands=False,
-        interpolation_step=False,
-        kwargs={},
-    ):
+    def plot_mlk(self, atom, contribution, fig=None, axes=None, **kwargs):
         """ Plots a fat band structure instance.
         
         Args:
             atom (int, str): Index or label of atom in self.atoms_to_plot.
             contribution (str): Spectral contribution tot, s, p, d or f or user-defined ndarray.
-            mode (str): "lines" or "scatter". Defaults to "lines".
-            title (str): Title of the plot.
             fig (matplotlib figure): Figure to draw the plot on.
             axes (matplotlib axes): Axes to draw the plot on.
-            cmap (str): Matplotlib colormap instance (e.g., "Blues", "Oranges", "Purples", "Reds", "Greens").
-            var_energy_limits (int): Variable energy range above and below the band gap to show.
-            fix_energy_limits (list): List of lower and upper energy limit to show.
-            nbands (int): False or integer. Number of bands above and below the Fermi level to colorize.
-            interpolation_step (float): False or float. Performs 1D interpolation of every band with the specified
-            step size (e.g., 0.001). May cause substantial computational effort.
-            **kwargs (dict): Currently not used.
         
+        Keyword Args:
+            title (str): Title of the plot.
+            var_energy_limits (int): Variable energy range above and below the band gap to show, defaults to 1.0.
+            fix_energy_limits (list): List of lower and upper energy limits to show, defaults to None.
+            shift_type (str): Shifts Fermi level. Accepted strings are "fermi", "middle", "none" and "VBM". Defaults to "middle".
+            kpath (str): Hyphen-separated string of path sections to plot, e.g., "G-M-X".
+            mode (str): "lines" or "scatter". Defaults to "lines".
+            cmap (str): Matplotlib colormap instance (e.g., "Blues", "Oranges", "Purples", "Reds", "Greens").
+            nbands (int): False or integer. Number of bands above and below the Fermi level to colorize. Defaults to False.
+            interpolation_step (float): False or float. Performs 1D interpolation of every band with the specified
+            step size (e.g., 0.001). May cause substantial computational effort. Defaults to False.
+            linewidths (float): Width of the lines when mode is "lines". Defaults to 1.5.
+            capstyle (str): Capstyle of the lines when mode is "lines". Defaults to "round".
+            
+       
         Returns:
             axes: matplotlib axes object"""
         if fig == None:
@@ -823,12 +755,23 @@ class fatbandstructure(bandstructure):
             axes = plt.gca()
         con_dict = {"tot": 5, "s": 6, "p": 7, "d": 8, "f": 9}
 
+        kpath = kwargs.pop("kpath", "")
+        if kpath not in ["", None, False, "none"]:
+            self.__set_kpath(kpath)
+        for key in list(kwargs.keys()):
+            if key in self._postprocess__global_plotproperties.keys():
+                setattr(
+                    self, key, kwargs.pop(key),
+                )
+            else:
+                self._postprocess__mplkwargs[key] = kwargs[key]
+
         if type(atom) == str:
             atom = [k for k, v in self.atoms_to_plot.items() if v == atom][0]
 
         x = self.atom_spectra[atom][0]
         y = self.atom_spectra[atom][1][:, :, 1]  # energy
-        y = self._shift_to(y)
+        y = self._shift_to(y, self.shift_type)
         if type(contribution) == str:
             con = con_dict[contribution]
             con = self.atom_spectra[atom][1][:, :, con]
@@ -839,22 +782,22 @@ class fatbandstructure(bandstructure):
         CBM = np.min(y[y > 0])
 
         # adjusting y limits
-        if fix_energy_limits == []:
-            lower_ylimit = VBM - var_energy_limits
-            upper_ylimit = CBM + var_energy_limits
+        if self.fix_energy_limits == []:
+            lower_ylimit = VBM - self.var_energy_limits
+            upper_ylimit = CBM + self.var_energy_limits
         else:
-            lower_ylimit = fix_energy_limits[0]
-            upper_ylimit = fix_energy_limits[1]
+            lower_ylimit = self.fix_energy_limits[0]
+            upper_ylimit = self.fix_energy_limits[1]
 
         # cutting nbands
-        if nbands != False:
+        if self.nbands != False:
             index = np.where(y == VBM)
             col = index[1][0]
-            y = y[:, col - nbands : col + nbands + 1]
-            con = con[:, col - nbands : col + nbands + 1]
+            y = y[:, col - self.nbands : col + self.nbands + 1]
+            con = con[:, col - self.nbands : col + self.nbands + 1]
 
         # defining the color map
-        cmap = plt.get_cmap(cmap)
+        cmap = plt.get_cmap(self.cmap)
         my_cmap = cmap(np.arange(cmap.N))
         my_cmap[:, -1] = np.linspace(0, 1, cmap.N)  # this adds alpha
         my_cmap = ListedColormap(my_cmap)
@@ -864,14 +807,14 @@ class fatbandstructure(bandstructure):
             band_y = y[:, band]
             band_width = con[:, band]
 
-            if interpolation_step != False:
+            if self.interpolation_step != False:
                 f1 = interpolate.interp1d(x, band_y)
                 f2 = interpolate.interp1d(x, band_width)
-                band_x = np.arange(0, np.max(x), interpolation_step)
+                band_x = np.arange(0, np.max(x), self.interpolation_step)
                 band_y = f1(band_x)
                 band_width = f2(band_x)
 
-            if mode == "lines":
+            if self.mode == "lines":
                 band_width = band_width[:-1]
                 points = np.array([band_x, band_y]).T.reshape(-1, 1, 2)
                 segments = np.concatenate(
@@ -879,14 +822,14 @@ class fatbandstructure(bandstructure):
                 )  # this reshapes it into (x1, x2) (y1, y2) pairs
                 lc = LineCollection(
                     segments,
-                    linewidths=1.5,  # band_width * 2.5,  # making them fat
+                    linewidths=self.linewidths,  # band_width * 2.5,  # making them fat
                     cmap=my_cmap,
                     norm=plt.Normalize(0, 1),
-                    capstyle="round",
+                    capstyle=self.capstyle,
                 )
                 lc.set_array(band_width)
                 axes.add_collection(lc)
-            elif mode == "scatter":
+            elif self.mode == "scatter":
                 axes.scatter(
                     band_x,
                     band_y,
@@ -914,29 +857,16 @@ class fatbandstructure(bandstructure):
         axes.set_xlabel("")
         axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")
         axes.grid(which="major", axis="x", linestyle=":")
-        axes.set_title(str(title), loc="center")
+        axes.set_title(str(self.title), loc="center")
         return axes
 
-    def plot_all_species(
-        self,
-        axes=None,
-        fig=None,
-        mode="lines",
-        title="",
-        sum=True,
-        var_energy_limits=1.0,
-        fix_energy_limits=[],
-        nbands=False,
-        interpolation_step=False,
-        kwargs={"alpha": 0.15, "linewidth": 0.5},
-    ):
+    def plot_all_species(self, axes=None, fig=None, sum=True, **kwargs):
         """ Plots a fatbandstructure instance with all species overlaid.
         
         Shares attributes with the in-built plot function. Gives an error if invoked with more than 5 species.
       
         Args:
             sum (bool): True or False. Sums contributions of same species.
-            **kwargs (dict): Keyword arguments are passed to the plot() method.
         
         Returns:
             axes: matplotlib axes object"""
@@ -948,7 +878,12 @@ class fatbandstructure(bandstructure):
             axes = plt.subplot2grid((1, 1), (0, 0), fig=fig)
         # plotting background energy
         axes = self.plot(
-            fig=fig, axes=axes, color="lightgray", mark_gap=False, kwargs=kwargs
+            fig=fig,
+            axes=axes,
+            color="lightgray",
+            mark_gap="none",
+            alpha=0.10,
+            linewidth=0.5,
         )
 
         if sum == True:
@@ -962,7 +897,7 @@ class fatbandstructure(bandstructure):
                 )
             )
             return None
-        if interpolation_step != False:
+        if self.interpolation_step != False:
             logging.info(
                 """Performing 1D interpolation of every single band to obtain a smoother plot."""
             )
@@ -971,19 +906,7 @@ class fatbandstructure(bandstructure):
         handles = []
         i = 0
         for atom, label in self.atoms_to_plot.items():
-            self.plot_mlk(
-                atom,
-                "tot",
-                mode=mode,
-                cmap=cmaps[i],
-                axes=axes,
-                fig=fig,
-                title=title,
-                var_energy_limits=var_energy_limits,
-                fix_energy_limits=fix_energy_limits,
-                nbands=nbands,
-                interpolation_step=interpolation_step,
-            )
+            self.plot_mlk(atom, "tot", fig=fig, axes=axes, cmap=cmaps[i], **kwargs)
             handles.append(Line2D([0], [0], color=colors[i], label=label, lw=1.5))
             i += 1
         lgd = axes.legend(
@@ -992,7 +915,6 @@ class fatbandstructure(bandstructure):
             fancybox=False,
             borderpad=0.4,
             loc="upper right",
-            # bbox_to_anchor=(1, 1),
         )
         return axes
 
@@ -1002,6 +924,7 @@ class fatbandstructure(bandstructure):
         Returns:
             ndarray : shape (nkpoints, nstates, [index, eigenvalue, occupation, atom, spin, total, s, p, d, f, g])
          """
+        logging.info("Summing up contributions of same orbitals ...")
         orbital_contributions = np.zeros(self.atom_spectra[1][1].shape)
         for index, species in self.atoms_to_plot.items():
             orbital_contributions += self.atom_spectra[index][1]
@@ -1010,25 +933,9 @@ class fatbandstructure(bandstructure):
         )
         return orbital_contributions
 
-    def plot_all_orbitals(
-        self,
-        axes=None,
-        fig=None,
-        mode="lines",
-        title="",
-        var_energy_limits=1.0,
-        fix_energy_limits=[],
-        nbands=False,
-        interpolation_step=False,
-        kwargs={"alpha": 0.15, "linewidth": 0.5},
-    ):
+    def plot_all_orbitals(self, axes=None, fig=None, **kwargs):
         """ Plots a fatbandstructure instance with all orbital characters overlaid.
-        
-        Shares attributes with the in-built plot function.
-
-        Args:
-            **kwargs (dict): Keyword arguments are passed to the plot() method.
-                
+                     
         Returns:
             axes: matplotlib axes object """
         if fig == None:
@@ -1040,10 +947,15 @@ class fatbandstructure(bandstructure):
 
         # plotting background energy
         axes = self.plot(
-            fig=fig, axes=axes, color="lightgray", mark_gap=False, kwargs=kwargs
+            fig=fig,
+            axes=axes,
+            color="lightgray",
+            mark_gap="none",
+            alpha=0.10,
+            linewidth=0.5,
         )
 
-        if interpolation_step != False:
+        if self.interpolation_step != False:
             logging.info(
                 """Performing 1D interpolation of every single band to obtain a smoother plot."""
             )
@@ -1055,17 +967,7 @@ class fatbandstructure(bandstructure):
         orbitals = self.sum_orbitals()
         for orbital in [6, 7, 8]:
             self.plot_mlk(
-                1,
-                orbitals[:, :, orbital],
-                mode=mode,
-                cmap=cmaps[i],
-                axes=axes,
-                fig=fig,
-                title=title,
-                var_energy_limits=var_energy_limits,
-                fix_energy_limits=fix_energy_limits,
-                nbands=nbands,
-                interpolation_step=interpolation_step,
+                1, orbitals[:, :, orbital], fig=fig, axes=axes, cmap=cmaps[i], **kwargs
             )
             labels = ["s", "p", "d"]
             handles.append(Line2D([0], [0], color=colors[i], label=labels[i], lw=1.5))
@@ -1075,8 +977,6 @@ class fatbandstructure(bandstructure):
             frameon=True,
             fancybox=False,
             borderpad=0.4,
-            loc="upper left",
-            bbox_to_anchor=(1, 1),
+            loc="upper right",
         )
         return axes
-

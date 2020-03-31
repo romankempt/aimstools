@@ -23,20 +23,55 @@ def parseArguments():
     parser.add_argument(
         "-titles", help="List of titles", type=str, nargs="+", default=[]
     )
+    parser.add_argument(
+        "-s",
+        "--set",
+        metavar="KEY=VALUE",
+        nargs="+",
+        help="Set arbitrary number of key-value pairs for plotting. "
+        "Pay attention that there is no space before and after the '='. "
+        "Example: --set color='red'",
+    )
+    parser.add_argument(
+        "-w",
+        "--write",
+        type=str,
+        default=False,
+        help="Saves figure with given filename.",
+    )
 
     # Parse arguments
     args = parser.parse_args()
     return args
 
 
+def parse_vars(extra_vars):
+    """
+     Take a list of comma seperated key value pair strings, seperated
+     by comma strings like 'foo=bar' and return as dict.
+     :param extra_vars: list[str] ['foo=bar, 'key2=value2']
+
+     :return: dict[str, str] {'foo': 'bar', 'key2': 'value2'}
+     """
+    vars_list = []
+    if extra_vars:
+        for i in extra_vars:
+            items = i.split("=")
+            key = items[0].strip()
+            if len(items) > 1:
+                value = "=".join(items[1:])
+                vars_list.append((key, value))
+    return dict(vars_list)
+
+
 if __name__ == "__main__":
     args = parseArguments()
+    kwargs = parse_vars(args.set)
     dirs = args.directories
     calcs = [pp(i) for i in dirs]
     calc_type = [j.calc_type for j in calcs]
     runs = dict(zip(calcs, calc_type))
     list_of_axes = []
-    logging.getLogger().setLevel(logging.ERROR)
     for calc, task in runs.items():
         if "BS" in task:
             list_of_axes.append(bandstructure.bandstructure(calc.path))
@@ -45,12 +80,20 @@ if __name__ == "__main__":
     assert len(list_of_axes) == (
         args.nrows * args.ncols
     ), "Too many axes to plot for too few nrows and ncols!"
-    fig = multiplots.combine(
-        args.nrows,
-        args.ncols,
-        list_of_axes=list_of_axes,
-        list_of_ratios=args.ratios,
-        list_of_titles=args.titles,
+    ratios = (
+        [4 if i == "band structure" else 1 for i in list_of_axes]
+        if args.ratios == []
+        else args.ratios
     )
-    logging.getLogger().setLevel(logging.INFO)
-    plt.show()
+    fig = multiplots.combine(
+        args.nrows, args.ncols, results=list_of_axes, ratios=ratios, **kwargs
+    )
+    if args.write != False:
+        name = args.write
+        if len(name.split(".")) == 0:
+            name += ".png"
+        plt.savefig(
+            name, dpi=300, bbox_inches="tight", transparent=False, facecolor="white"
+        )
+    else:
+        plt.show()

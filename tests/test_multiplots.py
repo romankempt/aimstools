@@ -32,19 +32,9 @@ def test_bs_dos_combine_both_spins():
         4,
         [bs1, ds1, bs2, ds2],
         [4, 1, 4, 1],
-        list_of_titles=["spin up", "", "spin down", ""],
+        titles=["spin up", "", "spin down", ""],
     )
     if fig.lines != None and not os.path.exists("pictures/MnS2_ZORA_BS_DOS.png"):
         fig.suptitle("MnS$_2$ BS+DOS ZORA")
         plt.savefig("MnS2_ZORA_BS_DOS.png", bbox_inches="tight", dpi=300)
         shutil.move("MnS2_ZORA_BS_DOS.png", "pictures/")
-
-
-# def test_bs_dos_combine_spin2():
-#     bs = bandstructure.bandstructure("tests/Spin/SOC")
-#     ds = dos.density_of_states("tests/Spin/SOC")
-#     fig = multiplots.combine(1, 2, [bs, ds], [4, 1])
-#     if fig.lines != None and not os.path.exists("pictures/MnS2_SOC_BS_DOS.png"):
-#         fig.suptitle("MnS$_2$ BS+DOS SOC")
-#         plt.savefig("MnS2_SOC_BS_DOS.png", bbox_inches="tight", dpi=300)
-#         shutil.move("MnS2_SOC_BS_DOS.png", "pictures/")
