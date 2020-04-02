@@ -77,9 +77,10 @@ if __name__ == "__main__":
             list_of_axes.append(bandstructure.bandstructure(calc.path))
         if "DOS" in task:
             list_of_axes.append(dos.density_of_states(calc.path))
-    assert len(list_of_axes) == (
-        args.nrows * args.ncols
-    ), "Too many axes to plot for too few nrows and ncols!"
+    if len(list_of_axes) != (args.nrows * args.ncols):
+        logging.info("Not enough rows and columns. Adjusting number of columns.")
+        args.ncols = len(list_of_axes)
+        args.nrows = 1
     ratios = (
         [4 if i == "band structure" else 1 for i in list_of_axes]
         if args.ratios == []

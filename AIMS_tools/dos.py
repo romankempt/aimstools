@@ -252,7 +252,7 @@ class density_of_states(postprocess):
         Args:
             fig (matplotlib figure): Figure to draw the plot on.
             axes (matplotlib axes): Axes to draw the plot on.
-            fill (str): Supported fill methods are None, "gradient", or "constant". Gradient is still a bit wonky.
+            fill (str): Supported fill methods are None, "gradient", or "constant".
             **kwargs (dict): Passed to matplotlib plotting function.       
         
         Returns:
@@ -268,12 +268,10 @@ class density_of_states(postprocess):
         atoms = list(self.structure.species.keys())
         atoms.sort()
         for atom in atoms:
-            if atom == "H":
-                continue
             color = self.color_dict[atom]
-            axes = self.plot(atom, color=color, fig=fig, axes=axes, **kwargs)
+            axes = self.plot(atom, color=color, fig=fig, fill=fill, axes=axes, **kwargs)
             xmax.append(axes.get_xlim()[1])
             handles.append(Line2D([0], [0], color=color, label=atom, lw=1.0))
         axes.legend(handles=handles, frameon=True, loc="center right", fancybox=False)
-        axes.set_xlim([0, max(xmax)])
+        axes.set_xlim([0, max(xmax) * 1.05])
         return axes

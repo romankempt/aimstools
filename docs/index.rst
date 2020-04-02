@@ -8,11 +8,17 @@ AIMS_tools's documentation
 
 .. toctree::
    :maxdepth: 3
-   :caption: Introduction:
+   :caption: Introduction:   
 
    intros/intro
    intros/command_line
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Workflows and Tutorials:   
+
    intros/workflows
+   intros/plotting
    intros/effective_mass_intro
    intros/boltztrap2
 

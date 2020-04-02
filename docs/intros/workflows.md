@@ -1,8 +1,4 @@
-# Workflows
-
-Workflows are command chains that wrap some of the functions here together to automate specific tasks.
-
-## Converging the k-grid
+# Converging the k-grid
 
 The **aims_kconvergence** tool automates the process of converging the k-grid. It has two different modes:
 

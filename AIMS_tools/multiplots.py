@@ -93,14 +93,15 @@ def combine(
                     ymin, ymax = axes.get_ylim()
                 if ax != 0:
                     axes.set_ylim([ymin, ymax])
-                    # xmax = []
-                    # for line in axes.lines:
-                    #     xmax.append(max(line.get_xdata()))
-                    # axes.set_xlim(0, max(xmax) * 1.05)
+                    xmax = []
                     index = np.argwhere(indices == ax)
                     if index[0][1] != 0:
                         axes.set_ylabel("")
                         axes.set_yticks([])
+                for line in axes.lines:
+                    xmax.append(max(line.get_xdata()))
+                axes.set_xlim(0, max(xmax) * 1.05)
+
             if titles != []:
                 axes.set_title(titles[ax])
 

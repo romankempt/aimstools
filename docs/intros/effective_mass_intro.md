@@ -1,4 +1,4 @@
-# Effective Masses
+### Effective Masses
 
 Effective masses are implemented via band fitting, where estimates of the fitting parameters are obtained through finite differences. This eliminates the need to specify step sizes and partially remedies the dependency of the results on the density of the k-grid.
 
