@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
     name="AIMS_tools",
-    version="0.1.0",
+    version="0.1.1",
     author="Roman Kempt",
     author_email="roman.kempt@tu-dresden.de",
     description="A small toolbox to handle AIMS calculations.",
@@ -17,6 +17,7 @@ setup(
         "bin/aims_sort",
         "bin/aims_plot",
         "bin/aims_kconvergence",
+        "bin/build_interface",
     ],
     install_requires=["spglib", "numpy", "scipy", "matplotlib", "ase", "networkx"],
     classifiers=[

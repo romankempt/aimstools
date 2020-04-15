@@ -21,6 +21,7 @@ AIMS_tools's documentation
    intros/plotting
    intros/effective_mass_intro
    intros/boltztrap2
+   intros/building_interfaces
 
 .. toctree::
    :maxdepth: 3
@@ -29,6 +30,7 @@ AIMS_tools's documentation
    structuretools
    preparation
    postprocessing
+   interfaces   
 
 .. toctree::
    :maxdepth: 3

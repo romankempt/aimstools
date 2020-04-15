@@ -17,7 +17,7 @@ class structure:
     """ A base class for structure analysis and manipulation relying on the ASE.
     
     Args:
-        geometryfile (str): Path to structure file (.cif, .xyz ..).
+        geometry (str): Path to structure file (.cif, .xyz ..) or atoms object.
 
     Attributes:
         atoms (Atoms): ASE atoms object.
@@ -27,20 +27,30 @@ class structure:
         lattice (str): Description of Bravais lattice.
     """
 
-    def __init__(self, geometryfile):
-        self.atoms = ase.io.read(geometryfile)
-        self.atom_indices = {}
-        i = 1  # index to run over atoms
-        with open(geometryfile, "r") as file:
-            for line in file.readlines():
-                if ("atom" in line) and ("hessian" not in line):
-                    self.atom_indices[i] = line.split()[-1]
-                    i += 1
+    def __init__(self, geometry):
+        if type(geometry) == ase.atoms.Atoms:
+            self.atoms = geometry
+            self.atom_indices = dict(
+                zip(range(1, len(geometry) + 1), list(self.atoms.symbols))
+            )
+        elif Path(geometry).is_file():
+            self.atoms = ase.io.read(geometry)
+            self.atom_indices = {}
+            i = 1  # index to run over atoms
+            with open(geometry, "r") as file:
+                for line in file.readlines():
+                    if ("atom" in line) and ("hessian" not in line):
+                        self.atom_indices[i] = line.split()[-1]
+                        i += 1
+
         keys = list(set(self.atom_indices.values()))
         numbers = []
         for key in keys:
             numbers.append(list(self.atom_indices.values()).count(key))
-        self.sg = ase.spacegroup.get_spacegroup(self.atoms, symprec=1e-2)
+        try:
+            self.sg = ase.spacegroup.get_spacegroup(self.atoms, symprec=1e-2)
+        except:
+            self.sg = ase.spacegroup.Spacegroup(1)
         self.lattice = self.get_lattice()
         self.species = dict(zip(keys, numbers))
         self.fragments = self.find_fragments(self.atoms)
@@ -301,12 +311,38 @@ class structure:
             logging.warning("Reverting spglib standardization.")
         finally:
             atoms.set_cell(atoms.cell.standard_form()[0])
+        atoms = self.recenter(atoms)
+        if self.is_2d(atoms) != True:
+            logging.warning("Enforcing 2D system failed.")
+            logging.warning(
+                "This is typically the case, if the cell orientation changes because of stupid crystallographic conventions."
+            )
+            return self.atoms
+        else:
+            return atoms
+
+    def recenter(self, atoms):
+        """ Recenters atoms to be in the unit cell, with vacuum on both sides.
+        
+        Returns:
+            atoms : modified atoms object.
+
+        Note:
+            The ase.atoms.center() method is supposed to do that, but sometimes separates the layers. I didn't find a good way to circumvene that.
+
+         """
         atoms.wrap(pretty_translation=True)
         atoms.center(axis=(2))
         mp = atoms.get_center_of_mass(scaled=False)
         cp = (atoms.cell[0] + atoms.cell[1] + atoms.cell[2]) / 2
         pos = atoms.get_positions(wrap=False)
         pos[:, 2] += np.abs((mp - cp))[2]
+        for z in range(pos.shape[0]):
+            lz = atoms.cell.lengths()[2]
+            if pos[z, 2] >= lz:
+                pos[z, 2] -= lz
+            if pos[z, 2] < 0:
+                pos[z, 2] += lz
         atoms.set_positions(pos)
         newcell, newpos, newscal, numbers = (
             atoms.get_cell(),
@@ -323,14 +359,7 @@ class structure:
         atoms = ase.Atoms(
             positions=newpos, numbers=numbers, cell=newcell, pbc=atoms.pbc
         )
-        if self.is_2d(atoms) != True:
-            logging.warning("Enforcing 2D system failed.")
-            logging.warning(
-                "This is typically the case, if the cell orientation changes because of stupid crystallographic conventions."
-            )
-            return self.atoms
-        else:
-            return atoms
+        return atoms
 
     def is_2d(self, atoms):
         """ Evaluates if given structure is qualitatively two-dimensional.

@@ -7,6 +7,7 @@ AIMS_tools
    bandstructure
    dos
    eff_mass
+   interfaces
    multiplots
    phonons
    postprocessing

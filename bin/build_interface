@@ -1,0 +1,59 @@
+#!/usr/bin/env python
+import os, sys
+from AIMS_tools.misc import *
+from AIMS_tools.interfaces import interface
+import argparse
+
+
+def parseArguments():
+    # Create argument parser
+    parser = argparse.ArgumentParser()
+
+    # Positional mandatory arguments
+    parser.add_argument("bottom", help="Path to geometry for bottom layer.", type=str)
+    parser.add_argument("top", help="Path to geometry for top layer.", type=str)
+
+    # Optional arguments
+    parser.add_argument(
+        "-N", "--ntrans", help="Number of translations", type=int, default=10
+    )
+    parser.add_argument(
+        "-as", "--angle_stepsize", help="Angle step size", type=float, default=10.0
+    )
+    parser.add_argument(
+        "-al",
+        "--angle_limits",
+        help="Angle limits",
+        type=float,
+        nargs="+",
+        default=(0, 180.0),
+    )
+    parser.add_argument(
+        "-c", "--crit", help="Acceptance criterion", type=float, default=0.20
+    )
+    parser.add_argument(
+        "-d", "--distance", help="Interlayer distance", type=float, default=4.0
+    )
+    parser.add_argument(
+        "-w", "--weight", help="Weight to reconstruct stack", type=float, default=0.5
+    )
+    parser.add_argument(
+        "--prec",
+        help="Precision to determine equivalent structures",
+        type=float,
+        default=1e-4,
+    )
+    parser.add_argument(
+        "--jitter", help="Jitters points for plotting", type=float, default=0.05
+    )
+
+    # Parse arguments
+    args = parser.parse_args()
+    return args
+
+
+if __name__ == "__main__":
+    args = parseArguments()
+    intf = interface(**vars(args))
+    intf.analyze_results(args.distance, args.weight, args.prec)
+    intf.plot_results(args.jitter)
