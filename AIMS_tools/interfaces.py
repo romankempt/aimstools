@@ -38,7 +38,7 @@ class interface:
         crit (float): Distance criterion to accept coincidence lattice points. Defaults to 0.20 (Angström).
         distance (float): Interlayer distance between the reconstructed stacks. Defaults to 4.0 (Angström).
         weight (float): Value between 0 and 1, defaults to 0.5. The unit cell of the reconstructed stack is :math:`B + w \cdot (T - B)`.
-        prec (float): Precision to identify equivalent structures. Defaults to 1e-4.
+        prec (float): Precision to identify equivalent structures. Defaults to 1e-3.
         jitter (float): Jitters data points for plotting for easier picking. Defaults to 0.05.
     
     Attributes:
@@ -58,7 +58,7 @@ class interface:
         crit = kwargs.get("crit", 0.20)
         distance = kwargs.get("distance", 4.0)
         self.weight = kwargs.get("weight", 0.5)
-        prec = kwargs.get("prec", 1e-4)
+        prec = kwargs.get("prec", 1e-3)
         jitter = kwargs.get("jitter", 0.05)
 
         self.results = self.find_coincidence(
@@ -89,12 +89,8 @@ class interface:
             self.top = top
         else:
             logging.critical("Input for top structure not recognised.")
-        assert self.bottom.is_2d(self.bottom.atoms), logging.critical(
-            "Bottom structure is not 2D!"
-        )
-        assert self.top.is_2d(self.top.atoms), logging.critical(
-            "Top structure is not 2D!"
-        )
+        assert self.bottom.is_2d(self.bottom.atoms), "Bottom structure is not 2D!"
+        assert self.top.is_2d(self.top.atoms), "Top structure is not 2D!"
         self.bottom.standardize(to_primitive=True)
         self.top.standardize(to_primitive=True)
         self.bottom.atoms.set_cell(self.bottom.atoms.cell.T, scale_atoms=True)
@@ -241,9 +237,9 @@ class interface:
         """
         pairs = self.pairs
         self.weight = weight
-        assert (self.weight <= 1.0) and (self.weight >= 0.0), logging.error(
-            "Weight must be between 0 and 1."
-        )
+        assert (self.weight <= 1.0) and (
+            self.weight >= 0.0
+        ), "Weight must be between 0 and 1."
         data = []
         scinfo = []
         solved = []
@@ -296,12 +292,12 @@ class interface:
         end = time.time()
         logging.info("Analysis finished in {:.2f} seconds.".format(end - start))
 
-    def __filter_unique_structures(self, solved, data, scinfo, prec=1e-4):
+    def __filter_unique_structures(self, solved, data, scinfo, prec=1e-3):
         copies = []
         for j in range(len(solved)):
             struc = strc(solved[j])
             struc.standardize(to_primitive=True, symprec=prec)
-            solved[j] = struc.atoms.copy()
+            solved[j] = struc.recenter(struc.atoms)
         for i in range(len(solved)):
             for j in range(len(solved)):
                 if j > i:

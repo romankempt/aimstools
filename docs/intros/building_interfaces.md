@@ -105,7 +105,7 @@ INFO    │ Analysis finished in 112.43 seconds.
 
 And an interactive interface via matplotlib will show up:
 
-![kconv](../../pictures/build_interfaces.png)
+![](../../pictures/build_interfaces.png)
 
 Any point on the left hand side can be clicked on to show the overlapping grid points, the entries of the supercell matrices, and a preview of the resulting heterostructure with the twist angle. Clicking on the button on the bottom right will save the structure to an .xyz file, with the following log:
 

@@ -261,7 +261,9 @@ class structure:
             logging.info("Interstitial distance: \t {: 10.3f} Angström".format(int_d))
 
     def standardize(self, to_primitive=False, symprec=1e-4):
-        """ Wrapper of the spglib standardize() function.
+        """ Wrapper of the spglib standardize() function with extra features.
+
+        For 2D systems, the non-periodic axis is enforced as the z-axis.
         
         Args:
             to_primitive (bool): Reduces to primitive cell or not.
@@ -270,6 +272,7 @@ class structure:
         Note:
             The combination of to_primitive=True and a larger value of symprec (1e-3) can be used to symmetrize a structure.
         """
+        pbc1 = self.find_nonperiodic_axes(self.atoms)
         lattice, positions, numbers = (
             self.atoms.get_cell(),
             self.atoms.get_scaled_positions(),
@@ -283,12 +286,25 @@ class structure:
             logging.error("Cell could not be standardized.")
             return None
         else:
-            self.atoms = ase.Atoms(
+            atoms = ase.Atoms(
                 scaled_positions=newcell[1],
                 numbers=newcell[2],
                 cell=newcell[0],
                 pbc=self.atoms.pbc,
             )
+            pbc2 = self.find_nonperiodic_axes(atoms)
+            if pbc1 != pbc2:
+                old = [k for k, v in pbc1.items() if v]
+                new = [k for k, v in pbc2.items() if v]
+                assert len(old) == len(
+                    new
+                ), "Periodicity changed due to standardization."
+                if len(new) == 2:
+                    npbcax = list(set([0, 1, 2]) - set(new))[0]
+                    atoms = ase.geometry.permute_axes(atoms, new + [npbcax])
+                    assert self.is_2d(atoms), "Permutation to 2D not working."
+            self.atoms = atoms
+            self.lattice = self.get_lattice()
 
     def enforce_2d(self):
         """ Enforces a special representation of a two-dimensional system.
@@ -361,56 +377,55 @@ class structure:
         )
         return atoms
 
-    def is_2d(self, atoms):
+    def is_2d(self, atoms=None):
         """ Evaluates if given structure is qualitatively two-dimensional.
 
         Note:
-            A 2D structure has to fulfill three criterions:\n
-            - more than one distinct unbonded fragments\n
-            - a vacuum gap between at least one pair of closest fragments of at least 30 Angström along z\n
-            - continouos in-plane connectivity within 30 Angström and periodicity\n
+            A 2D structure is considered 2D if only the z-axis is non-periodic.
         
-            The current code might fail for large structures with a small vacuum gap. Please report any
-            cases where the result is wrong.
-
         Returns:
             bool: 2D or not to 2D, that is the question.
         """
-
-        crit_1 = False  # criterion of distinct fragments
-        crit_2 = False  # criterion of separated fragments
-        crit_3 = False  # criterion of 2D periodicity and connectivity
-        sc = ase.build.make_supercell(atoms, 2 * np.identity(3), wrap=True)
-        fragments = self.find_fragments(sc)
-        if len(fragments) > 1:
-            crit_1 = True
-        av_z = []
-        for index, tup in fragments.items():
-            zval = tup[1].get_positions()[:, 2]
-            zval = np.average(zval)
-            av_z.append(zval)
-        av_z = sorted(av_z)
-        for j in range(len(av_z) - 1):
-            nearest_d = av_z[j + 1] - av_z[j]
-            if nearest_d >= 30.0:
-                crit_2 = True
-                break
-
-        if len(fragments) > 1:
-            av_xy = []
-            for index, tup in fragments.items():
-                xy = tup[1].get_positions()[:, [0, 1]]
-                xy = np.average(np.linalg.norm(xy, axis=1))
-                av_xy.append(xy)
-            av_xy = sorted(av_xy)
-            for j in range(len(av_xy) - 1):
-                nearest_d = av_xy[j + 1] - av_xy[j]
-                if nearest_d >= 30.0:
-                    break
-            else:
-                crit_3 = True
-
-        if crit_1 * crit_2 * crit_3 == True:
+        if atoms != None:
+            atoms = atoms.copy()
+        else:
+            atoms = self.atoms.copy()
+        pbcax = self.find_nonperiodic_axes(atoms)
+        if list(pbcax.values()) == [True, True, False]:
             return True
         else:
             return False
+
+    def find_nonperiodic_axes(self, atoms=None):
+        """ Evaluates if given structure is qualitatively periodic along certain lattice directions.
+
+        Note:
+            An axis is considered non-periodic if:\n
+            - the structure consists of more than one fragment (non-continuos bonding)\n
+            - two closest fragments are sepearted by more than 20.0 Anström\n
+
+        Returns:
+            dict: Axis : Bool pairs.
+        """
+        if atoms != None:
+            atoms = atoms.copy()
+        else:
+            atoms = self.atoms.copy()
+
+        sc = ase.build.make_supercell(atoms, 2 * np.identity(3), wrap=True)
+        fragments = self.find_fragments(sc)
+        crit1 = True if len(fragments) > 1 else False
+        pbc = dict(zip([0, 1, 2], [True, True, True]))
+        if crit1:
+            for axes in (0, 1, 2):
+                spans = []
+                for index, tup in fragments.items():
+                    pos = tup[1].get_positions()[:, axes]
+                    spans.append([np.min(pos), np.max(pos)])
+                spans = sorted(spans, key=lambda x: x[0])
+                for j in range(len(spans) - 1):
+                    nd = spans[j + 1][0] - spans[j][1]
+                    if nd >= 20.0:
+                        pbc[axes] = False
+                        break
+        return pbc
