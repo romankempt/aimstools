@@ -1,0 +1,182 @@
+#===============================================================================
+# FHI-aims file: ./control.in
+# Created using the Atomic Simulation Environment (ASE)
+# Thu Apr  2 11:29:47 2020
+#===============================================================================
+xc                                 pbe
+# include_spin_orbit
+# vdw_correction_hirshfeld
+many_body_dispersion_nl 	 beta=0.81
+spin                               none
+k_grid 	 	 18 18 18
+relativistic                       atomic_zora scalar
+### SCF settings 
+adjust_scf 	 always 	 3 
+# frozen_core_scf 	 .true. 
+# charge_mix_param  0.05
+# occupation_type 	 gaussian 	 0.01 
+# sc_accuracy_eev   1E-3 	 	 # sum of eigenvalues convergence
+# sc_accuracy_etot  1E-6 	 	 # total energy convergence
+# sc_accuracy_rho   1E-3 	 	 # electron density convergence
+# elsi_restart 	 read_and_write 	 1000
+### geometry optimisation section
+relax_geometry 	 bfgs 	 1E-2
+relax_unit_cell 	 full 
+#===============================================================================
+
+################################################################################
+#
+#  FHI-aims code project
+# Volker Blum, Fritz Haber Institute Berlin, 2009
+#
+#  Suggested "tight" defaults for Pt atom (to be pasted into control.in file)
+#
+################################################################################
+  species        Pt
+#     global species definitions
+    nucleus             78
+    mass                195.084
+#
+    l_hartree           6
+#
+    cut_pot             4.0  2.0  1.0
+    basis_dep_cutoff    1e-4
+#
+    radial_base         72 7.0
+    radial_multiplier   2
+    angular_grids specified
+      division   0.3279   50
+      division   0.7476  110
+      division   1.0850  194
+      division   1.2652  302
+      division   1.6291  434
+#      division   1.9966  590
+#      division   2.1207  770
+#      division   2.1534  974
+#      division   2.7454 1202
+#      outer_grid    974
+      outer_grid  434
+################################################################################
+#
+#  Definition of "minimal" basis
+#
+################################################################################
+#     valence basis states
+    valence      6  s   1.
+    valence      5  p   6.
+    valence      5  d   9.
+    valence      4  f  14.
+#     ion occupancy
+    ion_occ     6  s   0.
+    ion_occ     5  p   6.
+    ion_occ     5  d   8.
+    ion_occ     4  f   14.
+################################################################################
+#
+#  Suggested additional basis functions. For production calculations, 
+#  uncomment them one after another (the most important basis functions are
+#  listed first).
+#
+#  Constructed for dimers: 2.00, 2.275, 2.75, 3.75 AA
+#
+################################################################################
+#  "First tier" - max. impr. -193.66  meV, min. impr. -18.25 meV
+     hydro 4 f 7.4
+     ionic 6 p auto
+     hydro 5 g 9.8
+     ionic 6 s auto
+     hydro 3 d 2.6
+#  "Second tier" - max. impr. -10.25  meV, min. impr. -0.56 meV
+#     hydro 6 h 14
+#     hydro 5 f 14
+#     hydro 4 d 4
+#     hydro 3 p 3.3
+#     hydro 5 g 16.4
+#     hydro 1 s 0.5 
+#  "Third tier" - max. impr. -0.72  meV, min. impr. -0.18 meV
+#     hydro 5 f 9
+#     ionic 5 d auto
+#     hydro 6 h 16.4
+#     hydro 5 g 12.4
+#     hydro 5 g 34
+#     hydro 5 s 13.6
+#     hydro 5 p 10.4
+#  Further functions: ################################################################################
+#
+#  FHI-aims code project
+# Volker Blum, Fritz Haber Institute Berlin, 2009
+#
+#  Suggested "tight" defaults for Se atom (to be pasted into control.in file)
+#
+################################################################################
+  species        Se
+#     global species definitions
+    nucleus             34
+    mass                78.96
+#
+    l_hartree           6
+#
+    cut_pot             4.0          2.0  1.0
+    basis_dep_cutoff    1e-4
+#
+    radial_base         55 7.0
+    radial_multiplier   2
+    angular_grids       specified
+      division   0.0830  110
+      division   0.1357  194
+      division   0.7377  302
+      division   0.8610  434
+#      division   0.9640  590
+#      division   1.0773  770
+#      division   2.5539  974
+#      outer_grid  974
+      outer_grid  434
+################################################################################
+#
+#  Definition of "minimal" basis
+#
+################################################################################
+#     valence basis states
+    valence      4  s   2.
+    valence      4  p   4.
+    valence      3  d  10.
+#     ion occupancy
+    ion_occ      4  s   1.
+    ion_occ      4  p   3.
+    ion_occ      3  d  10.
+################################################################################
+#
+#  Suggested additional basis functions. For production calculations, 
+#  uncomment them one after another (the most important basis functions are
+#  listed first).
+#
+#  Constructed for dimers: 1.85 A, 2.15 A, 2.50 A, 3.00 A, 4.00 A
+#
+################################################################################
+#  "First tier" - improvements: -336.21 meV to -36.85 meV 
+     hydro 3 d 4.3
+     hydro 2 p 1.6
+     hydro 4 f 7.2
+     ionic 4 s auto
+#  "Second tier" - improvements: -14.39 meV to -1.49 meV
+#     hydro 5 g 10.4  
+#     hydro 4 p 4.5
+#     hydro 4 d 6.2
+#     hydro 4 f 11.2
+#     hydro 1 s 0.65
+#     hydro 6 h 15.2
+#  "Third tier" - improvements: -0.46 meV and below
+#     hydro 5 g 14.4
+#     ionic 4 d auto
+#     hydro 4 f 22.4
+#     hydro 5 f 7.4
+#     hydro 5 p 8
+#     hydro 5 s 9.4    
+#  "Fourth tier" - improvements: -0.12 meV and below
+#     hydro 5 d 11.6
+#     hydro 6 h 18
+#     hydro 4 p 4
+#     hydro 5 f 16
+#     hydro 4 s 3.9    
+#
+#

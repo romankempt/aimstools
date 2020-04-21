@@ -99,8 +99,10 @@ INFO    │ Found 686 matching lattice points.
 INFO    │ Constructed 219 linearly independent pairs of supercell matrices.
 INFO    │ Reconstructing heterostructures ...
 INFO    │ Standardizing representations and filtering unique structures ...
+INFO    │   Spglib standardization with enforced axes order finished in parallel after 0.37 seconds ...
+INFO    │   Filtering structures finished in 3.86 seconds ...
 INFO    │ Found 219 unique structures.
-INFO    │ Analysis finished in 112.43 seconds.
+INFO    │ Analysis finished in 8.82 seconds.
 ```
 
 And an interactive interface via matplotlib will show up:
@@ -113,4 +115,4 @@ Any point on the left hand side can be clicked on to show the overlapping grid p
 INFO    │ Saved structure to C24S14W7_M2-242_N-2-31-2_a71.00.xyz
 ```
 
-The first part represents the chemical formula, then the coefficients of the matrix **M**, the coefficients of the matrix **N** and the twist angle.
+The first part represents the chemical formula, then the coefficients of the matrix **M**, the coefficients of the matrix **N** and the twist angle. Note that these are the transformation matrices of the standardized, primitive and transposed unit cells.

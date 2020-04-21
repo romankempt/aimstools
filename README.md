@@ -28,7 +28,7 @@ The documentation is now available at [ReadTheDocs](https://aims-tools.readthedo
 
 ## Requirements
 
-- [Atomic Simulation Environment](https://wiki.fysik.dtu.dk/ase/) ase 3.18.1 or higher
+- [Atomic Simulation Environment](https://wiki.fysik.dtu.dk/ase/) ase 3.19 or higher
 - [Space Group Libary](https://atztogo.github.io/spglib/python-spglib.html) spglib
 - [Scientific Python](https://www.scipy.org/) scipy (including numpy, matplotlib and pandas)
 - [seaborn](https://seaborn.pydata.org/)

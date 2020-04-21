@@ -1,6 +1,8 @@
 from AIMS_tools.misc import *
 from AIMS_tools.structuretools import structure as strc
 
+import spglib
+
 import numpy as np
 import ase.build
 
@@ -11,6 +13,26 @@ def _coincidence(a1, b1, m1, m2, n1, n2, theta):
     Am = a1 @ np.array([m1, m2])
     Bn = R @ b1 @ np.array([n1, n2])
     return (m1, m2, n1, n2, theta, np.linalg.norm(Am - Bn))
+
+
+def _standardize(atoms, symprec=1e-4):
+    cell = (atoms.get_cell()).tolist()
+    pos = atoms.get_scaled_positions().tolist()
+    numbers = atoms.get_atomic_numbers()
+
+    cell, scaled_pos, numbers = spglib.standardize_cell(
+        (cell, pos, numbers), to_primitive=True
+    )
+
+    atoms = ase.atoms.Atoms(
+        scaled_positions=scaled_pos, numbers=numbers, cell=cell, pbc=True
+    )
+    axes = [0, 1, 2]
+    lengths = atoms.cell.lengths()
+    order = [x for x, y in sorted(zip(axes, lengths), key=lambda pair: pair[1])]
+    if order != [0, 1, 2]:
+        atoms = ase.geometry.permute_axes(atoms, order)
+    return atoms
 
 
 class interface:
@@ -224,7 +246,8 @@ class interface:
     ):
         """ Analyzes results after grid point search.
 
-        Structures are considered identical if they have the same number of atoms, the same twist angle, the same unit cell area and similar stress on the lattice vectors after reduction to the primitive unit.
+        All structures are standardized via spglib to the primitive unit with enforced axis order :math:`a < b < c`.
+        Structures are considered identical if they have the same number of atoms, similar unit cell area and stress on the lattice vectors.
         
         Args:
             distance (int, optional): Interlayer distance of reconstructed stacks. Defaults to 3.
@@ -240,6 +263,7 @@ class interface:
         assert (self.weight <= 1.0) and (
             self.weight >= 0.0
         ), "Weight must be between 0 and 1."
+
         data = []
         scinfo = []
         solved = []
@@ -252,7 +276,6 @@ class interface:
                 M, N = row
                 try:
                     bottom = ase.build.make_supercell(bottom, M, wrap=False)
-                    theta = angle / 180.0 * np.pi
                     top.rotate(angle, v="z", rotate_cell=True)
                     top = ase.build.make_supercell(top, N, wrap=False)
                     bottom = strc(bottom).recenter(bottom)
@@ -263,8 +286,8 @@ class interface:
                     solved.append(stack)
                     natoms = len(stack)
                     stress = np.linalg.norm(top.cell - bottom.cell)
-                    n1, n2, n3, n4 = N[0, 0], N[0, 1], N[1, 0], N[1, 1]
                     m1, m2, m3, m4 = M[0, 0], M[0, 1], M[1, 0], M[1, 1]
+                    n1, n2, n3, n4 = N[0, 0], N[0, 1], N[1, 0], N[1, 1]
                     scdata = (
                         int(natoms),
                         int(m1),
@@ -292,17 +315,36 @@ class interface:
         end = time.time()
         logging.info("Analysis finished in {:.2f} seconds.".format(end - start))
 
-    def __filter_unique_structures(self, solved, data, scinfo, prec=1e-3):
+    def __parallel_spglib_standard(self, solved, prec):
+        import multiprocessing as mp
+        import itertools
+
+        start = time.time()
+        cpus = mp.cpu_count()
+        pool = mp.Pool(processes=cpus)
+        iterator = ((j, prec) for j in solved)
+        res = pool.starmap_async(_standardize, iterator)  # , chunksize=10)
+        solved = res.get()
+        pool.close()
+        pool.join()
+        end = time.time()
+
+        logging.info(
+            "  Spglib standardization with enforced axes order finished in parallel after {:.2f} seconds ...".format(
+                end - start
+            )
+        )
+        return solved
+
+    def __remove_doubles(self, solved, data, scinfo, prec):
         copies = []
-        for j in range(len(solved)):
-            struc = strc(solved[j])
-            struc.standardize(to_primitive=True, symprec=prec)
-            solved[j] = struc.recenter(struc.atoms)
+        start = time.time()
         for i in range(len(solved)):
             for j in range(len(solved)):
                 if j > i:
                     a = solved[i].copy()
                     b = solved[j].copy()
+                    data[i] = (data[i][0], len(a))
                     area = (
                         np.linalg.norm(np.cross(a.cell.T[:, 0], a.cell.T[:, 1]))
                         - np.linalg.norm(np.cross(b.cell.T[:, 0], b.cell.T[:, 1]))
@@ -310,13 +352,21 @@ class interface:
                     )
                     natoms = (len(a) - len(b)) == 0
                     stress = np.abs(data[j][0] - data[i][0]) < prec
-                    angle = np.abs(scinfo[i][5] - scinfo[j][5]) < prec
-                    if area and natoms and stress and angle:
+                    if area and natoms and stress:
                         if j not in copies:
                             copies.append(j)
         solved = [i for j, i in enumerate(solved) if j not in copies]
         scinfo = [i for j, i in enumerate(scinfo) if j not in copies]
         data = [i for j, i in enumerate(data) if j not in copies]
+        end = time.time()
+        logging.info(
+            "  Filtering structures finished in {:.2f} seconds ...".format(end - start)
+        )
+        return solved, scinfo, data
+
+    def __filter_unique_structures(self, solved, data, scinfo, prec=1e-3):
+        solved = self.__parallel_spglib_standard(solved, prec)
+        solved, scinfo, data = self.__remove_doubles(solved, data, scinfo, prec)
         logging.info("Found {:d} unique structures.".format(len(solved)))
         self.solved = solved
         self.data = np.array(data, dtype=float)
@@ -447,7 +497,7 @@ class interface:
         axes.set_xticks([])
         axes.set_xlabel("")
         axes.set_ylabel("")
-        scdata = "{:d} atoms, twist angle of {:.2f}°".format(scdata[0], scdata[-1])
+        scdata = "{:d} atoms, twist angle of {:.2f}°".format(len(stack), scdata[-1])
         axes.set_title(scdata)
         self.current_stack = stack
         plot_atoms(stack, axes, radii=0.3)

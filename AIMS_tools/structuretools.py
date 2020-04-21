@@ -30,19 +30,15 @@ class structure:
     def __init__(self, geometry):
         if type(geometry) == ase.atoms.Atoms:
             self.atoms = geometry
-            self.atom_indices = dict(
-                zip(range(1, len(geometry) + 1), list(self.atoms.symbols))
-            )
         elif Path(geometry).is_file():
-            self.atoms = ase.io.read(geometry)
-            self.atom_indices = {}
-            i = 1  # index to run over atoms
-            with open(geometry, "r") as file:
-                for line in file.readlines():
-                    if ("atom" in line) and ("hessian" not in line):
-                        self.atom_indices[i] = line.split()[-1]
-                        i += 1
-
+            try:
+                self.atoms = ase.io.read(geometry)
+            except:
+                logging.error("Input structure not recognised.")
+        assert type(self.atoms) == ase.atoms.Atoms, "Atoms not read correctly."
+        self.atom_indices = dict(
+            zip(range(1, len(self.atoms) + 1), list(self.atoms.symbols))
+        )
         keys = list(set(self.atom_indices.values()))
         numbers = []
         for key in keys:
@@ -53,7 +49,6 @@ class structure:
             self.sg = ase.spacegroup.Spacegroup(1)
         self.lattice = self.get_lattice()
         self.species = dict(zip(keys, numbers))
-        self.fragments = self.find_fragments(self.atoms)
 
     def __repr__(self):
         return self.atoms.get_chemical_formula()
@@ -260,7 +255,7 @@ class structure:
             int_d = a - b
             logging.info("Interstitial distance: \t {: 10.3f} Angström".format(int_d))
 
-    def standardize(self, to_primitive=False, symprec=1e-4):
+    def standardize(self, atoms=None, to_primitive=False, symprec=1e-4):
         """ Wrapper of the spglib standardize() function with extra features.
 
         For 2D systems, the non-periodic axis is enforced as the z-axis.
@@ -272,11 +267,15 @@ class structure:
         Note:
             The combination of to_primitive=True and a larger value of symprec (1e-3) can be used to symmetrize a structure.
         """
-        pbc1 = self.find_nonperiodic_axes(self.atoms)
+        if atoms != None:
+            atoms = atoms.copy()
+        else:
+            atoms = self.atoms.copy()
+        pbc1 = self.find_nonperiodic_axes(atoms)
         lattice, positions, numbers = (
-            self.atoms.get_cell(),
-            self.atoms.get_scaled_positions(),
-            self.atoms.numbers,
+            atoms.get_cell(),
+            atoms.get_scaled_positions(),
+            atoms.numbers,
         )
         cell = (lattice, positions, numbers)
         newcell = spglib.standardize_cell(
@@ -306,7 +305,7 @@ class structure:
             self.atoms = atoms
             self.lattice = self.get_lattice()
 
-    def enforce_2d(self):
+    def enforce_2d(self, atoms=None):
         """ Enforces a special representation of a two-dimensional system.
         
         Sets all z-components of the lattice basis to zero and adds vacuum space such that the layers are centered in the unit cell.
@@ -314,6 +313,10 @@ class structure:
         Returns:
             atoms: Modified atoms object.
         """
+        if atoms != None:
+            atoms = atoms.copy()
+        else:
+            atoms = self.atoms.copy()
         logging.info("Enforcing standardized 2D representation ...")
         atoms = self.atoms
         try:
@@ -337,8 +340,10 @@ class structure:
         else:
             return atoms
 
-    def recenter(self, atoms):
+    def recenter(self, atoms=None):
         """ Recenters atoms to be in the unit cell, with vacuum on both sides.
+
+        The unit cell length c is always chosen such that it is larger than a and b.
         
         Returns:
             atoms : modified atoms object.
@@ -347,6 +352,10 @@ class structure:
             The ase.atoms.center() method is supposed to do that, but sometimes separates the layers. I didn't find a good way to circumvene that.
 
          """
+        if atoms != None:
+            atoms = atoms.copy()
+        else:
+            atoms = self.atoms.copy()
         atoms.wrap(pretty_translation=True)
         atoms.center(axis=(2))
         mp = atoms.get_center_of_mass(scaled=False)
@@ -370,6 +379,15 @@ class structure:
         span = np.max(z_pos) - np.min(z_pos)
         newcell[0, 2] = newcell[1, 2] = newcell[2, 0] = newcell[2, 1] = 0.0
         newcell[2, 2] = span + 100.0
+        axes = [0, 1, 2]
+        lengths = np.linalg.norm(newcell, axis=1)
+        order = [x for x, y in sorted(zip(axes, lengths), key=lambda pair: pair[1])]
+        while True:
+            if (order == [0, 1, 2]) or (order == [1, 0, 2]):
+                break
+            newcell[2, 2] += 10.0
+            lengths = np.linalg.norm(newcell, axis=1)
+            order = [x for x, y in sorted(zip(axes, lengths), key=lambda pair: pair[1])]
         newpos = newscal @ newcell
         newpos[:, 2] = z_pos
         atoms = ase.Atoms(
@@ -402,11 +420,12 @@ class structure:
         Note:
             An axis is considered non-periodic if:\n
             - the structure consists of more than one fragment (non-continuos bonding)\n
-            - two closest fragments are sepearted by more than 20.0 Anström\n
+            - two closest fragments are sepearted by more than 30.0 Anström\n
 
         Returns:
             dict: Axis : Bool pairs.
         """
+
         if atoms != None:
             atoms = atoms.copy()
         else:
@@ -420,12 +439,13 @@ class structure:
             for axes in (0, 1, 2):
                 spans = []
                 for index, tup in fragments.items():
-                    pos = tup[1].get_positions()[:, axes]
-                    spans.append([np.min(pos), np.max(pos)])
+                    start = np.min(tup[1].get_positions()[:, axes])
+                    cm = tup[1].get_center_of_mass()[axes]
+                    spans.append([start, cm])
                 spans = sorted(spans, key=lambda x: x[0])
                 for j in range(len(spans) - 1):
-                    nd = spans[j + 1][0] - spans[j][1]
-                    if nd >= 20.0:
+                    nd = spans[j + 1][1] - spans[j][1]
+                    if nd >= 30.0:
                         pbc[axes] = False
                         break
         return pbc

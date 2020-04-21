@@ -1,0 +1,2026 @@
+------------------------------------------------------------
+          Invoking FHI-aims ...
+
+          When using FHI-aims, please cite the following reference:
+
+          Volker Blum, Ralf Gehrke, Felix Hanke, Paula Havu,
+          Ville Havu, Xinguo Ren, Karsten Reuter, and Matthias Scheffler,
+          'Ab Initio Molecular Simulations with Numeric Atom-Centered Orbitals',
+          Computer Physics Communications 180, 2175-2196 (2009)
+
+          For any questions about FHI-aims, please visit the aimsclub website
+          with its forums and wiki. Contributions to both the forums and the
+          wiki are warmly encouraged - they are for you, and everyone is welcome there.
+
+------------------------------------------------------------
+
+
+
+  Date     :  20200420, Time     :  113524.737
+  Time zero on CPU 1             :   0.103718000000000E+00  s.
+  Internal wall clock time zero  :           356614524.737  s.
+
+  FHI-aims created a unique identifier for this run for later identification
+  aims_uuid : FCF02143-677A-4E4C-A373-7C4C032DBC82
+
+  Build configuration of the current instance of FHI-aims
+  -------------------------------------------------------
+  FHI-aims version      : 200112
+  Commit number         : 23daeca3f
+  CMake host system     : Linux-3.10.0-693.21.1.el7.x86_64
+  CMake version         : 3.13.3
+  Fortran compiler      : /sw/installed/impi/2018.4.274-iccifort-2019.1.144-GCC-8.2.0-2.31.1/bin64/mpiifort (Intel) version 19.0.0.20181018
+  Fortran compiler flags: -O3 -ip -fp-model precise
+  C compiler            : /sw/installed/impi/2018.4.274-iccifort-2019.1.144-GCC-8.2.0-2.31.1/bin64/mpiicc (Intel) version 19.0.0.20181018
+  C compiler flags      : -O3 -ip -fp-model precise
+  Architecture          :
+  Using MPI
+  Using Scalapack
+  Using C files
+  Using LibXC
+  Using SPGlib
+  Using i-PI
+  Using RLSY
+  Linking against: /sw/installed/imkl/2019.1.144-iimpi-2019a/mkl/lib/intel64/libmkl_intel_lp64.so
+                   /sw/installed/imkl/2019.1.144-iimpi-2019a/mkl/lib/intel64/libmkl_sequential.so
+                   /sw/installed/imkl/2019.1.144-iimpi-2019a/mkl/lib/intel64/libmkl_core.so
+                   /sw/installed/imkl/2019.1.144-iimpi-2019a/mkl/lib/intel64/libmkl_blacs_intelmpi_lp64.so
+                   /sw/installed/imkl/2019.1.144-iimpi-2019a/mkl/lib/intel64/libmkl_scalapack_lp64.so
+
+  Using       24 parallel tasks.
+  Task        0 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task        1 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task        2 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task        3 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task        4 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task        5 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task        6 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task        7 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task        8 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task        9 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task       10 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task       11 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task       12 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task       13 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task       14 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task       15 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task       16 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task       17 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task       18 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task       19 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task       20 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task       21 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task       22 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+  Task       23 on host taurusi6316.taurus.hrsk.tu-dresden.de reporting.
+
+  Performing system and environment tests:
+  | Environment variable OMP_NUM_THREADS correctly set to 1.
+  | Maximum stacksize for task 0: unlimited
+  | Maximum stacksize for task 1: unlimited
+  | Maximum stacksize for task 2: unlimited
+  | Maximum stacksize for task 3: unlimited
+  | Maximum stacksize for task 4: unlimited
+  | Maximum stacksize for task 5: unlimited
+  | Maximum stacksize for task 6: unlimited
+  | Maximum stacksize for task 7: unlimited
+  | Maximum stacksize for task 8: unlimited
+  | Maximum stacksize for task 9: unlimited
+  | Maximum stacksize for task 10: unlimited
+  | Maximum stacksize for task 11: unlimited
+  | Maximum stacksize for task 12: unlimited
+  | Maximum stacksize for task 13: unlimited
+  | Maximum stacksize for task 14: unlimited
+  | Maximum stacksize for task 15: unlimited
+  | Maximum stacksize for task 16: unlimited
+  | Maximum stacksize for task 17: unlimited
+  | Maximum stacksize for task 18: unlimited
+  | Maximum stacksize for task 19: unlimited
+  | Maximum stacksize for task 20: unlimited
+  | Maximum stacksize for task 21: unlimited
+  | Maximum stacksize for task 22: unlimited
+  | Maximum stacksize for task 23: unlimited
+  | Current stacksize for task 0: unlimited
+  | Current stacksize for task 1: unlimited
+  | Current stacksize for task 2: unlimited
+  | Current stacksize for task 3: unlimited
+  | Current stacksize for task 4: unlimited
+  | Current stacksize for task 5: unlimited
+  | Current stacksize for task 6: unlimited
+  | Current stacksize for task 7: unlimited
+  | Current stacksize for task 8: unlimited
+  | Current stacksize for task 9: unlimited
+  | Current stacksize for task 10: unlimited
+  | Current stacksize for task 11: unlimited
+  | Current stacksize for task 12: unlimited
+  | Current stacksize for task 13: unlimited
+  | Current stacksize for task 14: unlimited
+  | Current stacksize for task 15: unlimited
+  | Current stacksize for task 16: unlimited
+  | Current stacksize for task 17: unlimited
+  | Current stacksize for task 18: unlimited
+  | Current stacksize for task 19: unlimited
+  | Current stacksize for task 20: unlimited
+  | Current stacksize for task 21: unlimited
+  | Current stacksize for task 22: unlimited
+  | Current stacksize for task 23: unlimited
+  | Checking for scalapack...
+  | Testing pdtran()...
+  | All pdtran() tests passed.
+
+  Obtaining array dimensions for all initial allocations:
+  
+  -----------------------------------------------------------------------
+  Parsing control.in (first pass over file, find array dimensions only).
+  The contents of control.in will be repeated verbatim below
+  unless switched off by setting 'verbatim_writeout .false.' .
+  in the first line of control.in .
+  -----------------------------------------------------------------------
+  
+  #===============================================================================
+  # FHI-aims file: ./control.in
+  # Created using the Atomic Simulation Environment (ASE)
+  # Thu Apr  2 11:27:09 2020
+  #===============================================================================
+  xc                                 pbe
+  # include_spin_orbit
+  # vdw_correction_hirshfeld
+  many_body_dispersion_nl 	 beta=0.81
+  spin                               none
+  k_grid 	 	 25 25 20
+  relativistic                       atomic_zora scalar
+  energy_tolerance 1e-2
+  harmonic_length_scale  0.015
+  ### SCF settings
+  adjust_scf 	 always 	 3
+  # frozen_core_scf 	 .true.
+  # charge_mix_param  0.05
+  # occupation_type 	 gaussian 	 0.01
+  # sc_accuracy_eev   1E-3 	 	 # sum of eigenvalues convergence
+  # sc_accuracy_etot  1E-6 	 	 # total energy convergence
+  # sc_accuracy_rho   1E-3 	 	 # electron density convergence
+  # elsi_restart 	 read_and_write 	 1000
+  ### geometry optimisation section
+  relax_geometry 	 bfgs 	 1E-2
+  relax_unit_cell 	 full
+  #===============================================================================
+  
+  ################################################################################
+  #
+  #  FHI-aims code project
+  # Volker Blum, Fritz Haber Institute Berlin, 2009
+  #
+  #  Suggested "tight" defaults for Pd atom (to be pasted into control.in file)
+  #
+  ################################################################################
+    species        Pd
+  #     global species definitions
+      nucleus             46
+      mass                106.42
+  #
+      l_hartree           6
+  #
+      cut_pot             4.0  2.0  1.0
+      basis_dep_cutoff    1e-4
+  #
+      radial_base         62 7.0
+      radial_multiplier   2
+      angular_grids specified
+        division   0.3627   50
+        division   0.7349  110
+        division   1.0624  194
+        division   1.2496  302
+        division   1.6740  434
+  #      division   2.0126  590
+  #      division   2.0830  770
+  #      division   2.7936 1202
+  #       outer_grid  974
+        outer_grid  434
+  ################################################################################
+  #
+  #  Definition of "minimal" basis
+  #
+  ################################################################################
+  #     valence basis states
+      valence      5  s   1.
+      valence      4  p   6.
+      valence      4  d   9.
+  #     ion occupancy
+      ion_occ     5  s   0.
+      ion_occ     4  p   6.
+      ion_occ     4  d   8.
+  ################################################################################
+  #
+  #  Suggested additional basis functions. For production calculations,
+  #  uncomment them one after another (the most important basis functions are
+  #  listed first).
+  #
+  #  Constructed for dimers: 2.0 A, 2.275 A, 2.75 A, 3.75 A
+  #
+  ################################################################################
+  #  "First tier" - max. impr. -120.76  meV, min. impr. -5.71 meV
+       ionic 5 p auto
+       hydro 4 f 8
+       hydro 5 g 10
+       hydro 3 s 2.6
+       hydro 3 d 2.5
+  #  "Second tier" - max. impr. -5.00  meV, min. impr. -0.62 meV
+  #     hydro 5 f 17.2
+  #     hydro 6 h 14
+  #     hydro 4 d 4
+  #     hydro 5 f 7.6
+  #     hydro 3 p 3.3
+  #     hydro 4 s 9.4
+  #  "Third tier" - max. impr. -0.54  meV, min. impr. -0.14 meV
+  #     hydro 4 f 20
+  #     hydro 5 g 12.8
+  #     hydro 5 d 9.8
+  #     hydro 6 h 15.2
+  #     hydro 5 s 10
+  #     hydro 6 p 9.8
+  #  "Fourth tier" - max. impr. -0.15  meV, min. impr. -0.05 meV
+  #     hydro 5 f 9.2
+  #     hydro 2 s 5.6
+  #     hydro 5 f 43.2
+  #     hydro 5 d 13.2
+  #     hydro 5 g 14
+  #     hydro 4 p 4.7
+  ################################################################################
+  #
+  #  FHI-aims code project
+  # Volker Blum, Fritz Haber Institute Berlin, 2009
+  #
+  #  Suggested "tight" defaults for Se atom (to be pasted into control.in file)
+  #
+  ################################################################################
+    species        Se
+  #     global species definitions
+      nucleus             34
+      mass                78.96
+  #
+      l_hartree           6
+  #
+      cut_pot             4.0          2.0  1.0
+      basis_dep_cutoff    1e-4
+  #
+      radial_base         55 7.0
+      radial_multiplier   2
+      angular_grids       specified
+        division   0.0830  110
+        division   0.1357  194
+        division   0.7377  302
+        division   0.8610  434
+  #      division   0.9640  590
+  #      division   1.0773  770
+  #      division   2.5539  974
+  #      outer_grid  974
+        outer_grid  434
+  ################################################################################
+  #
+  #  Definition of "minimal" basis
+  #
+  ################################################################################
+  #     valence basis states
+      valence      4  s   2.
+      valence      4  p   4.
+      valence      3  d  10.
+  #     ion occupancy
+      ion_occ      4  s   1.
+      ion_occ      4  p   3.
+      ion_occ      3  d  10.
+  ################################################################################
+  #
+  #  Suggested additional basis functions. For production calculations,
+  #  uncomment them one after another (the most important basis functions are
+  #  listed first).
+  #
+  #  Constructed for dimers: 1.85 A, 2.15 A, 2.50 A, 3.00 A, 4.00 A
+  #
+  ################################################################################
+  #  "First tier" - improvements: -336.21 meV to -36.85 meV
+       hydro 3 d 4.3
+       hydro 2 p 1.6
+       hydro 4 f 7.2
+       ionic 4 s auto
+  #  "Second tier" - improvements: -14.39 meV to -1.49 meV
+  #     hydro 5 g 10.4
+  #     hydro 4 p 4.5
+  #     hydro 4 d 6.2
+  #     hydro 4 f 11.2
+  #     hydro 1 s 0.65
+  #     hydro 6 h 15.2
+  #  "Third tier" - improvements: -0.46 meV and below
+  #     hydro 5 g 14.4
+  #     ionic 4 d auto
+  #     hydro 4 f 22.4
+  #     hydro 5 f 7.4
+  #     hydro 5 p 8
+  #     hydro 5 s 9.4
+  #  "Fourth tier" - improvements: -0.12 meV and below
+  #     hydro 5 d 11.6
+  #     hydro 6 h 18
+  #     hydro 4 p 4
+  #     hydro 5 f 16
+  #     hydro 4 s 3.9
+  #
+  #
+  
+  -----------------------------------------------------------------------
+  Completed first pass over input file control.in .
+  -----------------------------------------------------------------------
+  
+  
+  -----------------------------------------------------------------------
+  Parsing geometry.in (first pass over file, find array dimensions only).
+  The contents of geometry.in will be repeated verbatim below
+  unless switched off by setting 'verbatim_writeout .false.' .
+  in the first line of geometry.in .
+  -----------------------------------------------------------------------
+  
+  #
+  # This is the geometry file that corresponds to the current relaxation step.
+  # If you do not want this file to be written, set the "write_restart_geometry" flag to .false.
+  #  aims_uuid : EB7D3891-7107-4B48-A84A-AC0A7EE62B6E
+  #
+  lattice_vector      5.83784590      0.00000000      0.00000000
+  lattice_vector      0.00000000      5.95038518      0.00000000
+  lattice_vector      0.00000000      0.00000000      7.51780753
+  atom_frac       0.50114457      0.00041031      0.00027992 Pd
+  atom_frac       0.00040865      0.00047024      0.50138386 Pd
+  atom_frac       0.00051776      0.50114212      0.00030600 Pd
+  atom_frac       0.50125587      0.50120177      0.50135851 Pd
+  atom_frac       0.61288166      0.11862130      0.40370396 Se
+  atom_frac       0.89029029      0.88374972      0.90433937 Se
+  atom_frac       0.11215248      0.38305510      0.59876748 Se
+  atom_frac       0.38942949      0.61938875      0.09790627 Se
+  atom_frac       0.38949149      0.88376277      0.59877271 Se
+  atom_frac       0.11214511      0.11869925      0.09793258 Se
+  atom_frac       0.89022175      0.61930068      0.40371466 Se
+  atom_frac       0.61289099      0.38302811      0.90436478 Se
+  #
+  # What follows is the current estimated Hessian matrix constructed by the BFGS algorithm.
+  # This is NOT the true Hessian matrix of the system.
+  # If you do not want this information here, switch it off using the "hessian_to_restart_geometry" keyword.
+  #
+  trust_radius             0.0122098308
+  hessian_block                1       1           6.335831          -0.976868          -2.568823          -0.976868           8.92568
+  hessian_block                1       2          -1.018188           2.975267           0.948444          -0.508959           2.56007
+  hessian_block                1       3          -1.442723           4.179917           1.362325           0.021369          -0.46591
+  hessian_block                1       4           0.517694           0.234835          -0.055650           0.404974          -0.99705
+  hessian_block                1       5           0.550788          -2.089145          -0.796368          -1.648845           3.39131
+  hessian_block                1       6          -0.049315          -4.250853          -0.893821           2.026967          -4.53701
+  hessian_block                1       7          -1.128173           2.194938           0.879460           0.519859          -0.74974
+  hessian_block                1       8           0.402184          -2.218791          -0.287045          -0.019089          -2.82276
+  hessian_block                1       9          -0.093041          -0.051675           0.163132           0.713019          -3.15399
+  hessian_block                1      10          -4.111235           5.477212           2.689061          -1.483112           3.82585
+  hessian_block                1      11           1.171354          -3.260526          -1.142130           0.509994          -1.01004
+  hessian_block                1      12           0.430735          -2.214308          -0.298584           0.440687          -3.31936
+  hessian_block                2       2           8.462348           2.462573           3.610726           2.462573           8.81228
+  hessian_block                2       3           4.316599           3.723344           2.196768          -0.673470          -0.54751
+  hessian_block                2       4           0.180287           0.522076           0.085211          -1.113060          -0.17049
+  hessian_block                2       5          -3.599632          -1.136996          -1.671053           3.598040           2.35583
+  hessian_block                2       6          -4.673714          -4.004201          -2.330334          -4.234575          -4.30710
+  hessian_block                2       7           1.866475           1.058626           0.768357          -1.445524          -2.64954
+  hessian_block                2       8          -1.774941          -1.780096          -1.014746          -0.743932          -0.96623
+  hessian_block                2       9          -2.102436           0.270377          -1.024058          -2.131843          -3.35457
+  hessian_block                2      10           4.972002           3.888174           2.495313           4.139870           4.03459
+  hessian_block                2      11          -3.238273          -3.166981          -1.768793          -1.340324          -3.33506
+  hessian_block                2      12          -1.824617          -1.327937          -0.819194          -1.493019          -0.78523
+  hessian_block                3       3          11.397215          -0.808400           5.401655          -0.808400           6.22634
+  hessian_block                3       4           0.245600          -0.222054          -0.078263          -1.307887           0.30480
+  hessian_block                3       5          -2.654268           0.206799          -1.604591           4.396511          -0.04755
+  hessian_block                3       6          -6.770075           1.061565          -4.180763          -5.647238          -1.34951
+  hessian_block                3       7           2.850353          -0.126577           1.875355          -1.324161           0.12506
+  hessian_block                3       8          -4.273505          -0.128291          -2.162297          -1.787229          -0.30984
+  hessian_block                3       9          -0.411843           0.373454           0.063414          -3.996959           0.19408
+  hessian_block                3      10           6.880340          -0.011765           4.080780           6.569428          -2.42764
+  hessian_block                3      11          -4.341526           0.444418          -2.553982          -1.452311          -0.02333
+  hessian_block                3      12          -4.230255          -0.137047          -2.123648          -2.545013          -0.03194
+  hessian_block                4       4           5.890243           0.096036          -1.985222           0.096036           6.90374
+  hessian_block                4       5          -0.407970           1.150006           0.206207           0.181287          -2.81540
+  hessian_block                4       6          -0.055722           1.336577          -0.127907          -0.195020           0.65252
+  hessian_block                4       7          -1.943955          -1.284375           0.799236          -0.273146          -0.06994
+  hessian_block                4       8          -0.184909           0.345310          -0.198265           0.110612          -0.15190
+  hessian_block                4       9          -0.278547           0.646076           0.124690           0.071163          -1.67049
+  hessian_block                4      10          -0.440182          -1.541023           0.054564          -0.303229          -0.51824
+  hessian_block                4      11          -1.872621           0.510901           0.722793          -0.599089          -0.55383
+  hessian_block                4      12          -0.084006           0.756465          -0.045134           0.376529           0.73331
+  hessian_block                5       5           6.187883          -2.532852          -0.855263          -2.532852           9.90969
+  hessian_block                5       6           3.016995          -5.439952           0.552826           2.664555          -5.24644
+  hessian_block                5       7          -1.630313           3.379963          -0.448393          -0.147480          -0.90399
+  hessian_block                5       8           1.004975          -1.954219           0.705778           0.926631          -1.28663
+  hessian_block                5       9          -1.273977          -0.443047           1.711070           1.415701          -5.13921
+  hessian_block                5      10          -3.002479           6.138552          -0.461284          -2.268826           5.33124
+  hessian_block                5      11           2.290200          -4.179266           0.752277           1.220892          -1.70247
+  hessian_block                5      12           1.083709          -1.496171          -0.186278           0.590715          -2.19934
+  hessian_block                6       6          12.453727           7.089261          13.740389           7.089261          12.11718
+  hessian_block                6       7          -3.178537          -3.232039          -5.672020           1.880786           1.71640
+  hessian_block                6       8           2.578490           2.836465           4.477852           1.706756           1.57795
+  hessian_block                6       9           0.159333           0.253413           0.182413           4.791467           5.16787
+  hessian_block                6      10          -9.395476          -8.491452         -15.542302          -7.892417          -8.28301
+  hessian_block                6      11           4.718594           4.729819           7.883895           1.369865           1.97254
+  hessian_block                6      12           2.761612           2.199847           4.019260           2.351148           2.16562
+  hessian_block                7       7           6.763525          -0.163601           1.229438          -0.163601           6.17828
+  hessian_block                7       8          -1.360941           0.590173          -0.279050          -0.687295           0.09554
+  hessian_block                7       9           0.312981           0.570903          -0.188272          -2.626651           0.53215
+  hessian_block                7      10           3.721936          -2.205268           0.131295           3.336824          -2.05076
+  hessian_block                7      11          -3.803685           1.451973          -1.917200          -0.329380          -1.44460
+  hessian_block                7      12          -0.903754           0.545488           0.227896          -1.520432           0.86816
+  hessian_block                8       8           5.591985           0.518426          -2.522068           0.518426           5.83611
+  hessian_block                8       9           0.289635          -0.450054          -0.237144           1.994002           1.21355
+  hessian_block                8      10          -2.758293          -1.833547           4.564338          -2.855853          -1.67476
+  hessian_block                8      11           2.022990           0.838585          -2.856704           0.796318           1.08630
+  hessian_block                8      12           0.028240           1.420135           0.366643           1.856558          -0.95031
+  hessian_block                9       9           5.012567          -0.458203          -0.752730          -0.458203           9.34942
+  hessian_block                9      10          -0.145737          -4.687048           0.731851          -0.351192          -4.63092
+  hessian_block                9      11          -0.104305           3.720788          -0.755761          -0.574297           1.88915
+  hessian_block                9      12           0.201282           1.194565           0.239657           0.214245           1.24996
+  hessian_block               10      10          13.867999           7.764712          10.365102           7.764712          12.69717
+  hessian_block               10      11          -5.096696          -4.541712          -5.216303          -1.529736          -2.13908
+  hessian_block               10      12          -2.926268          -2.114493          -2.724677          -2.968811          -2.51741
+  hessian_block               11      11           8.294822           1.618782           1.563178           1.618782           6.79842
+  hessian_block               11      12           1.525057           0.309285          -0.130587           1.833220           0.10902
+  hessian_block               12      12           5.504177           0.864173           1.474645           0.864173           6.32454
+  hessian_block_lv             1       1          26.298020          -1.954934           6.719515          -1.954934          24.51691
+  hessian_block_lv_atom        1       1          -1.229362          -0.638400          -0.797694           3.026554           2.04084
+  hessian_block_lv_atom        1       2           3.074829           1.799410           1.986084           3.863861           2.32484
+  hessian_block_lv_atom        1       3           4.567843           2.716423           2.851242          -0.532679          -0.02199
+  hessian_block_lv_atom        1       4           0.140282           0.096329          -0.008913           0.241883           0.19711
+  hessian_block_lv_atom        1       5          -2.185624          -1.307657          -1.026642           3.919018           2.89780
+  hessian_block_lv_atom        1       6          -5.020617          -3.885115          -3.709322          -5.684735          -4.01588
+  hessian_block_lv_atom        1       7           2.048338           1.176735           1.795922          -1.390872          -1.40512
+  hessian_block_lv_atom        1       8          -2.172582          -1.208162          -1.542150          -1.499799          -0.89812
+  hessian_block_lv_atom        1       9           0.161202           0.237035          -0.248887          -4.407226          -3.24881
+  hessian_block_lv_atom        1      10           5.355355           4.004509           3.968871           5.960837           3.85745
+  hessian_block_lv_atom        1      11          -3.230267          -1.991252          -2.492360          -2.205655          -0.73684
+  hessian_block_lv_atom        1      12          -1.509398          -0.999855          -0.776151          -1.291189          -0.99127
+  symmetry_n_params 39 3 36
+  symmetry_params a1 b2 c3 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23 x24 x25 x26 x27 x28 x
+  symmetry_lv a1 , 0 , 0
+  symmetry_lv 0 , b2 , 0
+  symmetry_lv 0 , 0 , c3
+  symmetry_frac x0 , x1 , x2
+  symmetry_frac x3 , x4 , x5
+  symmetry_frac x6 , x7 , x8
+  symmetry_frac x9 , x10 , x11
+  symmetry_frac x12 , x13 , x14
+  symmetry_frac x15 , x16 , x17
+  symmetry_frac x18 , x19 , x20
+  symmetry_frac x21 , x22 , x23
+  symmetry_frac x24 , x25 , x26
+  symmetry_frac x27 , x28 , x29
+  symmetry_frac x30 , x31 , x32
+  symmetry_frac x33 , x34 , x35
+  
+  -----------------------------------------------------------------------
+  Completed first pass over input file geometry.in .
+  -----------------------------------------------------------------------
+  
+
+  Basic array size parameters:
+  | Number of species                 :        2
+  | Number of atoms                   :       12
+  | Number of lattice vectors         :        3
+  | Max. basis fn. angular momentum   :        4
+  | Max. atomic/ionic basis occupied n:        5
+  | Max. number of basis fn. types    :        3
+  | Max. radial fns per species/type  :       10
+  | Max. logarithmic grid size        :     1444
+  | Max. radial integration grid size :      125
+  | Max. angular integration grid size:      434
+  | Max. angular grid division number :        8
+  | Radial grid for Hartree potential :     1444
+  | Number of spin channels           :        1
+
+------------------------------------------------------------
+          Reading file control.in.
+------------------------------------------------------------
+  XC: Using PBE gradient-corrected functionals.
+  Using libMBD for calculating MBD and TS energies
+  Spin treatment: No spin polarisation.
+  Found k-point grid:        25        25        20
+  Scalar relativistic treatment of kinetic energy: on-site free-atom approximation to ZORA.
+  Max energy increase before discarding BFGS move:   0.100000E-01 eV
+  Assuming qualitatively harmonic for steps shorter than   0.150000E-01 A.
+  S.C.F. convergence parameters will be adjusted in iteration number     3 of each new s.c.f. cycle.
+  Geometry relaxation: Modified BFGS - TRM (trust radius method) for lattice optimization.
+  Convergence accuracy for geometry relaxation: Maximum force <   0.100000E-01 eV/A.
+ 
+  Reading configuration options for species Pd                  .
+  | Found nuclear charge :  46.0000
+  | Found atomic mass :    106.420000000000      amu
+  | Found l_max for Hartree potential  :   6
+  | Found cutoff potl. onset [A], width [A], scale factor :    4.00000    2.00000    1.00000
+  | Threshold for basis-dependent cutoff potential is   0.100000E-03
+  | Found data for basic radial integration grid :    62 points, outermost radius =    7.000 A
+  | Found multiplier for basic radial grid :   2
+  | Found angular grid specification: user-specified.
+  | Specified grid contains     6 separate shells.
+  | Check grid settings after all constraints further below.
+  | Found free-atom valence shell :  5 s   1.000
+  | Found free-atom valence shell :  4 p   6.000
+  | Found free-atom valence shell :  4 d   9.000
+  | Found free-ion valence shell :  5 s   0.000
+  | Found free-ion valence shell :  4 p   6.000
+  | Found free-ion valence shell :  4 d   8.000
+  | Found ionic basis function :  5 p , default cutoff radius.
+  | Found hydrogenic basis function :  4 f   8.000
+  | Found hydrogenic basis function :  5 g  10.000
+  | Found hydrogenic basis function :  3 s   2.600
+  | Found hydrogenic basis function :  3 d   2.500
+  Species Pd                  : Missing cutoff potential type.
+  Defaulting to exp(1/x)/(1-x)^2 type cutoff potential.
+  Species Pd: No 'logarithmic' tag. Using default grid for free atom:
+  | Default logarithmic grid data [bohr] : 0.1000E-03 0.1000E+03 0.1012E+01
+  | Will include ionic basis functions of  2.0-fold positive Pd                   ion.
+  Species Pd: On-site basis accuracy parameter (for Gram-Schmidt orthonormalisation) not specified.
+  Using default value basis_acc =  0.1000000E-03.
+  Species Pd                  : Using default innermost maximum threshold i_radial=  2 for radial functions.
+  Species Pd                  : Default cutoff onset for free atom density etc. : 0.40000000E+01 AA.
+  Species Pd                  : Basic radial grid will be enhanced according to radial_multiplier =   2, to contain   125 grid points.
+ 
+  Reading configuration options for species Se                  .
+  | Found nuclear charge :  34.0000
+  | Found atomic mass :    78.9600000000000      amu
+  | Found l_max for Hartree potential  :   6
+  | Found cutoff potl. onset [A], width [A], scale factor :    4.00000    2.00000    1.00000
+  | Threshold for basis-dependent cutoff potential is   0.100000E-03
+  | Found data for basic radial integration grid :    55 points, outermost radius =    7.000 A
+  | Found multiplier for basic radial grid :   2
+  | Found angular grid specification: user-specified.
+  | Specified grid contains     5 separate shells.
+  | Check grid settings after all constraints further below.
+  | Found free-atom valence shell :  4 s   2.000
+  | Found free-atom valence shell :  4 p   4.000
+  | Found free-atom valence shell :  3 d  10.000
+  | Found free-ion valence shell :  4 s   1.000
+  | Found free-ion valence shell :  4 p   3.000
+  | Found free-ion valence shell :  3 d  10.000
+  | Found hydrogenic basis function :  3 d   4.300
+  | Found hydrogenic basis function :  2 p   1.600
+  | Found hydrogenic basis function :  4 f   7.200
+  | Found ionic basis function :  4 s , default cutoff radius.
+  Species Se                  : Missing cutoff potential type.
+  Defaulting to exp(1/x)/(1-x)^2 type cutoff potential.
+  Species Se: No 'logarithmic' tag. Using default grid for free atom:
+  | Default logarithmic grid data [bohr] : 0.1000E-03 0.1000E+03 0.1012E+01
+  | Will include ionic basis functions of  2.0-fold positive Se                   ion.
+  Species Se: On-site basis accuracy parameter (for Gram-Schmidt orthonormalisation) not specified.
+  Using default value basis_acc =  0.1000000E-03.
+  Species Se                  : Using default innermost maximum threshold i_radial=  2 for radial functions.
+  Species Se                  : Default cutoff onset for free atom density etc. : 0.40000000E+01 AA.
+  Species Se                  : Basic radial grid will be enhanced according to radial_multiplier =   2, to contain   111 grid points.
+ 
+  Finished reading input file 'control.in'. Consistency checks are next.
+ 
+  MPI_IN_PLACE appears to work with this MPI implementation.
+  | Keeping use_mpi_in_place .true. (see manual).
+  Target number of points in a grid batch is not set. Defaulting to  100
+  Method for grid partitioning is not set. Defaulting to parallel hash+maxmin partitioning.
+  Batch size limit is not set. Defaulting to    200
+  By default, will store active basis functions for each batch.
+  If in need of memory, prune_basis_once .false. can be used to disable this option.
+  communication_type for Hartree potential was not specified.
+  Defaulting to calc_hartree .
+  Defaulting to Pulay charge density mixer.
+  Pulay mixer: Number of relevant iterations not set.
+  Defaulting to    8 iterations.
+  Pulay mixer: Number of initial linear mixing iterations not set.
+  Defaulting to    0 iterations.
+  Work space size for distributed Hartree potential not set.
+  Defaulting to   0.200000E+03 MB.
+  Mixing parameter for charge density mixing has not been set.
+  Using default: charge_mix_param =     0.0500.
+  The mixing parameter will be adjusted in iteration number     3 of each s.c.f. cycle (i.e., each geometry step).
+  Algorithm-dependent basis array size parameters:
+  | n_max_pulay                         :        8
+  Maximum number of self-consistency iterations not provided.
+  Presetting  1000 iterations.
+  Presetting      1001 iterations before the initial mixing cycle
+  is restarted anyway using the sc_init_iter criterion / keyword.
+  Presetting a factor      1.000 between actual scf density residual
+  and density convergence criterion sc_accuracy_rho below which sc_init_iter
+  takes no effect.
+ * No s.c.f. convergence criteria (sc_accuracy_*) were provided in control.in.
+ * The run will proceed with a reasonable default guess, but please check whether.
+ * the s.c.f. cycles seem to take too much or too little time.
+  No maximum number of relaxation steps, defaulting to     1000
+  Using explicit Hessian from geometry.in.
+  Maximum energy tolerance by which TRM/BFGS trajectory may increase over multiple steps:   0.300000E-02
+  No trust radius initializer. Defaulting to   0.200000E+00 A.
+  Unit cell relaxation: Unit cell will be relaxed fully.
+  Unit cell relaxation: Analytical stress will be used.
+  Analytical stress will be computed.
+  Analytical stress calculation: Only the upper triangle is calculated.
+                                 Final output is symmetrized.
+  Analytical stress calculation: scf convergence accuracy of stress not set.
+                                 Analytical stress self-consistency will not be checked explicitly.
+                                 Be sure to set other criteria like sc_accuracy_rho tight enough.
+ * Notice: The s.c.f. convergence criterion sc_accuracy_rho was not provided.
+ * We used to stop in this case, and ask the user to provide reasonable
+ * scf convergence criteria. However, this led some users to employ criteria
+ * that led to extremely long run times, e.g., for simple relaxation.
+ * We now preset a default value for sc_accuracy_rho if it is not set.
+ * You may still wish to check if this setting is too tight or too loose for your needs.
+ * Based on n_atoms, FHI-aims chose sc_accuracy_rho =  0.141421E-05 .
+  Force calculation: scf convergence accuracy of forces not set.
+  Defaulting to 'sc_accuracy_forces not_checked'.
+  Handling of forces: Unphysical translation and rotation will be removed from forces.
+  No accuracy limit for integral partition fn. given. Defaulting to  0.1000E-14.
+  No threshold value for u(r) in integrations given. Defaulting to  0.1000E-05.
+  No occupation type (smearing scheme) given. Defaulting to Gaussian broadening, width =  0.1000E-01 eV.
+  The width will be adjusted in iteration number     3 of each s.c.f. cycle (i.e., each geometry step).
+  S.C.F. convergence parameters will be adjusted in iteration number     3 of the first full s.c.f. cycle only.
+  No accuracy for occupation numbers given. Defaulting to  0.1000E-12.
+  No threshold value for occupation numbers given. Defaulting to  0.0000E+00.
+  No accuracy for fermi level given. Defaulting to  0.1000E-19.
+  Maximum # of iterations to find E_F not set. Defaulting to  200.
+  Preferred method for the eigenvalue solver ('KS_method') not specified in 'control.in'.
+  Defaulting to serial version, LAPACK (via ELSI), since more k-points than CPUs available.
+  Will not use alltoall communication since running on < 1024 CPUs.
+  Threshold for basis singularities not set.
+  Default threshold for basis singularities:  0.1000E-04
+  partition_type (choice of integration weights) for integrals was not specified.
+  | Using a version of the partition function of Stratmann and coworkers ('stratmann_sparse').
+  | At each grid point, the set of atoms used to build the partition table is smoothly restricted to
+  | only those atoms whose free-atom density would be non-zero at that grid point.
+  Partitioning for Hartree potential was not defined. Using partition_type for integrals.
+  | Adjusted default value of keyword multip_moments_threshold to:       0.10000000E-11
+  | This value may affect high angular momentum components of the Hartree potential in periodic systems.
+  Angular momentum expansion for Kerker preconditioner not set explicitly.
+  | Using default value of   0
+  No explicit requirement for turning off preconditioner.
+  | By default, it will be turned off when the charge convergence reaches
+  | sc_accuracy_rho  =   0.141421E-05
+  No special mixing parameter while Kerker preconditioner is on.
+  Using default: charge_mix_param =     0.0500.
+  No q(lm)/r^(l+1) cutoff set for long-range Hartree potential.
+  | Using default value of  0.100000E-09 .
+  | Verify using the multipole_threshold keyword.
+  Defaulting to new monopole extrapolation.
+  Density update method: automatic selection selected.
+  Using density matrix based charge density update.
+  Using density matrix based charge density update.
+  Using packed matrix style: index .
+  Geometry relaxation: A file "geometry.in.next_step" is written out by default after each step.
+  | This file contains the geometry of the current relaxation step as well as
+  | the current Hessian matrix needed to restart the relaxation algorithm.
+  | If you do not want part or all of this information, use the keywords
+  | "write_restart_geometry" or "hessian_to_restart_geometry" to switch the output off.
+  Defaulting to use time-reversal symmetry for k-point grid.
+  Charge integration errors on the 3D integration grid will be compensated
+  by explicit normalization and distribution of residual charges.
+  Use the "compensate_multipole_errors" flag to change this behaviour.
+------------------------------------------------------------
+
+
+------------------------------------------------------------
+          Reading geometry description geometry.in.
+------------------------------------------------------------
+  Input structure read successfully.
+  The structure contains       12 atoms,  and a total of        456.000 electrons.
+
+  Input geometry:
+  | Unit cell:
+  |        5.83784590        0.00000000        0.00000000
+  |        0.00000000        5.95038518        0.00000000
+  |        0.00000000        0.00000000        7.51780753
+  | Atomic structure:
+  |       Atom                x [A]            y [A]            z [A]
+  |    1: Species Pd            2.92560477        0.00244150        0.00210438
+  |    2: Species Pd            0.00238564        0.00279811        3.76930736
+  |    3: Species Pd            0.00302260        2.98198864        0.00230045
+  |    4: Species Pd            2.92625453        2.98234358        3.76911678
+  |    5: Species Se            3.57790869        0.70584243        3.03496867
+  |    6: Species Se            5.19737752        5.25865124        6.79864933
+  |    7: Species Se            0.65472890        2.27932539        4.50141867
+  |    8: Species Se            2.27342935        3.68560164        0.73604049
+  |    9: Species Se            2.27379130        5.25872889        4.50145799
+  |   10: Species Se            0.65468587        0.70630626        0.73623829
+  |   11: Species Se            5.19697739        3.68507759        3.03504911
+  |   12: Species Se            3.57796315        2.27916479        6.79884035
+
+  Lattice parameters for 3D lattice (in Angstroms) :     5.837846    5.950385    7.517808
+  Angle(s) between unit vectors (in degrees)       :    90.000000   90.000000   90.000000
+
+  | The smallest distance between any two atoms is         2.39794076 AA.
+  | The first atom of this pair is atom number                      6 .
+  | The second atom of this pair is atom number                    10 .
+  | Wigner-Seitz cell of the first atom image           0     0     0 .
+  | (The Wigner-Seitz cell of the second atom is 0 0 0  by definition.)
+
+  Symmetry information by spglib:
+  | Precision set to  0.1E-04
+  | Number of Operations  : 1
+  | Space group           : 1
+  | International         : P1       8
+  | Schoenflies           : C1^1
+
+  Quantities derived from the lattice vectors:
+  | Reciprocal lattice vector 1:  1.076285  0.000000  0.000000
+  | Reciprocal lattice vector 2:  0.000000  1.055929  0.000000
+  | Reciprocal lattice vector 3:  0.000000  0.000000  0.835774
+  | Unit cell volume                               :   0.261149E+03  A^3
+
+  Range separation radius for Ewald summation (hartree_convergence_parameter):      4.00928201 bohr.
+
+  Fractional coordinates:
+                         L1                L2                L3
+       atom_frac         0.50114457        0.00041031        0.00027992  Pd
+       atom_frac         0.00040865        0.00047024        0.50138386  Pd
+       atom_frac         0.00051776        0.50114212        0.00030600  Pd
+       atom_frac         0.50125587        0.50120177        0.50135851  Pd
+       atom_frac         0.61288166        0.11862130        0.40370396  Se
+       atom_frac         0.89029029        0.88374972        0.90433937  Se
+       atom_frac         0.11215248        0.38305510        0.59876748  Se
+       atom_frac         0.38942949        0.61938875        0.09790627  Se
+       atom_frac         0.38949149        0.88376277        0.59877271  Se
+       atom_frac         0.11214511        0.11869925        0.09793258  Se
+       atom_frac         0.89022175        0.61930068        0.40371466  Se
+       atom_frac         0.61289099        0.38302811        0.90436478  Se
+
+  Number of empty states per atom not set in control.in - providing a guess from actual geometry.
+  | Total number of empty states used during s.c.f. cycle:       66
+  If you use a very high smearing, use empty_states (per atom!) in control.in to increase this value.
+
+  Structure-dependent array size parameters: 
+  | Maximum number of distinct radial functions  :       27
+  | Maximum number of basis functions            :      468
+  | Number of Kohn-Sham states (occupied + empty):      294
+------------------------------------------------------------
+
+------------------------------------------------------------
+          Preparing all fixed parts of the calculation.
+------------------------------------------------------------
+  Determining machine precision:
+    2.225073858507201E-308
+  Setting up grids for atomic and cluster calculations.
+
+  Creating wave function, potential, and density for free atoms.
+
+  Species: Pd
+
+  List of occupied orbitals and eigenvalues:
+    n    l              occ      energy [Ha]    energy [eV]
+    1    0           2.0000      -913.269104    -24851.3168
+    2    0           2.0000      -130.434372     -3549.2998
+    3    0           2.0000       -23.521804      -640.0609
+    4    0           2.0000        -3.256918       -88.6253
+    5    0           1.0000        -0.157260        -4.2793
+    2    1           6.0000      -116.910756     -3181.3035
+    3    1           6.0000       -19.103344      -519.8284
+    4    1           6.0000        -1.998052       -54.3697
+    3    2          10.0000       -12.098182      -329.2083
+    4    2           9.0000        -0.243389        -6.6230
+
+
+  Species: Se
+
+  List of occupied orbitals and eigenvalues:
+    n    l              occ      energy [Ha]    energy [eV]
+    1    0           2.0000      -466.337810    -12689.6975
+    2    0           2.0000       -59.202598     -1610.9847
+    3    0           2.0000        -7.847116      -213.5309
+    4    0           2.0000        -0.634372       -17.2621
+    2    1           6.0000       -52.061107     -1416.6548
+    3    1           6.0000        -5.620941      -152.9536
+    4    1           4.0000        -0.238469        -6.4891
+    3    2          10.0000        -1.951949       -53.1152
+
+  Creating fixed part of basis set: Ionic, confined, hydrogenic.
+ 
+  Pd                   ion:
+
+  List of free ionic orbitals and eigenvalues:
+    n    l      energy [Ha]    energy [eV]
+    1    0      -914.099884    -24873.9234
+    2    0      -131.248265     -3571.4470
+    3    0       -24.332473      -662.1203
+    4    0        -4.059276      -110.4585
+    2    1      -117.724296     -3203.4411
+    3    1       -19.913908      -541.8850
+    4    1        -2.795328       -76.0648
+    3    2       -12.908733      -351.2645
+    4    2        -1.004248       -27.3270
+
+
+  List of ionic basis orbitals and eigenvalues:
+    n    l      energy [Ha]    energy [eV]    outer radius [A]
+    5    1        -0.516938       -14.0666       5.427025
+
+ 
+  Pd                   hydrogenic:
+ 
+  List of hydrogenic basis orbitals: 
+    n    l      effective z      eigenvalue [eV]  inner max. [A]     outer max. [A]     outer radius [A]   
+    4    3         8.000000       -54.4226           1.054686           1.054686           4.629581
+    5    4        10.000000       -54.4226           1.330451           1.330451           5.043202
+    3    0         2.600000        -9.8948           0.150992           2.606197           5.493778
+    3    2         2.500000        -9.3396           1.873517           1.873517           5.493778
+ 
+ 
+  Se                   ion:
+
+  List of free ionic orbitals and eigenvalues:
+    n    l      energy [Ha]    energy [eV]
+    1    0      -467.261007    -12714.8189
+    2    0       -60.104893     -1635.5374
+    3    0        -8.743714      -237.9286
+    4    0        -1.414053       -38.4783
+    2    1       -52.964156     -1441.2280
+    3    1        -6.516916      -177.3343
+    4    1        -0.961869       -26.1738
+    3    2        -2.844511       -77.4031
+
+
+  List of ionic basis orbitals and eigenvalues:
+    n    l      energy [Ha]    energy [eV]    outer radius [A]
+    4    0        -1.414046       -38.4782       4.083166
+
+ 
+  Se                   hydrogenic:
+ 
+  List of hydrogenic basis orbitals: 
+    n    l      effective z      eigenvalue [eV]  inner max. [A]     outer max. [A]     outer radius [A]   
+    3    2         4.300000       -27.9518           1.103845           1.103845           5.278265
+    2    1         1.600000        -8.6828           1.326010           1.326010           5.475439
+    4    3         7.200000       -44.0822           1.173422           1.173422           4.965294
+ 
+
+  Adding cutoff potential to free-atom effective potential.
+  Creating atomic-like basis functions for current effective potential.
+
+  Species Pd                  :
+
+  List of atomic basis orbitals and eigenvalues:
+    n    l      energy [Ha]    energy [eV]    outer radius [A]
+    1    0      -913.269104    -24851.3168       0.223280
+    2    0      -130.434372     -3549.2998       0.615909
+    3    0       -23.521804      -640.0609       1.414312
+    4    0        -3.256918       -88.6253       3.581357
+    5    0        -0.157260        -4.2793       5.427025
+    2    1      -116.910756     -3181.3035       0.631154
+    3    1       -19.103344      -519.8284       1.540671
+    4    1        -1.998052       -54.3697       4.408641
+    3    2       -12.098182      -329.2083       1.806051
+    4    2        -0.243389        -6.6230       5.361084
+
+
+  Species Se                  :
+
+  List of atomic basis orbitals and eigenvalues:
+    n    l      energy [Ha]    energy [eV]    outer radius [A]
+    1    0      -466.337810    -12689.6975       0.309561
+    2    0       -59.202598     -1610.9847       0.885812
+    3    0        -7.847116      -213.5309       2.355489
+    4    0        -0.634372       -17.2621       5.214131
+    2    1       -52.061107     -1416.6548       0.907737
+    3    1        -5.620941      -152.9536       2.694529
+    4    1        -0.238469        -6.4891       5.408909
+    3    2        -1.951949       -53.1152       4.083166
+
+  Assembling full basis from fixed parts.
+  | Species Pd :   atomic orbital   1 s accepted.
+  | Species Pd :   atomic orbital   2 s accepted.
+  | Species Pd :   atomic orbital   3 s accepted.
+  | Species Pd :   atomic orbital   4 s accepted.
+  | Species Pd :   atomic orbital   5 s accepted.
+  | Species Pd :    hydro orbital   3 s accepted.
+  | Species Pd :   atomic orbital   2 p accepted.
+  | Species Pd :   atomic orbital   3 p accepted.
+  | Species Pd :   atomic orbital   4 p accepted.
+  | Species Pd :    ionic orbital   5 p accepted.
+  | Species Pd :   atomic orbital   3 d accepted.
+  | Species Pd :   atomic orbital   4 d accepted.
+  | Species Pd :    hydro orbital   3 d accepted.
+  | Species Pd :    hydro orbital   4 f accepted.
+  | Species Pd :    hydro orbital   5 g accepted.
+  | Species Se :   atomic orbital   1 s accepted.
+  | Species Se :   atomic orbital   2 s accepted.
+  | Species Se :   atomic orbital   3 s accepted.
+  | Species Se :    ionic orbital   4 s accepted.
+  | Species Se :   atomic orbital   4 s accepted.
+  | Species Se :   atomic orbital   2 p accepted.
+  | Species Se :   atomic orbital   3 p accepted.
+  | Species Se :   atomic orbital   4 p accepted.
+  | Species Se :    hydro orbital   2 p accepted.
+  | Species Se :   atomic orbital   3 d accepted.
+  | Species Se :    hydro orbital   3 d accepted.
+  | Species Se :    hydro orbital   4 f accepted.
+ 
+  Basis size parameters after reduction:
+  | Total number of radial functions:       27
+  | Total number of basis functions :      468
+ 
+  Per-task memory consumption for arrays in subroutine allocate_ext:
+  |           9.993344MB.
+  Testing on-site integration grid accuracy.
+  |  Species  Function  <phi|h_atom|phi> (log., in eV)  <phi|h_atom|phi> (rad., in eV)
+           1        1             -24851.3167505682             -24851.3148165635
+           1        2              -3549.2998457785              -3549.2998098031
+           1        3               -640.0608571327               -640.0608534886
+           1        4                -88.6252603131                -88.6252593316
+           1        5                 -4.2849374515                 -4.2849400622
+           1        6                  4.9432123540                  4.9432188418
+           1        7              -3181.3035399559              -3181.3035364574
+           1        8               -519.8284281886               -519.8284264063
+           1        9                -54.3697495804                -54.3697489261
+           1       10                  0.8628369484                  0.8628370487
+           1       11               -329.2082917394               -329.2082912864
+           1       12                 -6.6230267036                 -6.6230265076
+           1       13                  5.4924295291                  5.4924115607
+           1       14                 25.0740861942                 25.0740861175
+           1       15                 38.8271273823                 38.8271278029
+           2       16             -12689.6974611609             -12689.6967666984
+           2       17              -1610.9846578580              -1610.9846472470
+           2       18               -213.5308789869               -213.5308777267
+           2       19                -17.0464428502                -17.0464426496
+           2       20                  6.7356859379                  6.7356842047
+           2       21              -1416.6548010133              -1416.6548002108
+           2       22               -152.9535734377               -152.9535727493
+           2       23                 -6.4896265677                 -6.4896303794
+           2       24                  5.2703037283                  5.2701679583
+           2       25                -53.1152220964                -53.1152219035
+           2       26                  7.6186674138                  7.6186665630
+           2       27                 23.1072799052                 23.1072803137
+
+  Preparing densities etc. for the partition functions (integrals / Hartree potential).
+
+  Preparations completed.
+  max(cpu_time)          :      0.549 s.
+  Wall clock time (cpu1) :      0.624 s.
+------------------------------------------------------------
+
+------------------------------------------------------------
+          Begin self-consistency loop: Initialization.
+
+          Date     :  20200420, Time     :  113525.980
+------------------------------------------------------------
+
+  Initializing index lists of integration centers etc. from given atomic structure:
+  Mapping all atomic coordinates to central unit cell.
+
+  Initializing the k-points
+  Using symmetry for reducing the k-points
+  | k-points reduced from:    12500 to     6251
+  | Number of k-points                             :      6251
+  The eigenvectors in the calculations are COMPLEX.
+  | K-points in task   0:       260
+  | K-points in task   1:       261
+  | K-points in task   2:       261
+  | K-points in task   3:       261
+  | K-points in task   4:       261
+  | K-points in task   5:       261
+  | K-points in task   6:       261
+  | K-points in task   7:       261
+  | K-points in task   8:       261
+  | K-points in task   9:       261
+  | K-points in task  10:       261
+  | K-points in task  11:       261
+  | K-points in task  12:       260
+  | K-points in task  13:       260
+  | K-points in task  14:       260
+  | K-points in task  15:       260
+  | K-points in task  16:       260
+  | K-points in task  17:       260
+  | K-points in task  18:       260
+  | K-points in task  19:       260
+  | K-points in task  20:       260
+  | K-points in task  21:       260
+  | K-points in task  22:       260
+  | K-points in task  23:       260
+  | Number of basis functions in the Hamiltonian integrals :      5574
+  | Number of basis functions in a single unit cell        :       468
+  | Number of centers in hartree potential         :      1309
+  | Number of centers in hartree multipole         :       763
+  | Number of centers in electron density summation:       591
+  | Number of centers in basis integrals           :       639
+  | Number of centers in integrals                 :       235
+  | Number of centers in hamiltonian               :       593
+  | Consuming       8399 KiB for k_phase.
+  | Number of super-cells (origin) [n_cells]                     :         567
+  | Number of super-cells (after PM_index) [n_cells]             :          86
+  | Number of super-cells in hamiltonian [n_cells_in_hamiltonian]:          86
+  | Size of matrix packed + index [n_hamiltonian_matrix_size] :     1284846
+
+  Initializing relaxation algorithms.
+  | Estimated reciprocal-space cutoff momentum G_max:         2.42202405 bohr^-1 .
+  | Reciprocal lattice points for long-range Hartree potential:     410
+  Partitioning the integration grid into batches with parallel hashing+maxmin method.
+  | Number of batches:     4175
+  | Maximal batch size:     110
+  | Minimal batch size:      49
+  | Average batch size:      92.009
+  | Standard deviation of batch sizes:      11.383
+
+  Integration load balanced across    24 MPI tasks.
+  Work distribution over tasks is as follows:
+  Task     0 has      16006 integration points.
+  Task     1 has      15995 integration points.
+  Task     2 has      15984 integration points.
+  Task     3 has      16014 integration points.
+  Task     4 has      15972 integration points.
+  Task     5 has      15982 integration points.
+  Task     6 has      16000 integration points.
+  Task     7 has      15996 integration points.
+  Task     8 has      16008 integration points.
+  Task     9 has      16014 integration points.
+  Task    10 has      16046 integration points.
+  Task    11 has      16017 integration points.
+  Task    12 has      16023 integration points.
+  Task    13 has      15972 integration points.
+  Task    14 has      16043 integration points.
+  Task    15 has      15995 integration points.
+  Task    16 has      15999 integration points.
+  Task    17 has      16010 integration points.
+  Task    18 has      16016 integration points.
+  Task    19 has      16023 integration points.
+  Task    20 has      16009 integration points.
+  Task    21 has      16042 integration points.
+  Task    22 has      15999 integration points.
+  Task    23 has      15971 integration points.
+  Initializing partition tables, free-atom densities, potentials, etc. across the integration grid (initialize_grid_storage).
+  | initialize_grid_storage: Actual outermost partition radius vs. multipole_radius_free
+  | (-- VB: in principle, multipole_radius_free should be larger, hence this output)
+  | Species        1: Confinement radius =              6.000000000000000 AA, multipole_radius_free =              6.058219618167466 AA.
+  | Species        1: outer_partition_radius set to              6.058219618167466 AA .
+  | Species        2: Confinement radius =              6.000000000000000 AA, multipole_radius_free =              6.037996416842453 AA.
+  | Species        2: outer_partition_radius set to              6.037996416842453 AA .
+  | The sparse table of interatomic distances needs       2887.29 kbyte instead of      3266.57 kbyte of memory.
+  | Net number of integration points:   384136
+  | of which are non-zero points    :   322290
+  | Numerical average free-atom electrostatic potential    :    -16.95749081 eV
+  Renormalizing the initial density to the exact electron count on the 3D integration grid.
+  | Initial density: Formal number of electrons (from input files) :     456.0000000000
+  | Integrated number of electrons on 3D grid     :     456.0000233671
+  | Charge integration error                      :       0.0000233671
+  | Normalization factor for density and gradient :       0.9999999488
+  Renormalizing the free-atom superposition density to the exact electron count on the 3D integration grid.
+  | Formal number of electrons (from input files) :     456.0000000000
+  | Integrated number of electrons on 3D grid     :     456.0000233671
+  | Charge integration error                      :       0.0000233671
+  | Normalization factor for density and gradient :       0.9999999488
+  Obtaining max. number of non-zero basis functions in each batch (get_n_compute_maxes).
+  | Maximal number of non-zero basis functions:     1021 in task     0
+  | Maximal number of non-zero basis functions:     1010 in task     1
+  | Maximal number of non-zero basis functions:     1012 in task     2
+  | Maximal number of non-zero basis functions:     1024 in task     3
+  | Maximal number of non-zero basis functions:     1006 in task     4
+  | Maximal number of non-zero basis functions:     1024 in task     5
+  | Maximal number of non-zero basis functions:     1017 in task     6
+  | Maximal number of non-zero basis functions:     1014 in task     7
+  | Maximal number of non-zero basis functions:     1037 in task     8
+  | Maximal number of non-zero basis functions:     1011 in task     9
+  | Maximal number of non-zero basis functions:     1015 in task    10
+  | Maximal number of non-zero basis functions:     1008 in task    11
+  | Maximal number of non-zero basis functions:     1034 in task    12
+  | Maximal number of non-zero basis functions:     1008 in task    13
+  | Maximal number of non-zero basis functions:     1013 in task    14
+  | Maximal number of non-zero basis functions:     1024 in task    15
+  | Maximal number of non-zero basis functions:     1032 in task    16
+  | Maximal number of non-zero basis functions:     1043 in task    17
+  | Maximal number of non-zero basis functions:     1032 in task    18
+  | Maximal number of non-zero basis functions:     1011 in task    19
+  | Maximal number of non-zero basis functions:     1008 in task    20
+  | Maximal number of non-zero basis functions:     1009 in task    21
+  | Maximal number of non-zero basis functions:     1008 in task    22
+  | Maximal number of non-zero basis functions:     1011 in task    23
+  Allocating      545.867 MB for KS_eigenvector_complex
+  Integrating Hamiltonian matrix: batch-based integration.
+  Time summed over all CPUs for integration: real work       63.239 s, elapsed       63.968 s
+  Integrating overlap matrix.
+  Time summed over all CPUs for integration: real work       45.726 s, elapsed       46.475 s
+  Decreasing sparse matrix size:
+  | Tolerance:  0.1000E-12
+  Hamiltonian matrix
+  | Array has  1112062 nonzero elements out of  1284846 elements
+  | Sparsity factor is 0.134
+  Overlap matrix
+  | Array has  1027667 nonzero elements out of  1284846 elements
+  | Sparsity factor is 0.200
+  New size of hamiltonian matrix:     1112140
+
+  Updating Kohn-Sham eigenvalues and eigenvectors using ELSI and the (modified) LAPACK eigensolver.
+  Singularity check in k-point 24, task 0 (analysis for other k-points/tasks may follow below):
+  Overlap matrix is not singular
+  | Lowest and highest eigenvalues :  0.5584E-03,  0.7222E+01
+  Finished singularity check of overlap matrix
+  | Time :     0.074 s
+  Starting LAPACK eigensolver
+  Finished Cholesky decomposition
+  | Time :     0.018 s
+  Finished transformation to standard eigenproblem
+  | Time :     0.021 s
+  Finished solving standard eigenproblem
+  | Time :     0.071 s
+  Finished back-transformation of eigenvectors
+  | Time :     0.008 s
+
+  Obtaining occupation numbers and chemical potential using ELSI.
+  | Chemical potential (Fermi level):    -4.66139680 eV
+  Writing Kohn-Sham eigenvalues.
+  K-point:       1 at    0.000000    0.000000    0.000000 (in units of recip. lattice)
+
+  State    Occupation    Eigenvalue [Ha]    Eigenvalue [eV]
+      1       2.00000        -913.279597       -24851.60228
+      2       2.00000        -913.279583       -24851.60189
+      3       2.00000        -913.279576       -24851.60171
+      4       2.00000        -913.279422       -24851.59752
+      5       2.00000        -466.350465       -12690.04183
+      6       2.00000        -466.350389       -12690.03976
+      7       2.00000        -466.350315       -12690.03774
+      8       2.00000        -466.350313       -12690.03767
+      9       2.00000        -466.350311       -12690.03764
+     10       2.00000        -466.350276       -12690.03668
+     11       2.00000        -466.350245       -12690.03582
+     12       2.00000        -466.350207       -12690.03479
+     13       2.00000        -130.445182        -3549.59401
+     14       2.00000        -130.445168        -3549.59361
+     15       2.00000        -130.445161        -3549.59343
+     16       2.00000        -130.445006        -3549.58921
+     17       2.00000        -116.921591        -3181.59836
+     18       2.00000        -116.921582        -3181.59812
+     19       2.00000        -116.921576        -3181.59796
+     20       2.00000        -116.921570        -3181.59779
+     21       2.00000        -116.921568        -3181.59773
+     22       2.00000        -116.921560        -3181.59754
+     23       2.00000        -116.921526        -3181.59661
+     24       2.00000        -116.921512        -3181.59622
+     25       2.00000        -116.921505        -3181.59603
+     26       2.00000        -116.921414        -3181.59356
+     27       2.00000        -116.921405        -3181.59332
+     28       2.00000        -116.921351        -3181.59183
+     29       2.00000         -59.215682        -1611.34068
+     30       2.00000         -59.215604        -1611.33856
+     31       2.00000         -59.215529        -1611.33653
+     32       2.00000         -59.215526        -1611.33645
+     33       2.00000         -59.215525        -1611.33641
+     34       2.00000         -59.215489        -1611.33544
+     35       2.00000         -59.215457        -1611.33457
+     36       2.00000         -59.215419        -1611.33353
+     37       2.00000         -52.074197        -1417.01101
+     38       2.00000         -52.074174        -1417.01037
+     39       2.00000         -52.074122        -1417.00896
+     40       2.00000         -52.074122        -1417.00894
+     41       2.00000         -52.074095        -1417.00822
+     42       2.00000         -52.074045        -1417.00686
+     43       2.00000         -52.074045        -1417.00686
+     44       2.00000         -52.074044        -1417.00683
+     45       2.00000         -52.074042        -1417.00678
+     46       2.00000         -52.074022        -1417.00624
+     47       2.00000         -52.074017        -1417.00609
+     48       2.00000         -52.074016        -1417.00607
+     49       2.00000         -52.074006        -1417.00581
+     50       2.00000         -52.073980        -1417.00510
+     51       2.00000         -52.073974        -1417.00492
+     52       2.00000         -52.073971        -1417.00485
+     53       2.00000         -52.073969        -1417.00479
+     54       2.00000         -52.073967        -1417.00474
+     55       2.00000         -52.073948        -1417.00423
+     56       2.00000         -52.073936        -1417.00388
+     57       2.00000         -52.073932        -1417.00378
+     58       2.00000         -52.073910        -1417.00319
+     59       2.00000         -52.073900        -1417.00292
+     60       2.00000         -52.073862        -1417.00188
+     61       2.00000         -23.533382         -640.37591
+     62       2.00000         -23.533367         -640.37549
+     63       2.00000         -23.533360         -640.37530
+     64       2.00000         -23.533194         -640.37079
+     65       2.00000         -19.115183         -520.15060
+     66       2.00000         -19.115164         -520.15009
+     67       2.00000         -19.115161         -520.15000
+     68       2.00000         -19.115095         -520.14819
+     69       2.00000         -19.115081         -520.14783
+     70       2.00000         -19.115070         -520.14752
+     71       2.00000         -19.114991         -520.14536
+     72       2.00000         -19.114904         -520.14300
+     73       2.00000         -19.114543         -520.13319
+     74       2.00000         -19.114529         -520.13281
+     75       2.00000         -19.114523         -520.13263
+     76       2.00000         -19.114362         -520.12826
+     77       2.00000         -12.109991         -329.52963
+     78       2.00000         -12.109975         -329.52919
+     79       2.00000         -12.109968         -329.52899
+     80       2.00000         -12.109955         -329.52865
+     81       2.00000         -12.109939         -329.52820
+     82       2.00000         -12.109932         -329.52801
+     83       2.00000         -12.109799         -329.52440
+     84       2.00000         -12.109764         -329.52344
+     85       2.00000         -12.109600         -329.51898
+     86       2.00000         -12.109583         -329.51853
+     87       2.00000         -12.109579         -329.51841
+     88       2.00000         -12.109543         -329.51743
+     89       2.00000         -12.109530         -329.51708
+     90       2.00000         -12.109521         -329.51682
+     91       2.00000         -12.109457         -329.51509
+     92       2.00000         -12.109443         -329.51470
+     93       2.00000         -12.109436         -329.51451
+     94       2.00000         -12.109415         -329.51394
+     95       2.00000         -12.109359         -329.51242
+     96       2.00000         -12.109274         -329.51012
+     97       2.00000          -7.862011         -213.93621
+     98       2.00000          -7.861919         -213.93369
+     99       2.00000          -7.861842         -213.93160
+    100       2.00000          -7.861831         -213.93131
+    101       2.00000          -7.861831         -213.93129
+    102       2.00000          -7.861790         -213.93020
+    103       2.00000          -7.861755         -213.92924
+    104       2.00000          -7.861713         -213.92808
+    105       2.00000          -5.636426         -153.37496
+    106       2.00000          -5.636350         -153.37289
+    107       2.00000          -5.636258         -153.37039
+    108       2.00000          -5.636256         -153.37032
+    109       2.00000          -5.636248         -153.37010
+    110       2.00000          -5.636210         -153.36907
+    111       2.00000          -5.636178         -153.36820
+    112       2.00000          -5.636165         -153.36786
+    113       2.00000          -5.636126         -153.36679
+    114       2.00000          -5.636068         -153.36521
+    115       2.00000          -5.635994         -153.36319
+    116       2.00000          -5.635965         -153.36241
+    117       2.00000          -5.635952         -153.36206
+    118       2.00000          -5.635945         -153.36185
+    119       2.00000          -5.635868         -153.35976
+    120       2.00000          -5.635835         -153.35886
+    121       2.00000          -5.635482         -153.34928
+    122       2.00000          -5.635391         -153.34680
+    123       2.00000          -5.635320         -153.34486
+    124       2.00000          -5.635319         -153.34483
+    125       2.00000          -5.635312         -153.34464
+    126       2.00000          -5.635277         -153.34370
+    127       2.00000          -5.635248         -153.34289
+    128       2.00000          -5.635204         -153.34171
+    129       2.00000          -3.274083          -89.09234
+    130       2.00000          -3.274061          -89.09174
+    131       2.00000          -3.274051          -89.09146
+    132       2.00000          -3.273809          -89.08489
+    133       2.00000          -2.020476          -54.97996
+    134       2.00000          -2.020449          -54.97920
+    135       2.00000          -2.020402          -54.97795
+    136       2.00000          -2.020107          -54.96992
+    137       2.00000          -2.019458          -54.95225
+    138       2.00000          -2.019452          -54.95209
+    139       2.00000          -2.019382          -54.95018
+    140       2.00000          -2.019103          -54.94260
+    141       2.00000          -2.013060          -54.77814
+    142       2.00000          -2.013052          -54.77792
+    143       2.00000          -2.013044          -54.77771
+    144       2.00000          -2.012830          -54.77188
+    145       2.00000          -1.969449          -53.59143
+    146       2.00000          -1.969311          -53.58767
+    147       2.00000          -1.969202          -53.58471
+    148       2.00000          -1.969175          -53.58397
+    149       2.00000          -1.968364          -53.56192
+    150       2.00000          -1.968274          -53.55947
+    151       2.00000          -1.968166          -53.55651
+    152       2.00000          -1.968145          -53.55596
+    153       2.00000          -1.967889          -53.54899
+    154       2.00000          -1.967854          -53.54803
+    155       2.00000          -1.967773          -53.54582
+    156       2.00000          -1.967747          -53.54511
+    157       2.00000          -1.967732          -53.54471
+    158       2.00000          -1.967710          -53.54410
+    159       2.00000          -1.967601          -53.54116
+    160       2.00000          -1.967591          -53.54087
+    161       2.00000          -1.967466          -53.53748
+    162       2.00000          -1.967429          -53.53646
+    163       2.00000          -1.967409          -53.53592
+    164       2.00000          -1.967362          -53.53464
+    165       2.00000          -1.967339          -53.53402
+    166       2.00000          -1.967322          -53.53356
+    167       2.00000          -1.967295          -53.53283
+    168       2.00000          -1.967293          -53.53276
+    169       2.00000          -1.967273          -53.53222
+    170       2.00000          -1.967270          -53.53215
+    171       2.00000          -1.967259          -53.53185
+    172       2.00000          -1.967245          -53.53146
+    173       2.00000          -1.967197          -53.53014
+    174       2.00000          -1.967187          -53.52989
+    175       2.00000          -1.967175          -53.52956
+    176       2.00000          -1.967144          -53.52870
+    177       2.00000          -1.966778          -53.51876
+    178       2.00000          -1.966726          -53.51733
+    179       2.00000          -1.966638          -53.51495
+    180       2.00000          -1.966626          -53.51460
+    181       2.00000          -1.966423          -53.50908
+    182       2.00000          -1.966379          -53.50790
+    183       2.00000          -1.966288          -53.50541
+    184       2.00000          -1.966282          -53.50527
+    185       2.00000          -0.759510          -20.66732
+    186       2.00000          -0.741678          -20.18210
+    187       2.00000          -0.720778          -19.61337
+    188       2.00000          -0.718924          -19.56293
+    189       2.00000          -0.652506          -17.75559
+    190       2.00000          -0.640536          -17.42988
+    191       2.00000          -0.638884          -17.38492
+    192       2.00000          -0.627675          -17.07990
+    193       2.00000          -0.418730          -11.39423
+    194       2.00000          -0.410919          -11.18167
+    195       2.00000          -0.388793          -10.57961
+    196       2.00000          -0.376623          -10.24842
+    197       2.00000          -0.370447          -10.08037
+    198       2.00000          -0.368792          -10.03535
+    199       2.00000          -0.367517          -10.00064
+    200       2.00000          -0.366432           -9.97111
+    201       2.00000          -0.365364           -9.94206
+    202       2.00000          -0.363594           -9.89391
+    203       2.00000          -0.360783           -9.81739
+    204       2.00000          -0.351990           -9.57814
+    205       2.00000          -0.340829           -9.27442
+    206       2.00000          -0.330309           -8.98816
+    207       2.00000          -0.323338           -8.79848
+    208       2.00000          -0.315794           -8.59318
+    209       2.00000          -0.314984           -8.57116
+    210       2.00000          -0.306771           -8.34767
+    211       2.00000          -0.288642           -7.85436
+    212       2.00000          -0.286297           -7.79053
+    213       2.00000          -0.285391           -7.76589
+    214       2.00000          -0.280244           -7.62583
+    215       2.00000          -0.278941           -7.59037
+    216       2.00000          -0.277261           -7.54466
+    217       2.00000          -0.276437           -7.52224
+    218       2.00000          -0.275938           -7.50865
+    219       2.00000          -0.273653           -7.44647
+    220       2.00000          -0.270451           -7.35934
+    221       2.00000          -0.265007           -7.21120
+    222       2.00000          -0.262853           -7.15261
+    223       2.00000          -0.262751           -7.14981
+    224       2.00000          -0.257121           -6.99661
+    225       2.00000          -0.225185           -6.12760
+    226       2.00000          -0.216025           -5.87835
+    227       2.00000          -0.213661           -5.81401
+    228       0.00000          -0.167575           -4.55994
+    229       0.00000          -0.151232           -4.11523
+    230       0.00000          -0.135619           -3.69039
+    231       0.00000          -0.130204           -3.54303
+    232       0.00000          -0.129293           -3.51824
+    233       0.00000          -0.125920           -3.42646
+    234       0.00000          -0.115888           -3.15347
+    235       0.00000          -0.114556           -3.11722
+    236       0.00000          -0.081755           -2.22466
+    237       0.00000          -0.037822           -1.02919
+    238       0.00000          -0.031441           -0.85554
+    239       0.00000          -0.005761           -0.15677
+    240       0.00000           0.018033            0.49070
+    241       0.00000           0.023986            0.65269
+    242       0.00000           0.024758            0.67371
+    243       0.00000           0.054931            1.49475
+    244       0.00000           0.089265            2.42904
+    245       0.00000           0.104656            2.84783
+    246       0.00000           0.110782            3.01452
+    247       0.00000           0.119669            3.25637
+    248       0.00000           0.121425            3.30414
+    249       0.00000           0.126116            3.43180
+    250       0.00000           0.126491            3.44198
+    251       0.00000           0.135536            3.68812
+    252       0.00000           0.150627            4.09877
+    253       0.00000           0.162274            4.41571
+    254       0.00000           0.173248            4.71432
+    255       0.00000           0.176834            4.81189
+    256       0.00000           0.189390            5.15356
+    257       0.00000           0.190822            5.19254
+    258       0.00000           0.196188            5.33855
+    259       0.00000           0.218927            5.95731
+    260       0.00000           0.232070            6.31495
+    261       0.00000           0.248086            6.75075
+    262       0.00000           0.257179            6.99821
+    263       0.00000           0.266447            7.25040
+    264       0.00000           0.280347            7.62862
+    265       0.00000           0.281673            7.66470
+    266       0.00000           0.312291            8.49787
+    267       0.00000           0.318605            8.66969
+    268       0.00000           0.321252            8.74172
+    269       0.00000           0.323009            8.78953
+    270       0.00000           0.334308            9.09697
+    271       0.00000           0.338865            9.22099
+    272       0.00000           0.345482            9.40105
+    273       0.00000           0.360824            9.81851
+    274       0.00000           0.362660            9.86848
+    275       0.00000           0.365716            9.95164
+    276       0.00000           0.367407            9.99766
+    277       0.00000           0.391651           10.65736
+    278       0.00000           0.397895           10.82727
+    279       0.00000           0.404794           11.01500
+    280       0.00000           0.406652           11.06558
+    281       0.00000           0.421702           11.47511
+    282       0.00000           0.459993           12.51705
+    283       0.00000           0.463087           12.60125
+    284       0.00000           0.466656           12.69837
+    285       0.00000           0.469300           12.77031
+    286       0.00000           0.475574           12.94103
+    287       0.00000           0.475951           12.95127
+    288       0.00000           0.493544           13.43001
+    289       0.00000           0.506027           13.76970
+    290       0.00000           0.507646           13.81376
+    291       0.00000           0.512763           13.95299
+    292       0.00000           0.527974           14.36690
+    293       0.00000           0.528544           14.38240
+    294       0.00000           0.547833           14.90729
+
+  What follows are estimated values for band gap, HOMO, LUMO, etc.
+  | They are estimated on a discrete k-point grid and not necessarily exact.
+  | For converged numbers, create a DOS and/or band structure plot on a denser k-grid.
+
+  Highest occupied state (VBM) at     -4.66147944 eV (relative to internal zero)
+  | Occupation number:      1.00932447
+  | K-point:    5451 at    0.720000    0.560000    0.900000 (in units of recip. lattice)
+
+  Lowest unoccupied state (CBM) at    -4.66133596 eV (relative to internal zero)
+  | Occupation number:      0.99313427
+  | K-point:    3447 at    0.360000    0.520000    0.000000 (in units of recip. lattice)
+
+  ESTIMATED overall HOMO-LUMO gap:      0.00014348 eV between HOMO at k-point 5451 and LUMO at k-point 3447
+  | This appears to be an indirect band gap.
+  | Smallest direct gap :      0.05590667 eV for k_point 5312 at    0.360000    0.520000    0.000000 (in units of recip. lattice)
+  However, this system has fractional occupation numbers. Since we use a finite k-point grid,
+  this material is metallic within the approximate finite broadening function (occupation_type)
+  applied to determine the occupation numbers.
+  Calculating total energy contributions from superposition of free atom densities.
+
+  Total energy components:
+  | Sum of eigenvalues            :      -23857.32256914 Ha     -649190.77756936 eV
+  | XC energy correction          :       -1284.60416880 Ha      -34955.85796761 eV
+  | XC potential correction       :        1673.27049896 Ha       45532.00691975 eV
+  | Free-atom electrostatic energy:      -16511.28113248 Ha     -449294.81948355 eV
+  | Hartree energy correction     :           0.00000000 Ha           0.00000000 eV
+  | vdW energy correction         :           0.00000000 Ha           0.00000000 eV
+  | Entropy correction            :          -0.00000112 Ha          -0.00003049 eV
+  | ---------------------------
+  | Total energy                  :      -39979.93737146 Ha    -1087909.44810077 eV
+  | Total energy, T -> 0          :      -39979.93737258 Ha    -1087909.44813126 eV  <-- do not rely on this value for anything but (periodic) metals
+  | Electronic free energy        :      -39979.93737370 Ha    -1087909.44816175 eV
+
+  Derived energy quantities:
+  | Kinetic energy                :       41147.37451212 Ha     1119677.02901482 eV
+  | Electrostatic energy          :      -79842.70771478 Ha    -2172630.61914797 eV
+  | Energy correction for multipole
+  | error in Hartree potential    :           0.00000000 Ha           0.00000000 eV
+  | Sum of eigenvalues per atom                           :      -54099.23146411 eV
+  | Total energy (T->0) per atom                          :      -90659.12067760 eV  <-- do not rely on this value for anything but (periodic) metals
+  | Electronic free energy per atom                       :      -90659.12068015 eV
+  Initialize hartree_potential_storage
+  Max. number of atoms included in rho_multipole:           12
+
+  End scf initialization - timings             :  max(cpu_time)    wall_clock(cpu1)
+  | Time for scf. initialization               :       56.710 s          56.752 s
+  | Boundary condition initialization          :        0.202 s           0.204 s
+  | Relaxation initialization                  :        0.002 s           0.005 s
+  | Integration                                :        4.670 s           4.672 s
+  | Solution of K.-S. eqns.                    :       49.672 s          49.719 s
+  | Grid partitioning                          :        0.343 s           0.343 s
+  | Preloading free-atom quantities on grid    :        0.028 s           0.029 s
+  | Free-atom superposition energy             :        0.147 s           0.147 s
+  | Total energy evaluation                    :        0.056 s           0.056 s
+
+  Partial memory accounting:
+  | Current value for overall tracked memory usage:
+  |   Minimum:      567.164 MB (on task  0)
+  |   Maximum:      569.264 MB (on task  1)
+  |   Average:      568.127 MB
+  | Peak value for overall tracked memory usage:
+  |   Minimum:      580.771 MB (on task 13 after allocating wave)
+  |   Maximum:      583.397 MB (on task  8 after allocating wave)
+  |   Average:      581.915 MB
+  | Largest tracked array allocation so far:
+  |   Minimum:      545.867 MB (KS_eigenvector_complex on task  0)
+  |   Maximum:      547.966 MB (KS_eigenvector_complex on task  1)
+  |   Average:      546.829 MB
+  Note:  These values currently only include a subset of arrays which are explicitly tracked.
+  The "true" memory usage will be greater.
+------------------------------------------------------------
+
+------------------------------------------------------------
+          Begin self-consistency iteration #    1
+
+  Date     :  20200420, Time     :  113622.734
+------------------------------------------------------------
+  Evaluating new KS density using the density matrix
+  Evaluating density matrix
+  Time summed over all CPUs for getting density from density matrix: real work      120.666 s, elapsed      122.771 s
+  Integration grid: deviation in total charge (<rho> - N_e) =   1.184844E-08
+  Pulay mixing of updated and previous charge densities.
+  Renormalizing the density to the exact electron count on the 3D integration grid.
+  | Formal number of electrons (from input files) :     456.0000000000
+  | Integrated number of electrons on 3D grid     :     455.9996719192
+  | Charge integration error                      :      -0.0003280808
+  | Normalization factor for density and gradient :       1.0000007195
+
+  Evaluating partitioned Hartree potential by multipole expansion.
+  | Original multipole sum: apparent total charge =   0.435400E-13
+  | Sum of charges compensated after spline to logarithmic grids =   0.158796E-07
+  | Analytical far-field extrapolation by fixed multipoles:
+  | Hartree multipole sum: apparent total charge =   0.435378E-13
+  Summing up the Hartree potential.
+  Time summed over all CPUs for potential: real work       33.842 s, elapsed       34.424 s
+  | RMS charge density error from multipole expansion :   0.366077E-03
+  | Average real-space part of the electrostatic potential :     -0.00242446 eV
+
+  Integrating Hamiltonian matrix: batch-based integration.
+  Time summed over all CPUs for integration: real work       62.407 s, elapsed       63.174 s
+
+  Updating Kohn-Sham eigenvalues and eigenvectors using ELSI and the (modified) LAPACK eigensolver.
+  Starting LAPACK eigensolver
+  Finished Cholesky decomposition
+  | Time :     0.011 s
+  Finished transformation to standard eigenproblem
+  | Time :     0.020 s
+  Finished solving standard eigenproblem
+  | Time :     0.072 s
+  Finished back-transformation of eigenvectors
+  | Time :     0.008 s
+
+  Obtaining occupation numbers and chemical potential using ELSI.
+  | Chemical potential (Fermi level):    -4.69400919 eV
+  Writing Kohn-Sham eigenvalues.
+  K-point:       1 at    0.000000    0.000000    0.000000 (in units of recip. lattice)
+
+  State    Occupation    Eigenvalue [Ha]    Eigenvalue [eV]
+      1       2.00000        -913.286683       -24851.79509
+      2       2.00000        -913.286679       -24851.79497
+      3       2.00000        -913.286672       -24851.79480
+      4       2.00000        -913.286377       -24851.78676
+      5       2.00000        -466.350375       -12690.03936
+      6       2.00000        -466.350261       -12690.03627
+      7       2.00000        -466.350226       -12690.03532
+      8       2.00000        -466.350192       -12690.03439
+      9       2.00000        -466.350192       -12690.03437
+     10       2.00000        -466.350150       -12690.03324
+     11       2.00000        -466.350128       -12690.03265
+     12       2.00000        -466.350088       -12690.03155
+     13       2.00000        -130.452260        -3549.78661
+     14       2.00000        -130.452255        -3549.78647
+     15       2.00000        -130.452249        -3549.78629
+     16       2.00000        -130.451952        -3549.77823
+     17       2.00000        -116.928829        -3181.79532
+     18       2.00000        -116.928824        -3181.79519
+     19       2.00000        -116.928817        -3181.79500
+     20       2.00000        -116.928813        -3181.79489
+     21       2.00000        -116.928808        -3181.79475
+     22       2.00000        -116.928802        -3181.79458
+     23       2.00000        -116.928520        -3181.78693
+     24       2.00000        -116.928505        -3181.78650
+     25       2.00000        -116.928429        -3181.78444
+     26       2.00000        -116.928424        -3181.78431
+     27       2.00000        -116.928418        -3181.78413
+     28       2.00000        -116.928122        -3181.77608
+     29       2.00000         -59.215650        -1611.33981
+     30       2.00000         -59.215536        -1611.33672
+     31       2.00000         -59.215500        -1611.33574
+     32       2.00000         -59.215465        -1611.33480
+     33       2.00000         -59.215463        -1611.33473
+     34       2.00000         -59.215421        -1611.33360
+     35       2.00000         -59.215398        -1611.33298
+     36       2.00000         -59.215358        -1611.33188
+     37       2.00000         -52.074210        -1417.01135
+     38       2.00000         -52.074133        -1417.00926
+     39       2.00000         -52.074095        -1417.00822
+     40       2.00000         -52.074061        -1417.00730
+     41       2.00000         -52.074034        -1417.00656
+     42       2.00000         -52.074025        -1417.00631
+     43       2.00000         -52.074022        -1417.00623
+     44       2.00000         -52.074021        -1417.00622
+     45       2.00000         -52.073983        -1417.00518
+     46       2.00000         -52.073980        -1417.00510
+     47       2.00000         -52.073958        -1417.00449
+     48       2.00000         -52.073950        -1417.00427
+     49       2.00000         -52.073947        -1417.00420
+     50       2.00000         -52.073921        -1417.00348
+     51       2.00000         -52.073918        -1417.00341
+     52       2.00000         -52.073906        -1417.00309
+     53       2.00000         -52.073885        -1417.00251
+     54       2.00000         -52.073883        -1417.00244
+     55       2.00000         -52.073851        -1417.00158
+     56       2.00000         -52.073849        -1417.00154
+     57       2.00000         -52.073843        -1417.00135
+     58       2.00000         -52.073808        -1417.00040
+     59       2.00000         -52.073786        -1416.99981
+     60       2.00000         -52.073745        -1416.99871
+     61       2.00000         -23.539322         -640.53754
+     62       2.00000         -23.539317         -640.53740
+     63       2.00000         -23.539310         -640.53721
+     64       2.00000         -23.539017         -640.52925
+     65       2.00000         -19.121366         -520.31884
+     66       2.00000         -19.121359         -520.31864
+     67       2.00000         -19.121354         -520.31851
+     68       2.00000         -19.121276         -520.31638
+     69       2.00000         -19.121271         -520.31627
+     70       2.00000         -19.121263         -520.31603
+     71       2.00000         -19.121057         -520.31042
+     72       2.00000         -19.120968         -520.30802
+     73       2.00000         -19.120017         -520.28214
+     74       2.00000         -19.120013         -520.28203
+     75       2.00000         -19.120006         -520.28183
+     76       2.00000         -19.119719         -520.27402
+     77       2.00000         -12.116464         -329.70576
+     78       2.00000         -12.116458         -329.70560
+     79       2.00000         -12.116451         -329.70541
+     80       2.00000         -12.116272         -329.70054
+     81       2.00000         -12.116266         -329.70038
+     82       2.00000         -12.116260         -329.70020
+     83       2.00000         -12.116154         -329.69732
+     84       2.00000         -12.115963         -329.69212
+     85       2.00000         -12.115496         -329.67941
+     86       2.00000         -12.115490         -329.67925
+     87       2.00000         -12.115484         -329.67908
+     88       2.00000         -12.115437         -329.67780
+     89       2.00000         -12.115433         -329.67770
+     90       2.00000         -12.115425         -329.67748
+     91       2.00000         -12.115215         -329.67178
+     92       2.00000         -12.115211         -329.67167
+     93       2.00000         -12.115204         -329.67147
+     94       2.00000         -12.115192         -329.67114
+     95       2.00000         -12.115134         -329.66957
+     96       2.00000         -12.114914         -329.66359
+     97       2.00000          -7.861989         -213.93560
+     98       2.00000          -7.861864         -213.93220
+     99       2.00000          -7.861823         -213.93109
+    100       2.00000          -7.861783         -213.93000
+    101       2.00000          -7.861777         -213.92984
+    102       2.00000          -7.861733         -213.92864
+    103       2.00000          -7.861706         -213.92789
+    104       2.00000          -7.861662         -213.92671
+    105       2.00000          -5.636430         -153.37506
+    106       2.00000          -5.636286         -153.37115
+    107       2.00000          -5.636274         -153.37081
+    108       2.00000          -5.636239         -153.36988
+    109       2.00000          -5.636201         -153.36884
+    110       2.00000          -5.636196         -153.36870
+    111       2.00000          -5.636156         -153.36760
+    112       2.00000          -5.636148         -153.36740
+    113       2.00000          -5.636090         -153.36580
+    114       2.00000          -5.636088         -153.36575
+    115       2.00000          -5.636076         -153.36544
+    116       2.00000          -5.636055         -153.36487
+    117       2.00000          -5.636034         -153.36429
+    118       2.00000          -5.636014         -153.36373
+    119       2.00000          -5.635978         -153.36277
+    120       2.00000          -5.635927         -153.36138
+    121       2.00000          -5.635309         -153.34455
+    122       2.00000          -5.635185         -153.34119
+    123       2.00000          -5.635147         -153.34015
+    124       2.00000          -5.635114         -153.33925
+    125       2.00000          -5.635112         -153.33921
+    126       2.00000          -5.635068         -153.33800
+    127       2.00000          -5.635047         -153.33744
+    128       2.00000          -5.635002         -153.33620
+    129       2.00000          -3.278061          -89.20059
+    130       2.00000          -3.278051          -89.20031
+    131       2.00000          -3.278041          -89.20003
+    132       2.00000          -3.277696          -89.19064
+    133       2.00000          -2.024541          -55.09056
+    134       2.00000          -2.024524          -55.09009
+    135       2.00000          -2.024482          -55.08895
+    136       2.00000          -2.024087          -55.07821
+    137       2.00000          -2.023515          -55.06263
+    138       2.00000          -2.023498          -55.06219
+    139       2.00000          -2.023445          -55.06074
+    140       2.00000          -2.023065          -55.05041
+    141       2.00000          -2.015760          -54.85161
+    142       2.00000          -2.015756          -54.85150
+    143       2.00000          -2.015750          -54.85135
+    144       2.00000          -2.015437          -54.84284
+    145       2.00000          -1.969588          -53.59521
+    146       2.00000          -1.969419          -53.59062
+    147       2.00000          -1.969308          -53.58759
+    148       2.00000          -1.969282          -53.58688
+    149       2.00000          -1.968444          -53.56410
+    150       2.00000          -1.968325          -53.56086
+    151       2.00000          -1.968214          -53.55784
+    152       2.00000          -1.968194          -53.55727
+    153       2.00000          -1.967831          -53.54740
+    154       2.00000          -1.967765          -53.54561
+    155       2.00000          -1.967757          -53.54538
+    156       2.00000          -1.967654          -53.54258
+    157       2.00000          -1.967653          -53.54257
+    158       2.00000          -1.967635          -53.54208
+    159       2.00000          -1.967545          -53.53962
+    160       2.00000          -1.967535          -53.53934
+    161       2.00000          -1.967346          -53.53420
+    162       2.00000          -1.967317          -53.53343
+    163       2.00000          -1.967250          -53.53159
+    164       2.00000          -1.967230          -53.53106
+    165       2.00000          -1.967195          -53.53009
+    166       2.00000          -1.967162          -53.52921
+    167       2.00000          -1.967139          -53.52857
+    168       2.00000          -1.967134          -53.52844
+    169       2.00000          -1.967117          -53.52797
+    170       2.00000          -1.967115          -53.52793
+    171       2.00000          -1.967086          -53.52714
+    172       2.00000          -1.967046          -53.52606
+    173       2.00000          -1.967032          -53.52567
+    174       2.00000          -1.966994          -53.52462
+    175       2.00000          -1.966953          -53.52351
+    176       2.00000          -1.966933          -53.52297
+    177       2.00000          -1.966791          -53.51910
+    178       2.00000          -1.966709          -53.51687
+    179       2.00000          -1.966623          -53.51453
+    180       2.00000          -1.966606          -53.51406
+    181       2.00000          -1.966457          -53.51001
+    182       2.00000          -1.966387          -53.50810
+    183       2.00000          -1.966293          -53.50556
+    184       2.00000          -1.966291          -53.50549
+    185       2.00000          -0.759487          -20.66668
+    186       2.00000          -0.741692          -20.18246
+    187       2.00000          -0.720809          -19.61420
+    188       2.00000          -0.718948          -19.56356
+    189       2.00000          -0.652303          -17.75005
+    190       2.00000          -0.640358          -17.42504
+    191       2.00000          -0.638687          -17.37955
+    192       2.00000          -0.627477          -17.07451
+    193       2.00000          -0.419340          -11.41083
+    194       2.00000          -0.411671          -11.20215
+    195       2.00000          -0.389450          -10.59748
+    196       2.00000          -0.377074          -10.26071
+    197       2.00000          -0.370332          -10.07724
+    198       2.00000          -0.368614          -10.03050
+    199       2.00000          -0.368272          -10.02119
+    200       2.00000          -0.367738          -10.00666
+    201       2.00000          -0.365971           -9.95858
+    202       2.00000          -0.364873           -9.92870
+    203       2.00000          -0.360674           -9.81444
+    204       2.00000          -0.351914           -9.57606
+    205       2.00000          -0.341563           -9.29440
+    206       2.00000          -0.331127           -9.01042
+    207       2.00000          -0.323128           -8.79276
+    208       2.00000          -0.316588           -8.61479
+    209       2.00000          -0.315259           -8.57863
+    210       2.00000          -0.306739           -8.34679
+    211       2.00000          -0.290911           -7.91610
+    212       2.00000          -0.288426           -7.84848
+    213       2.00000          -0.285270           -7.76260
+    214       2.00000          -0.282907           -7.69830
+    215       2.00000          -0.281173           -7.65110
+    216       2.00000          -0.279646           -7.60955
+    217       2.00000          -0.278684           -7.58337
+    218       2.00000          -0.275741           -7.50331
+    219       2.00000          -0.275688           -7.50186
+    220       2.00000          -0.272532           -7.41596
+    221       2.00000          -0.266787           -7.25963
+    222       2.00000          -0.264716           -7.20330
+    223       2.00000          -0.264381           -7.19417
+    224       2.00000          -0.258898           -7.04498
+    225       2.00000          -0.226818           -6.17203
+    226       2.00000          -0.217933           -5.93025
+    227       2.00000          -0.215369           -5.86049
+    228       0.00000          -0.168373           -4.58167
+    229       0.00000          -0.151255           -4.11587
+    230       0.00000          -0.136949           -3.72658
+    231       0.00000          -0.131581           -3.58050
+    232       0.00000          -0.129359           -3.52003
+    233       0.00000          -0.125962           -3.42760
+    234       0.00000          -0.115994           -3.15636
+    235       0.00000          -0.115678           -3.14776
+    236       0.00000          -0.082882           -2.25532
+    237       0.00000          -0.038067           -1.03585
+    238       0.00000          -0.031326           -0.85241
+    239       0.00000          -0.005753           -0.15655
+    240       0.00000           0.018008            0.49001
+    241       0.00000           0.023804            0.64774
+    242       0.00000           0.024564            0.66841
+    243       0.00000           0.054788            1.49085
+    244       0.00000           0.089246            2.42851
+    245       0.00000           0.104467            2.84269
+    246       0.00000           0.110613            3.00993
+    247       0.00000           0.119713            3.25757
+    248       0.00000           0.121083            3.29484
+    249       0.00000           0.125911            3.42621
+    250       0.00000           0.126360            3.43844
+    251       0.00000           0.135636            3.69084
+    252       0.00000           0.150393            4.09240
+    253       0.00000           0.162253            4.41513
+    254       0.00000           0.173188            4.71268
+    255       0.00000           0.176488            4.80247
+    256       0.00000           0.189090            5.14540
+    257       0.00000           0.190791            5.19170
+    258       0.00000           0.196343            5.34276
+    259       0.00000           0.218687            5.95076
+    260       0.00000           0.231504            6.29956
+    261       0.00000           0.247918            6.74619
+    262       0.00000           0.257277            7.00086
+    263       0.00000           0.266234            7.24460
+    264       0.00000           0.280289            7.62704
+    265       0.00000           0.281787            7.66781
+    266       0.00000           0.312066            8.49174
+    267       0.00000           0.318521            8.66740
+    268       0.00000           0.321038            8.73590
+    269       0.00000           0.322662            8.78009
+    270       0.00000           0.334132            9.09220
+    271       0.00000           0.338967            9.22377
+    272       0.00000           0.345419            9.39934
+    273       0.00000           0.360355            9.80575
+    274       0.00000           0.362667            9.86867
+    275       0.00000           0.365506            9.94593
+    276       0.00000           0.367396            9.99736
+    277       0.00000           0.391019           10.64018
+    278       0.00000           0.397583           10.81878
+    279       0.00000           0.404514           11.00738
+    280       0.00000           0.406817           11.07005
+    281       0.00000           0.421479           11.46902
+    282       0.00000           0.460121           12.52054
+    283       0.00000           0.462869           12.59529
+    284       0.00000           0.466744           12.70076
+    285       0.00000           0.469064           12.76389
+    286       0.00000           0.475243           12.93203
+    287       0.00000           0.475891           12.94965
+    288       0.00000           0.493607           13.43174
+    289       0.00000           0.506085           13.77127
+    290       0.00000           0.507737           13.81622
+    291       0.00000           0.512621           13.94912
+    292       0.00000           0.527980           14.36707
+    293       0.00000           0.528506           14.38138
+    294       0.00000           0.547747           14.90496
+
+  What follows are estimated values for band gap, HOMO, LUMO, etc.
+  | They are estimated on a discrete k-point grid and not necessarily exact.
+  | For converged numbers, create a DOS and/or band structure plot on a denser k-grid.
+
+  Highest occupied state (VBM) at     -4.69410166 eV (relative to internal zero)
+  | Occupation number:      1.01043454
+  | K-point:    5071 at    0.600000    0.520000    0.900000 (in units of recip. lattice)
+
+  Lowest unoccupied state (CBM) at    -4.69382922 eV (relative to internal zero)
+  | Occupation number:      0.97969510
+  | K-point:    3388 at    0.360000    0.360000    0.050000 (in units of recip. lattice)
+
+  ESTIMATED overall HOMO-LUMO gap:      0.00027244 eV between HOMO at k-point 5071 and LUMO at k-point 3388
+  | This appears to be an indirect band gap.
+  | Smallest direct gap :      0.05691391 eV for k_point 5312 at    0.360000    0.360000    0.050000 (in units of recip. lattice)
+  However, this system has fractional occupation numbers. Since we use a finite k-point grid,
+  this material is metallic within the approximate finite broadening function (occupation_type)
+  applied to determine the occupation numbers.
+
+  Total energy components:
+  | Sum of eigenvalues            :      -23858.21480948 Ha     -649215.05666424 eV
+  | XC energy correction          :       -1284.56732837 Ha      -34954.85548829 eV
+  | XC potential correction       :        1673.22254773 Ha       45530.70210032 eV
+  | Free-atom electrostatic energy:      -16511.28113248 Ha     -449294.81948355 eV
+  | Hartree energy correction     :           0.90940502 Ha          24.74616960 eV
+  | vdW energy correction         :           0.00000000 Ha           0.00000000 eV
+  | Entropy correction            :          -0.00000111 Ha          -0.00003023 eV
+  | ---------------------------
+  | Total energy                  :      -39979.93131758 Ha    -1087909.28336616 eV
+  | Total energy, T -> 0          :      -39979.93131869 Ha    -1087909.28339639 eV  <-- do not rely on this value for anything but (periodic) metals
+  | Electronic free energy        :      -39979.93131980 Ha    -1087909.28342662 eV
+
+  Derived energy quantities:
+  | Kinetic energy                :       41147.00205349 Ha     1119666.89389989 eV
+  | Electrostatic energy          :      -79842.36604270 Ha    -2172621.32177775 eV
+  | Energy correction for multipole
+  | error in Hartree potential    :          -0.00026674 Ha          -0.00725849 eV
+  | Sum of eigenvalues per atom                           :      -54101.25472202 eV
+  | Total energy (T->0) per atom                          :      -90659.10694970 eV  <-- do not rely on this value for anything but (periodic) metals
+  | Electronic free energy per atom                       :      -90659.10695222 eV
+
+  Self-consistency convergence accuracy:
+  | Change of charge density      :  0.3678E+00
+  | Change of sum of eigenvalues  : -0.2428E+02 eV
+  | Change of total energy        :  0.1647E+00 eV
+
+  End self-consistency iteration #     1       :  max(cpu_time)    wall_clock(cpu1)
+  | Time for this iteration                    :       52.122 s          52.126 s
+  | Charge density update                      :       10.673 s          10.673 s
+  | Density mixing & preconditioning           :        0.847 s           0.864 s
+  | Hartree multipole update                   :        0.019 s           0.019 s
+  | Hartree multipole summation                :        1.452 s           1.452 s
+  | Integration                                :        2.661 s           2.662 s
+  | Solution of K.-S. eqns.                    :       36.327 s          36.385 s
+  | Total energy evaluation                    :        0.055 s           0.053 s
+
+  Partial memory accounting:
+  | Current value for overall tracked memory usage:
+  |   Minimum:      567.164 MB (on task  0)
+  |   Maximum:      569.264 MB (on task  1)
+  |   Average:      568.127 MB
+  | Peak value for overall tracked memory usage:
+  |   Minimum:      580.771 MB (on task 13 after allocating wave)
+  |   Maximum:      583.397 MB (on task  8 after allocating wave)
+  |   Average:      581.915 MB
+  | Largest tracked array allocation so far:
+  |   Minimum:      545.867 MB (KS_eigenvector_complex on task  0)
+  |   Maximum:      547.966 MB (KS_eigenvector_complex on task  1)
+  |   Average:      546.829 MB
+  Note:  These values currently only include a subset of arrays which are explicitly tracked.
+  The "true" memory usage will be greater.
+------------------------------------------------------------
+
+------------------------------------------------------------
+          Begin self-consistency iteration #    2
+
+  Date     :  20200420, Time     :  113714.866
+------------------------------------------------------------
+  Evaluating new KS density using the density matrix
+  Evaluating density matrix
+  Time summed over all CPUs for getting density from density matrix: real work      120.859 s, elapsed      125.462 s
+  Integration grid: deviation in total charge (<rho> - N_e) =   1.184839E-08
+  Pulay mixing of updated and previous charge densities.
+  Renormalizing the density to the exact electron count on the 3D integration grid.
+  | Formal number of electrons (from input files) :     456.0000000000
+  | Integrated number of electrons on 3D grid     :     455.9964136444
+  | Charge integration error                      :      -0.0035863556
+  | Normalization factor for density and gradient :       1.0000078649
+
+  Evaluating partitioned Hartree potential by multipole expansion.
+  | Original multipole sum: apparent total charge =  -0.178947E-12
+  | Sum of charges compensated after spline to logarithmic grids =   0.220882E-07
+  | Analytical far-field extrapolation by fixed multipoles:
+  | Hartree multipole sum: apparent total charge =  -0.179043E-12
+  Summing up the Hartree potential.
+  Time summed over all CPUs for potential: real work       38.631 s, elapsed       39.293 s
+  | RMS charge density error from multipole expansion :   0.385923E-02
+  | Average real-space part of the electrostatic potential :     -0.02193287 eV
+
+  Integrating Hamiltonian matrix: batch-based integration.
+  Time summed over all CPUs for integration: real work       62.371 s, elapsed       63.096 s
+
+  Updating Kohn-Sham eigenvalues and eigenvectors using ELSI and the (modified) LAPACK eigensolver.
+  Starting LAPACK eigensolver
+  Finished Cholesky decomposition
+  | Time :     0.011 s
+  Finished transformation to standard eigenproblem
+  | Time :     0.020 s
+  Finished solving standard eigenproblem
+  | Time :     0.071 s
+  Finished back-transformation of eigenvectors
+  | Time :     0.008 s
+
+  Obtaining occupation numbers and chemical potential using ELSI.
+  | Chemical potential (Fermi level):    -4.92990249 eV
+  What follows are estimated values for band gap, HOMO, LUMO, etc.
+  | They are estimated on a discrete k-point grid and not necessarily exact.
+  | For converged numbers, create a DOS and/or band structure plot on a denser k-grid.
+
+  Highest occupied state (VBM) at     -4.92998278 eV (relative to internal zero)
+  | Occupation number:      1.00905915
+  | K-point:    5862 at    0.840000    0.880000    0.100000 (in units of recip. lattice)
+
+  Lowest unoccupied state (CBM) at    -4.92964423 eV (relative to internal zero)
+  | Occupation number:      0.97086490
+  | K-point:    6026 at    0.920000    0.160000    0.900000 (in units of recip. lattice)
+
+  ESTIMATED overall HOMO-LUMO gap:      0.00033855 eV between HOMO at k-point 5862 and LUMO at k-point 6026
+  | This appears to be an indirect band gap.
+  | Smallest direct gap :      0.06043695 eV for k_point 3824 at    0.920000    0.160000    0.900000 (in units of recip. lattice)
+  However, this system has fractional occupation numbers. Since we use a finite k-point grid,
+  this material is metallic within the approximate finite broadening function (occupation_type)
+  applied to determine the occupation numbers.
+
+  Total energy components:
+  | Sum of eigenvalues            :      -23865.88855825 Ha     -649423.86999261 eV
+  | XC energy correction          :       -1284.26056093 Ha      -34946.50792154 eV
+  | XC potential correction       :        1672.82185818 Ha       45519.79878290 eV
+  | Free-atom electrostatic energy:      -16511.28113248 Ha     -449294.81948355 eV
+  | Hartree energy correction     :           8.69878917 Ha         236.70609680 eV
+  | vdW energy correction         :           0.00000000 Ha           0.00000000 eV
+  | Entropy correction            :          -0.00000143 Ha          -0.00003896 eV
+  | ---------------------------
+  | Total energy                  :      -39979.90960431 Ha    -1087908.69251799 eV
+  | Total energy, T -> 0          :      -39979.90960574 Ha    -1087908.69255695 eV  <-- do not rely on this value for anything but (periodic) metals
+  | Electronic free energy        :      -39979.90960717 Ha    -1087908.69259591 eV
+
+  Derived energy quantities:
+  | Kinetic energy                :       41143.88408708 Ha     1119582.04971693 eV
+  | Electrostatic energy          :      -79839.53313046 Ha    -2172544.23431338 eV
+  | Energy correction for multipole
+  | error in Hartree potential    :          -0.00283469 Ha          -0.07713574 eV
+  | Sum of eigenvalues per atom                           :      -54118.65583272 eV
+  | Total energy (T->0) per atom                          :      -90659.05771308 eV  <-- do not rely on this value for anything but (periodic) metals
+  | Electronic free energy per atom                       :      -90659.05771633 eV
+
+  Self-consistency convergence accuracy:
+  | Change of charge density      :  0.3369E+00
+  | Change of sum of eigenvalues  : -0.2088E+03 eV
+  | Change of total energy        :  0.5908E+00 eV
+
+  End self-consistency iteration #     2       :  max(cpu_time)    wall_clock(cpu1)
+  | Time for this iteration                    :       52.647 s          52.651 s
+  | Charge density update                      :       10.805 s          10.805 s
+  | Density mixing & preconditioning           :        0.888 s           0.889 s
+  | Hartree multipole update                   :        0.004 s           0.004 s
+  | Hartree multipole summation                :        1.657 s           1.657 s
+  | Integration                                :        2.656 s           2.656 s
+  | Solution of K.-S. eqns.                    :       36.552 s          36.569 s
+  | Total energy evaluation                    :        0.055 s           0.054 s
+
+  Partial memory accounting:
+  | Current value for overall tracked memory usage:
+  |   Minimum:      567.165 MB (on task  0)
+  |   Maximum:      569.265 MB (on task  1)
+  |   Average:      568.127 MB
+  | Peak value for overall tracked memory usage:
+  |   Minimum:      580.771 MB (on task 13 after allocating wave)
+  |   Maximum:      583.397 MB (on task  8 after allocating wave)
+  |   Average:      581.915 MB
+  | Largest tracked array allocation so far:
+  |   Minimum:      545.867 MB (KS_eigenvector_complex on task  0)
+  |   Maximum:      547.966 MB (KS_eigenvector_complex on task  1)
+  |   Average:      546.829 MB
+  Note:  These values currently only include a subset of arrays which are explicitly tracked.
+  The "true" memory usage will be greater.
+------------------------------------------------------------
+
+------------------------------------------------------------
+          Begin self-consistency iteration #    3
+
+  Date     :  20200420, Time     :  113807.518
+------------------------------------------------------------
+  Evaluating new KS density using the density matrix
+  Evaluating density matrix
