@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+import os, sys
+from AIMS_tools.misc import *
+from AIMS_tools.structuretools import structure
+import argparse
+
+
+def parseArguments():
+    # Create argument parser
+    parser = argparse.ArgumentParser()
+
+    # Positional mandatory arguments
+    parser.add_argument("structure", help="Path to structure file.", type=str)
+
+    # Optional arguments
+    parser.add_argument(
+        "--prec",
+        help="Precision to determine equivalent structures",
+        type=float,
+        default=1e-4,
+    )
+    # symmetries?
+
+    # Parse arguments
+    args = parser.parse_args()
+    return args
+
+
+if __name__ == "__main__":
+    args = parseArguments()
+    struc = structure(args.structure)
+    struc.standardize(symprec=args.prec)

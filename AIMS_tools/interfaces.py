@@ -15,13 +15,14 @@ def _coincidence(a1, b1, m1, m2, n1, n2, theta):
     return (m1, m2, n1, n2, theta, np.linalg.norm(Am - Bn))
 
 
-def _standardize(atoms, symprec=1e-4):
+def _standardize(collection, symprec=1e-4):
+    atoms = collection.atoms
     cell = (atoms.get_cell()).tolist()
     pos = atoms.get_scaled_positions().tolist()
     numbers = atoms.get_atomic_numbers()
 
     cell, scaled_pos, numbers = spglib.standardize_cell(
-        (cell, pos, numbers), to_primitive=True
+        (cell, pos, numbers), to_primitive=True, symprec=symprec, no_idealize=False
     )
 
     atoms = ase.atoms.Atoms(
@@ -32,7 +33,8 @@ def _standardize(atoms, symprec=1e-4):
     order = [x for x, y in sorted(zip(axes, lengths), key=lambda pair: pair[1])]
     if order != [0, 1, 2]:
         atoms = ase.geometry.permute_axes(atoms, order)
-    return atoms
+    collection._replace(atoms=atoms)
+    return collection
 
 
 class interface:
@@ -57,18 +59,16 @@ class interface:
         N_translations (int): Number of translations or maximum super cell size to consider, defaults to 10.
         angle_stepsize (float): Stepsize between angles to rotate top layer. Defaults to 10.0.
         angle_limits (tuple): Lower and upper limit of angles in degrees to scan. Defaults to (0, 180).
-        crit (float): Distance criterion to accept coincidence lattice points. Defaults to 0.20 (Angström).
+        crit (float): Distance criterion to accept coincidence lattice points. Defaults to 0.05 (Angström).
         distance (float): Interlayer distance between the reconstructed stacks. Defaults to 4.0 (Angström).
         weight (float): Value between 0 and 1, defaults to 0.5. The unit cell of the reconstructed stack is :math:`B + w \cdot (T - B)`.
-        prec (float): Precision to identify equivalent structures. Defaults to 1e-3.
+        prec (float): Precision to identify equivalent structures. Defaults to 1e-4.
         jitter (float): Jitters data points for plotting for easier picking. Defaults to 0.05.
     
     Attributes:
         results (dict): Dictionary of angles in radians and list of lists containing (m1, m2, n1, n2, err).
         pairs (dict): Dictionary of angles in degrees and tuples of supercell matrices (M, N).
-        solved (list): List of reconstructed stacks as atom objects after analyzing the results.
-        data (list): Data for plotting.
-        scinfo (list): List of tuples containing supercell information.
+        solved (list): List of stacks as named tuples after analyzing the results. Contains (atoms, M, N, angle, stress).
 
     """
 
@@ -77,10 +77,10 @@ class interface:
         N_translations = kwargs.get("N_translations", 10)
         angle_stepsize = kwargs.get("angle_stepsize", 10.0)
         angle_limits = kwargs.get("angle_limits", (0, 180))
-        crit = kwargs.get("crit", 0.20)
+        crit = kwargs.get("crit", 0.05)
         distance = kwargs.get("distance", 4.0)
         self.weight = kwargs.get("weight", 0.5)
-        prec = kwargs.get("prec", 1e-3)
+        prec = kwargs.get("prec", 1e-4)
         jitter = kwargs.get("jitter", 0.05)
 
         self.results = self.find_coincidence(
@@ -202,9 +202,11 @@ class interface:
             return None
 
     def find_noncollinear_pairs(self):
-        r""" Finds non-collinear pairs of :math:`(\vec{m}_1, \vec{m}_2)` and :math:`(\vec{n}_1, \vec{n}_2)`.
+        r""" Finds linearly independent pairs of :math:`(\vec{m}_1, \vec{m}_2)` and :math:`(\vec{n}_1, \vec{n}_2)`.
 
         Constructs supercell matrices :math:`M=(\vec{m}_1^T, \vec{m}_2^T)` and :math:`N=(\vec{n}_1^T, \vec{n}_2^T)` with positive determinants.
+        Collinear matrices at the same angle are filtered such that the area of the unit cell :math:`(\vec{m}_1 \times \vec{m}_2)` is minimized.
+
         
         Returns:
             dict: Pairs of angle : (M, N).
@@ -213,20 +215,21 @@ class interface:
         results = self.results
         d = {}
         for ang, indices in results.items():
-            for pair1 in indices:
+            for i, pair1 in enumerate(indices):
+                pairs = []
                 angle = ang * 180.0 / np.pi
                 m1, m2, n1, n2, stress = pair1
-                for pair2 in indices:
-                    pairs = []
-                    m3, m4, n3, n4, _ = pair2
-                    M = np.abs(np.cross([m1, m2], [m3, m4])) < 1e-5
-                    N = np.abs(np.cross([n1, n2], [n3, n4])) < 1e-5
-                    coll = M and N
-                    if not coll:
-                        M = np.array([[m1, m2, 0], [m3, m4, 0], [0, 0, 1]])
-                        N = np.array([[n1, n2, 0], [n3, n4, 0], [0, 0, 1]])
-                        if (np.linalg.det(M) > 0) and (np.linalg.det(N) > 0):
-                            pairs.append((M, N))
+                for k, pair2 in enumerate(indices):
+                    if k > i:
+                        m3, m4, n3, n4, _ = pair2
+                        M = np.abs(np.cross([m1, m2], [m3, m4])) < 1e-5
+                        N = np.abs(np.cross([n1, n2], [n3, n4])) < 1e-5
+                        dependent = M and N
+                        if not dependent:
+                            M = np.array([[m1, m2, 0], [m3, m4, 0], [0, 0, 1]])
+                            N = np.array([[n1, n2, 0], [n3, n4, 0], [0, 0, 1]])
+                            if (np.linalg.det(M) > 0) and (np.linalg.det(N) > 0):
+                                pairs.append((M, N))
                 if angle in d.keys():
                     d[angle] += pairs
                 elif pairs != []:
@@ -239,7 +242,31 @@ class interface:
                 s
             )
         )
-        return d
+        fd = {}
+        for ang, pairs in d.items():
+            collinear = []
+            for i, p1 in enumerate(pairs):
+                M1, N1 = p1
+                for j, p2 in enumerate(pairs):
+                    if j > i:
+                        M2, N2 = p2
+                        c1 = np.linalg.norm(np.cross(M1[:, 0], M2[:, 0])) < 1e-5
+                        c2 = np.linalg.norm(np.cross(M1[:, 1], M2[:, 1])) < 1e-5
+                        coll = c1 and c2
+                        if coll:
+                            ar1 = np.linalg.norm(np.cross(M1[:, 0], M1[:, 1]))
+                            ar2 = np.linalg.norm(np.cross(M2[:, 0], M2[:, 1]))
+                            if ar2 > ar1:
+                                collinear.append(j)
+                            elif ar1 > ar2:
+                                collinear.append(i)
+
+            fd[ang] = [k for v, k in enumerate(d[ang]) if v not in collinear]
+        s = 0
+        for k, v in fd.items():
+            s += len(v)
+        logging.info("Reduced to {:d} non-collinear matrices.".format(s))
+        return fd
 
     def analyze_results(
         self, distance=3, weight=0.5, prec=1e-4,
@@ -258,14 +285,15 @@ class interface:
             The ASE algorithm to generate supercells might not work in some cases. Please note and report these.
 
         """
+        from collections import namedtuple
+
         pairs = self.pairs
         self.weight = weight
         assert (self.weight <= 1.0) and (
             self.weight >= 0.0
         ), "Weight must be between 0 and 1."
 
-        data = []
-        scinfo = []
+        data = namedtuple("stack", ["atoms", "M", "N", "angle", "stress"])
         solved = []
         start = time.time()
         logging.info("Reconstructing heterostructures ...")
@@ -283,25 +311,8 @@ class interface:
                     stack = self.stack(
                         bottom, top, distance=distance, weight=self.weight
                     )
-                    solved.append(stack)
-                    natoms = len(stack)
                     stress = np.linalg.norm(top.cell - bottom.cell)
-                    m1, m2, m3, m4 = M[0, 0], M[0, 1], M[1, 0], M[1, 1]
-                    n1, n2, n3, n4 = N[0, 0], N[0, 1], N[1, 0], N[1, 1]
-                    scdata = (
-                        int(natoms),
-                        int(m1),
-                        int(m2),
-                        int(m3),
-                        int(m4),
-                        int(n1),
-                        int(n2),
-                        int(n3),
-                        int(n4),
-                        float(angle),
-                    )
-                    data.append((stress, natoms))
-                    scinfo.append(scdata)
+                    solved.append(data(stack, M, N, angle, stress))
                 except:
                     logging.error(
                         "ASE supercell generation didn't work for \n{} and \n{}".format(
@@ -311,66 +322,9 @@ class interface:
         logging.info(
             "Standardizing representations and filtering unique structures ..."
         )
-        self.__filter_unique_structures(solved, data, scinfo, prec=prec)
+        self.__filter_unique_structures(solved, prec=prec)
         end = time.time()
         logging.info("Analysis finished in {:.2f} seconds.".format(end - start))
-
-    def __parallel_spglib_standard(self, solved, prec):
-        import multiprocessing as mp
-        import itertools
-
-        start = time.time()
-        cpus = mp.cpu_count()
-        pool = mp.Pool(processes=cpus)
-        iterator = ((j, prec) for j in solved)
-        res = pool.starmap_async(_standardize, iterator)  # , chunksize=10)
-        solved = res.get()
-        pool.close()
-        pool.join()
-        end = time.time()
-
-        logging.info(
-            "  Spglib standardization with enforced axes order finished in parallel after {:.2f} seconds ...".format(
-                end - start
-            )
-        )
-        return solved
-
-    def __remove_doubles(self, solved, data, scinfo, prec):
-        copies = []
-        start = time.time()
-        for i in range(len(solved)):
-            for j in range(len(solved)):
-                if j > i:
-                    a = solved[i].copy()
-                    b = solved[j].copy()
-                    data[i] = (data[i][0], len(a))
-                    area = (
-                        np.linalg.norm(np.cross(a.cell.T[:, 0], a.cell.T[:, 1]))
-                        - np.linalg.norm(np.cross(b.cell.T[:, 0], b.cell.T[:, 1]))
-                        < prec
-                    )
-                    natoms = (len(a) - len(b)) == 0
-                    stress = np.abs(data[j][0] - data[i][0]) < prec
-                    if area and natoms and stress:
-                        if j not in copies:
-                            copies.append(j)
-        solved = [i for j, i in enumerate(solved) if j not in copies]
-        scinfo = [i for j, i in enumerate(scinfo) if j not in copies]
-        data = [i for j, i in enumerate(data) if j not in copies]
-        end = time.time()
-        logging.info(
-            "  Filtering structures finished in {:.2f} seconds ...".format(end - start)
-        )
-        return solved, scinfo, data
-
-    def __filter_unique_structures(self, solved, data, scinfo, prec=1e-3):
-        solved = self.__parallel_spglib_standard(solved, prec)
-        solved, scinfo, data = self.__remove_doubles(solved, data, scinfo, prec)
-        logging.info("Found {:d} unique structures.".format(len(solved)))
-        self.solved = solved
-        self.data = np.array(data, dtype=float)
-        self.scinfo = scinfo
 
     def stack(self, bottom, top, weight=0.5, distance=4):
         """ Stacks two layered structures on top of each other.
@@ -417,6 +371,46 @@ class interface:
         stack = strc(bottom).recenter(bottom)
         return stack
 
+    def __spglib_standard(self, solved, prec):
+        start = time.time()
+        solved = [_standardize(j, prec) for j in solved]
+        end = time.time()
+
+        logging.info(
+            "  Spglib standardization with enforced axes order finished after {:.2f} seconds ...".format(
+                end - start
+            )
+        )
+        return solved
+
+    def __remove_doubles(self, solved, prec):
+        copies = []
+        start = time.time()
+        for i, k in enumerate(solved):
+            for j, h in enumerate(solved):
+                if j > i:
+                    a = k.atoms.copy()
+                    b = h.atoms.copy()
+                    area1 = np.linalg.norm(np.cross(a.cell[:, 0], a.cell[:, 1]))
+                    area2 = np.linalg.norm(np.cross(b.cell[:, 0], b.cell[:, 1]))
+                    area = np.abs((area2 - area1)) < prec
+                    natoms = (len(a) - len(b)) == 0
+                    stress = np.abs(solved[j].stress - solved[i].stress) < prec
+                    if area and natoms and stress:
+                        copies.append(j)
+        solved = [i for j, i in enumerate(solved) if j not in copies]
+        end = time.time()
+        logging.info(
+            "  Filtering structures finished in {:.2f} seconds ...".format(end - start)
+        )
+        return solved
+
+    def __filter_unique_structures(self, solved, prec=1e-4):
+        solved = self.__spglib_standard(solved, prec)
+        solved = self.__remove_doubles(solved, prec)
+        logging.info("Found {:d} unique structures.".format(len(solved)))
+        self.solved = solved
+
     def plot_results(self, jitter=0.05):
         """ Plots results interactively.
 
@@ -432,16 +426,24 @@ class interface:
             stdev = jitter * (max(arr) - min(arr))
             return arr + np.random.randn(len(arr)) * stdev
 
-        self.data[:, 0] = rand_jitter(self.data[:, 0], jitter)
-        self.data[:, 1] = rand_jitter(self.data[:, 1], jitter)
+        data = np.array([[i.stress, len(i.atoms)] for i in self.solved], dtype=float)
 
         fig, ax = plt.subplots(nrows=1, ncols=3, figsize=([6.4 * 3, 4.8 * 1.5]))
-        for row in range(self.data.shape[0]):
-            x, y = self.data[row]
-            ax[0].plot(x, y, color="crimson", alpha=0.5, picker=3.5, marker=".")
+        ax[0].scatter(
+            rand_jitter(data[:, 0], jitter),
+            data[:, 1],
+            color="crimson",
+            alpha=0.5,
+            picker=3.5,
+            marker=".",
+        )
+        ax[0].set_ylim(0, ax[0].get_ylim()[1])
         ax[0].set_xlabel("Distance between unit cells [Angström]")
         ax[0].set_ylabel("Number of atoms")
         ax[0].set_title("Click a point to select structure.")
+        ax[0].grid(
+            axis="both", color="lightgray", linestyle="-", linewidth=1, alpha=0.2
+        )
         ax[1].set_yticks([])
         ax[1].set_xticks([])
         ax[1].set_xlabel("")
@@ -472,15 +474,33 @@ class interface:
     def __onpick(self, event):
         point = event.artist
         mouseevent = event.mouseevent
-        xdata = point.get_xdata()[0]
-        ydata = point.get_ydata()[0]
-        index = np.where((self.data[:, 0] == xdata) & (self.data[:, 1] == ydata))
-        index = index[0][0]
+        # xdata = point.get_xdata()[0]
+        # ydata = point.get_ydata()[0]
+        # index = np.where((self.data[:, 0] == xdata) & (self.data[:, 1] == ydata))
+        # index = index[0][0]
+        index = event.ind[0]
         fig = point.properties()["figure"]
         axes = fig.axes
-        scdata = self.scinfo[index]
+        stack = self.solved[index].atoms
+        M = self.solved[index].M
+        N = self.solved[index].N
+        angle = self.solved[index].angle
+        m1, m2, m3, m4 = M[0, 0], M[0, 1], M[1, 0], M[1, 1]
+        n1, n2, n3, n4 = N[0, 0], N[0, 1], N[1, 0], N[1, 1]
+        scdata = (
+            int(len(stack)),
+            int(m1),
+            int(m2),
+            int(m3),
+            int(m4),
+            int(n1),
+            int(n2),
+            int(n3),
+            int(n4),
+            float(angle),
+        )
         self.current_scdata = scdata
-        self.__plot_stack(self.solved[index], fig, axes[2], scdata)
+        self.__plot_stack(stack, fig, axes[2], scdata)
         basis1 = self.bottom.atoms.copy()
         basis2 = self.top.atoms.copy()
         basis2.rotate(scdata[-1], v="z", rotate_cell=True)
