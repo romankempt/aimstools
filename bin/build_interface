@@ -29,7 +29,7 @@ def parseArguments():
         default=(0, 180.0),
     )
     parser.add_argument(
-        "-c", "--crit", help="Acceptance criterion", type=float, default=0.05
+        "-c", "--crit", help="Acceptance criterion", type=float, default=0.1
     )
     parser.add_argument(
         "-d", "--distance", help="Interlayer distance", type=float, default=4.0
@@ -55,5 +55,6 @@ def parseArguments():
 if __name__ == "__main__":
     args = parseArguments()
     intf = interface(**vars(args))
-    intf.analyze_results(args.distance, args.weight, args.prec)
-    intf.plot_results(args.jitter)
+    if intf.results != None:
+        intf.analyze_results(args.distance, args.weight, args.prec)
+        intf.plot_results(args.jitter)

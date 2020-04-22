@@ -22,7 +22,7 @@ def _standardize(collection, symprec=1e-4):
     numbers = atoms.get_atomic_numbers()
 
     cell, scaled_pos, numbers = spglib.standardize_cell(
-        (cell, pos, numbers), to_primitive=True, symprec=symprec, no_idealize=False
+        (cell, pos, numbers), to_primitive=True, symprec=symprec, no_idealize=True
     )
 
     atoms = ase.atoms.Atoms(
@@ -77,7 +77,7 @@ class interface:
         N_translations = kwargs.get("N_translations", 10)
         angle_stepsize = kwargs.get("angle_stepsize", 10.0)
         angle_limits = kwargs.get("angle_limits", (0, 180))
-        crit = kwargs.get("crit", 0.05)
+        crit = kwargs.get("crit", 0.1)
         distance = kwargs.get("distance", 4.0)
         self.weight = kwargs.get("weight", 0.5)
         prec = kwargs.get("prec", 1e-4)
@@ -115,10 +115,10 @@ class interface:
         assert self.top.is_2d(self.top.atoms), "Top structure is not 2D!"
         self.bottom.standardize(to_primitive=True)
         self.top.standardize(to_primitive=True)
-        self.bottom.atoms.set_cell(self.bottom.atoms.cell.T, scale_atoms=True)
-        self.top.atoms.set_cell(self.top.atoms.cell.T, scale_atoms=True)
-        a1 = self.bottom.atoms.cell[[0, 1], :2].copy()
-        b1 = self.top.atoms.cell[[0, 1], :2].copy()
+        # self.bottom.set_cell(self.bottom.cell.T, scale_atoms=True)
+        # self.top.set_cell(self.top.cell.T, scale_atoms=True)
+        a1 = self.bottom.atoms.cell[[0, 1], :2].T.copy()
+        b1 = self.top.atoms.cell[[0, 1], :2].T.copy()
         return (a1, b1)
 
     def find_coincidence(
