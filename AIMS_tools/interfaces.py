@@ -59,7 +59,7 @@ class interface:
         N_translations (int): Number of translations or maximum super cell size to consider, defaults to 10.
         angle_stepsize (float): Stepsize between angles to rotate top layer. Defaults to 10.0.
         angle_limits (tuple): Lower and upper limit of angles in degrees to scan. Defaults to (0, 180).
-        crit (float): Distance criterion to accept coincidence lattice points. Defaults to 0.05 (Angström).
+        crit (float): Distance criterion to accept coincidence lattice points. Defaults to 0.1 (Angström).
         distance (float): Interlayer distance between the reconstructed stacks. Defaults to 4.0 (Angström).
         weight (float): Value between 0 and 1, defaults to 0.5. The unit cell of the reconstructed stack is :math:`B + w \cdot (T - B)`.
         prec (float): Precision to identify equivalent structures. Defaults to 1e-4.
@@ -92,7 +92,7 @@ class interface:
             angle_limits=angle_limits,
         )
         if self.results != None:
-            self.pairs = self.find_noncollinear_pairs()
+            self.pairs = self.find_independent_pairs()
 
     def __checks_and_setup(self, bottom, top):
         if type(bottom) == ase.atoms.Atoms:
@@ -201,23 +201,37 @@ class interface:
             logging.error("Found no matching lattice points.")
             return None
 
-    def find_noncollinear_pairs(self):
+    def find_independent_pairs(self):
         r""" Finds linearly independent pairs of :math:`(\vec{m}_1, \vec{m}_2)` and :math:`(\vec{n}_1, \vec{n}_2)`.
 
         Constructs supercell matrices :math:`M=(\vec{m}_1^T, \vec{m}_2^T)` and :math:`N=(\vec{n}_1^T, \vec{n}_2^T)` with positive determinants.
-        Collinear matrices at the same angle are filtered such that the area of the unit cell :math:`(\vec{m}_1 \times \vec{m}_2)` is minimized.
+        For the same angle, matrices are filtered such that the area of the unit cell :math:`(\vec{m}_1 \times \vec{m}_2)` is minimized and that the angle :math:`(\vec{m}_1 \angle \vec{m}_2)` is relatively close to 90°.
 
         
         Returns:
             dict: Pairs of angle : (M, N).
 
         """
+
+        def _area(M):
+            area = np.linalg.norm(np.cross(M[:, 0], M[:, 1]))
+            return area
+
+        def _angle(M):
+            angle = np.arccos(
+                np.dot(
+                    M[:, 0] / np.linalg.norm(M[:, 0]), M[:, 1] / np.linalg.norm(M[:, 1])
+                )
+            )
+            angle = angle / np.pi * 180
+            return angle
+
         results = self.results
         d = {}
         for ang, indices in results.items():
             for i, pair1 in enumerate(indices):
                 pairs = []
-                angle = ang * 180.0 / np.pi
+                theta = ang * 180.0 / np.pi
                 m1, m2, n1, n2, stress = pair1
                 for k, pair2 in enumerate(indices):
                     if k > i:
@@ -230,10 +244,18 @@ class interface:
                             N = np.array([[n1, n2, 0], [n3, n4, 0], [0, 0, 1]])
                             if (np.linalg.det(M) > 0) and (np.linalg.det(N) > 0):
                                 pairs.append((M, N))
-                if angle in d.keys():
-                    d[angle] += pairs
+                if theta in d.keys():
+                    d[theta] += pairs
                 elif pairs != []:
-                    d[angle] = pairs
+                    d[theta] = pairs
+        for theta, pairs in d.items():
+            bestangle = [abs(_angle(j[0]) - 90) for j in pairs]
+            bestangle = [abs(j - min(bestangle)) < 15 for j in bestangle]
+            pairs = [j for k, j in enumerate(pairs) if bestangle[k]]
+            smallest = min([_area(j[0]) for j in pairs])
+            smallest = [abs(_area(j[0]) - smallest) < (1.5 * smallest) for j in pairs]
+            pairs = [j for k, j in enumerate(pairs) if smallest[k]]
+            d[theta] = pairs
         s = 0
         for k, v in d.items():
             s += len(v)
@@ -242,31 +264,7 @@ class interface:
                 s
             )
         )
-        fd = {}
-        for ang, pairs in d.items():
-            collinear = []
-            for i, p1 in enumerate(pairs):
-                M1, N1 = p1
-                for j, p2 in enumerate(pairs):
-                    if j > i:
-                        M2, N2 = p2
-                        c1 = np.linalg.norm(np.cross(M1[:, 0], M2[:, 0])) < 1e-5
-                        c2 = np.linalg.norm(np.cross(M1[:, 1], M2[:, 1])) < 1e-5
-                        coll = c1 and c2
-                        if coll:
-                            ar1 = np.linalg.norm(np.cross(M1[:, 0], M1[:, 1]))
-                            ar2 = np.linalg.norm(np.cross(M2[:, 0], M2[:, 1]))
-                            if ar2 > ar1:
-                                collinear.append(j)
-                            elif ar1 > ar2:
-                                collinear.append(i)
-
-            fd[ang] = [k for v, k in enumerate(d[ang]) if v not in collinear]
-        s = 0
-        for k, v in fd.items():
-            s += len(v)
-        logging.info("Reduced to {:d} non-collinear matrices.".format(s))
-        return fd
+        return d
 
     def analyze_results(
         self, distance=3, weight=0.5, prec=1e-4,
@@ -311,7 +309,8 @@ class interface:
                     stack = self.stack(
                         bottom, top, distance=distance, weight=self.weight
                     )
-                    stress = np.linalg.norm(top.cell - bottom.cell)
+                    stress = self.stress_tensor(bottom.cell, top.cell, weight)[0] * 100
+                    # stress = np.linalg.norm(top.cell - bottom.cell)
                     solved.append(data(stack, M, N, angle, stress))
                 except:
                     logging.error(
@@ -371,6 +370,20 @@ class interface:
         stack = strc(bottom).recenter(bottom)
         return stack
 
+    def stress_tensor(self, cell1, cell2, weight):
+        A = cell1.copy()
+        B = cell2.copy()
+        C = A + weight * (B - A)
+        T1 = np.linalg.solve(A, C)
+        T1 = T1[[0, 1], :2]
+        e1, _ = np.linalg.eig(T1)
+        stress1 = np.sum([abs(x - 1) ** 2 for x in e1])
+        T2 = np.linalg.solve(B, C)
+        T2 = T2[[0, 1], :2]
+        e2, _ = np.linalg.eig(T2)
+        stress2 = np.sum([abs(x - 1) ** 2 for x in e2])
+        return stress1, stress2
+
     def __spglib_standard(self, solved, prec):
         start = time.time()
         solved = [_standardize(j, prec) for j in solved]
@@ -383,22 +396,25 @@ class interface:
         )
         return solved
 
-    def __remove_doubles(self, solved, prec):
-        copies = []
+    def __remove_doubles(self, solved):
+        def _area(atoms):
+            cell = atoms.cell
+            area = np.linalg.norm(np.cross(cell[:, 0], cell[:, 1]))
+            return area
+
+        def _gamma(atoms):
+            a = atoms.cell[:, 0]
+            b = atoms.cell[:, 1]
+            gamma = np.arccos(np.dot(a / np.linalg.norm(a), b / np.linalg.norm(b)))
+            gamma *= 180 / np.pi
+            return gamma
+
         start = time.time()
-        for i, k in enumerate(solved):
-            for j, h in enumerate(solved):
-                if j > i:
-                    a = k.atoms.copy()
-                    b = h.atoms.copy()
-                    area1 = np.linalg.norm(np.cross(a.cell[:, 0], a.cell[:, 1]))
-                    area2 = np.linalg.norm(np.cross(b.cell[:, 0], b.cell[:, 1]))
-                    area = np.abs((area2 - area1)) < prec
-                    natoms = (len(a) - len(b)) == 0
-                    stress = np.abs(solved[j].stress - solved[i].stress) < prec
-                    if area and natoms and stress:
-                        copies.append(j)
-        solved = [i for j, i in enumerate(solved) if j not in copies]
+        data = np.around(
+            [[_area(j.atoms), len(j.atoms), j.stress] for j in solved], decimals=3
+        )
+        u, indices = np.unique(data, return_index=True, axis=0)
+        solved = [i for j, i in enumerate(solved) if j in indices]
         end = time.time()
         logging.info(
             "  Filtering structures finished in {:.2f} seconds ...".format(end - start)
@@ -407,7 +423,7 @@ class interface:
 
     def __filter_unique_structures(self, solved, prec=1e-4):
         solved = self.__spglib_standard(solved, prec)
-        solved = self.__remove_doubles(solved, prec)
+        solved = self.__remove_doubles(solved)
         logging.info("Found {:d} unique structures.".format(len(solved)))
         self.solved = solved
 
@@ -421,24 +437,36 @@ class interface:
 
         """
         from matplotlib.widgets import Button
+        import matplotlib.cm as cm
+        from matplotlib.colors import ListedColormap
 
         def rand_jitter(arr, jitter):
             stdev = jitter * (max(arr) - min(arr))
             return arr + np.random.randn(len(arr)) * stdev
 
         data = np.array([[i.stress, len(i.atoms)] for i in self.solved], dtype=float)
+        color = [i.angle for i in self.solved]
+        norm = matplotlib.colors.Normalize(vmin=min(color), vmax=max(color), clip=True)
+        cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+            "", ["darkgreen", "lightgreen", "lightblue", "royalblue"]
+        )
+        mapper = cm.ScalarMappable(norm=norm, cmap=cmap)
+        color = [mapper.to_rgba(v) for v in color]
 
         fig, ax = plt.subplots(nrows=1, ncols=3, figsize=([6.4 * 3, 4.8 * 1.5]))
         ax[0].scatter(
             rand_jitter(data[:, 0], jitter),
             data[:, 1],
-            color="crimson",
-            alpha=0.5,
+            color=color,
+            alpha=0.75,
             picker=3.5,
             marker=".",
         )
-        ax[0].set_ylim(0, ax[0].get_ylim()[1])
-        ax[0].set_xlabel("Distance between unit cells [Angström]")
+        clb = plt.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax[0])
+        clb.ax.set_title("angle in °")
+        ax[0].set_ylim(np.min(data[:, 0]) - 0.01, np.max(data[:, 1]) + 0.01)
+        ax[0].set_ylim(0, ax[0].get_ylim()[1] + 10)
+        ax[0].set_xlabel("stress measure")
         ax[0].set_ylabel("Number of atoms")
         ax[0].set_title("Click a point to select structure.")
         ax[0].grid(

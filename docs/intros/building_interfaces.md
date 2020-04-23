@@ -43,10 +43,10 @@ As a tolerance criterion, coincidence is accepted if the distance between the co
 | \mathbf{A} \vec{m} - \mathbf{R}(\theta) \mathbf{B} \vec{n} | \leq crit
 ```
 
-Solving this system of linear equations yields a set of associated vectors:
+Solving this system of linear equations yields a set of associated vectors for each angle:
 
 ```math
-S = \{ (\vec{m_1}, \vec{n_1}), (\vec{m_2}, \vec{n_2}), ..., (\vec{m_s}, \vec{n_s}), ..., (\vec{m_k}, \vec{n_k}) \} \\
+S(\theta) = \{ (\vec{m_1}, \vec{n_1}), (\vec{m_2}, \vec{n_2}), ..., (\vec{m_s}, \vec{n_s}), ..., (\vec{m_k}, \vec{n_k}) \} \\
 ```
 
 From any pair of these associated vectors that is linearly independent, one can construct supercell matrices from the row vectors:
@@ -56,7 +56,15 @@ From any pair of these associated vectors that is linearly independent, one can 
 \mathbf{N} = \begin{pmatrix} n_{s1} & n_{s2} \\ n_{k1} & n_{k2} \end{pmatrix}
 ```
 
-Such that the coincidence unit cell for both lattices is given by:
+This represents a very large set of possible supercell matrices. For practical purposes, this one is reduced by the following conditions:
+
+```math
+\angle \left(\vec{m}_s, \vec{m}_k \right) \approx 90^\circ~~~~~~
+|\vec{m}_s \times \vec{m}_k| \rightarrow \text{min}
+```
+
+So the supercell matrices are chosen such that they minimize the area and yield nice angles.
+Then, the coincidence unit cell for both lattices is given by:
 
 ```math
 \mathbf{MA} \approx \mathbf{N} \mathbf{R}(\theta) \mathbf{B}
@@ -67,8 +75,19 @@ The new unit cell of the resuling heterostructure can be chosen as a linear comb
 ```math
 \mathbf{C} = \mathbf{MA} + w \cdot (  \mathbf{N} \mathbf{R}(\theta) \mathbf{B} - \mathbf{MA} )
 ```
-
 Where the weight factor ranges from 0 to 1.
+As a measure of stress, we define the transformation matrices that map the cells onto each other:
+
+```math
+\mathbf{A}\mathbf{T}_1 = C ~~~~~~ \mathbf{B}\mathbf{T}_2 = C
+```
+
+Such that the stress measure is given by the eigenvalues of **T**:
+
+```math
+stress = \sum_i |(\lambda_i^\mathbf{T} - 1)|^2
+```
+
 
 ## How to build an interface
 
@@ -115,4 +134,4 @@ Any point on the left hand side can be clicked on to show the overlapping grid p
 INFO    │ Saved structure to C24S14W7_M2-242_N-2-31-2_a71.00.xyz
 ```
 
-The first part represents the chemical formula, then the coefficients of the matrix **M**, the coefficients of the matrix **N** and the twist angle. Note that these are the transformation matrices of the standardized, primitive and transposed unit cells.
+The first part represents the chemical formula, then the coefficients of the matrix **M**, the coefficients of the matrix **N** and the twist angle. Note that these are the transformation matrices of the primitive unit cells in standard form.
