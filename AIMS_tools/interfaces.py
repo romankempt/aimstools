@@ -22,7 +22,7 @@ def _standardize(collection, symprec=1e-4):
     numbers = atoms.get_atomic_numbers()
 
     cell, scaled_pos, numbers = spglib.standardize_cell(
-        (cell, pos, numbers), to_primitive=True, symprec=symprec, no_idealize=True
+        (cell, pos, numbers), to_primitive=True, symprec=symprec, no_idealize=False
     )
 
     atoms = ase.atoms.Atoms(
@@ -309,7 +309,7 @@ class interface:
                     stack = self.stack(
                         bottom, top, distance=distance, weight=self.weight
                     )
-                    stress = self.stress_tensor(bottom.cell, top.cell, weight)[0] * 100
+                    stress = self.stress_tensor(bottom.cell, top.cell, weight) * 100
                     # stress = np.linalg.norm(top.cell - bottom.cell)
                     solved.append(data(stack, M, N, angle, stress))
                 except:
@@ -382,7 +382,7 @@ class interface:
         T2 = T2[[0, 1], :2]
         e2, _ = np.linalg.eig(T2)
         stress2 = np.sum([abs(x - 1) ** 2 for x in e2])
-        return stress1, stress2
+        return np.sqrt(stress1 + stress2)
 
     def __spglib_standard(self, solved, prec):
         start = time.time()

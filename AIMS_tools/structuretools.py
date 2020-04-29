@@ -255,7 +255,7 @@ class structure:
             int_d = a - b
             logging.info("Interstitial distance: \t {: 10.3f} Angström".format(int_d))
 
-    def standardize(self, atoms=None, to_primitive=False, symprec=1e-4):
+    def standardize(self, atoms=None, to_primitive=True, symprec=1e-4):
         """ Wrapper of the spglib standardize() function with extra features.
 
         For 2D systems, the non-periodic axis is enforced as the z-axis.
@@ -329,7 +329,7 @@ class structure:
             logging.warning("Number of atoms changed due to standardization.")
             logging.warning("Reverting spglib standardization.")
         finally:
-            atoms.set_cell(atoms.cell.standard_form()[0])
+            atoms.set_cell(atoms.cell.standard_form()[0], scale_atoms=True)
         atoms = self.recenter(atoms)
         if self.is_2d(atoms) != True:
             logging.warning("Enforcing 2D system failed.")

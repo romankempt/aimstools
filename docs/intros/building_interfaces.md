@@ -79,13 +79,13 @@ Where the weight factor ranges from 0 to 1.
 As a measure of stress, we define the transformation matrices that map the cells onto each other:
 
 ```math
-\mathbf{A}\mathbf{T}_1 = C ~~~~~~ \mathbf{B}\mathbf{T}_2 = C
+\mathbf{A}\mathbf{T}_1 = \mathbf{C} ~~~~~~ \mathbf{B}\mathbf{T}_2 = \mathbf{C}
 ```
 
 Such that the stress measure is given by the eigenvalues of **T**:
 
 ```math
-stress = \sum_i |(\lambda_i^\mathbf{T} - 1)|^2
+stress = \sqrt{\sum_i |(\lambda_i^\mathbf{T} - 1)|^2}
 ```
 
 

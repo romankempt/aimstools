@@ -56,5 +56,9 @@ if __name__ == "__main__":
     args = parseArguments()
     intf = interface(**vars(args))
     if intf.results != None:
+        print(len(intf.pairs))
+        assert (
+            len(intf.pairs) != 0
+        ), "Couldn't construct any linearly independent pairs."
         intf.analyze_results(args.distance, args.weight, args.prec)
         intf.plot_results(args.jitter)

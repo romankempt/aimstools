@@ -183,8 +183,10 @@ class prepare:
             line += "exx_band_structure_version        1\n"
 
         line += "# include_spin_orbit\n"
-        line += "# vdw_correction_hirshfeld\n"
-        line += "# many_body_dispersion_nl \t beta=0.81\n"
+        line += "# Common choices of dispersion methods:\n"
+        line += "# \t vdw_correction_hirshfeld\n"
+        line += "# \t many_body_dispersion\n"
+        line += "# \t many_body_dispersion_nl \t beta=0.81\n"
         return line
 
     def __adjust_scf(self, line):
@@ -218,6 +220,8 @@ class prepare:
             line += "### geometry optimisation section\n"
             line += "relax_geometry \t bfgs \t 1E-2\n"
             line += "relax_unit_cell \t full \n"
+            line += "final_forces_cleaned     .true.\n"
+            line += "sc_accuracy_forces 1E-5\n"
         if "phonons" in self.task:
             line += "### phonon band structure \n"
             line += "sc_accuracy_forces 1E-5 # necessary for phonons \n"
@@ -349,23 +353,26 @@ mpirun -np {cpus} bash -c "ulimit -s unlimited && aims.171221_1.scalapack.mpi.x"
 #SBATCH --time={walltime}:00:00 \t\t# walltime in h
 #SBATCH --nodes={nodes} \t\t\t# number of nodes
 #SBATCH --ntasks={cpus} \t\t\t# number of cpus
+#SBATCH --ntasks-per-node={ppn} \t \t # cpus per node
+#SBATCH --exclusive
 #SBATCH --mem-per-cpu={memory}MB \t\t# memory per node per cpu
 #SBATCH -J {name} \t\t\t# job name
 #SBATCH --error=slurm.out \t\t# stdout
 #SBATCH --output=slurm.err \t\t# stderr
 
 module use /projects/m_chemie/privatemodules/
-module add aims/aims_200112
+module add aims/aims_2166
 
 COMPUTE_DIR=aims_$SLURM_JOB_ID
 ws_allocate -F ssd $COMPUTE_DIR 7
 export AIMS_SCRDIR=/ssd/ws/$USER-$COMPUTE_DIR
 
 export OMP_NUM_THREADS=1
-srun aims.200112.scalapack.mpi.x > aims.out
+srun aims.200313.scalapack.mpi.x > aims.out
             """.format(
                     name=self.name,
                     cpus=self.nodes * self.ppn,
+                    ppn=self.ppn,
                     memory=int(int(self.memory) * 1000 / (self.ppn)),
                     walltime=self.walltime,
                     nodes=self.nodes,

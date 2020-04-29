@@ -189,4 +189,3 @@ def plot_bs_dos(directory, title=""):
 
     fig.suptitle(title)
     return fig
-
