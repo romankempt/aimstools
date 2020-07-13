@@ -85,37 +85,38 @@ class prepare:
         Returns:
             list: List of strings containing the k-path sections.
         """
+        from ase.dft.kpoints import parse_path_string
+
         atoms = self.structure.atoms
         if self.structure.is_2d(atoms) == True:
             atoms.pbc = [True, True, False]
-        lattice = atoms.cell.get_bravais_lattice(pbc=atoms.pbc)
-        npoints = 41
-        points = lattice.get_special_points()
-        path = [char for char in lattice.special_path.replace(",", "")]
-        AFLOW = []
-        for i in range(len(path)):
-            if i == 0:
-                AFLOW.append(path[i])
-            else:
-                try:
-                    int(path[i])
-                except ValueError:
-                    AFLOW.append(path[i])
-                else:
-                    AFLOW[-1] += path[i]
+        path = parse_path_string(
+            atoms.cell.get_bravais_lattice(pbc=atoms.pbc).bandpath().path
+        )
+        # list Of lists of path segments
+        points = atoms.cell.get_bravais_lattice(pbc=atoms.pbc).bandpath().special_points
+        segments = []
+        npoints = 31
+        for seg in path:
+            section = [(i, j) for i, j in zip(seg[:-1], seg[1:])]
+            segments.append(section)
         output_bands = []
-        for i in range(len(AFLOW) - 1):
-            vec1 = "{:.6f} {:.6f} {:.6f}".format(*points[AFLOW[i]])
-            vec2 = "{:.6f} {:.6f} {:.6f}".format(*points[AFLOW[i + 1]])
-            output_bands.append(
-                "{vec1} \t {vec2} \t {npoints} \t {label1} {label2}".format(
-                    label1=AFLOW[i],
-                    label2=AFLOW[i + 1],
-                    npoints=npoints,
-                    vec1=vec1,
-                    vec2=vec2,
+        index = 1
+        for seg in segments:
+            output_bands.append("## Brillouin Zone section Nr. {:d}\n".format(index))
+            for sec in seg:
+                vec1 = "{:.6f} {:.6f} {:.6f}".format(*points[sec[0]])
+                vec2 = "{:.6f} {:.6f} {:.6f}".format(*points[sec[1]])
+                output_bands.append(
+                    "{vec1} \t {vec2} \t {npoints} \t {label1} {label2}".format(
+                        label1=sec[0],
+                        label2=sec[1],
+                        npoints=npoints,
+                        vec1=vec1,
+                        vec2=vec2,
+                    )
                 )
-            )
+            index += 1
         return output_bands
 
     def setup_symmetries(self):
@@ -206,12 +207,18 @@ class prepare:
             output_bands = self.setup_bandpath()
             line += "### band structure section \n"
             for band in output_bands:
-                line += "output band " + band + "\n"
+                if not band.startswith("#"):
+                    line += "output band " + band + "\n"
+                else:
+                    line += band
         if "fatBS" in self.task:
             output_bands = self.setup_bandpath()
             line += "### band structure section \n"
             for band in output_bands:
-                line += "output band_mulliken " + band + "\n"
+                if not band.startswith("#"):
+                    line += "output band_mulliken " + band + "\n"
+                else:
+                    line += band
         if "DOS" in self.task:
             line += "### DOS section \n"
             line += "output atom_proj_dos  -10 0 300 0.05       # Estart Eend n_points broadening\n"
@@ -319,7 +326,7 @@ class prepare:
         for i in self.task:
             self.name += "_{}".format(i)
         self.adjust_cost()
-        with open(self.path.joinpath(name + ".sh"), "w+") as file:
+        with open(self.path.joinpath("submit.sh"), "w+") as file:
             file.write(
                 """#! /bin/sh
 #PBS -N {name}
@@ -347,7 +354,7 @@ mpirun -np {cpus} bash -c "ulimit -s unlimited && aims.171221_1.scalapack.mpi.x"
         for i in self.task:
             self.name += "_{}".format(i)
         self.adjust_cost()
-        with open(self.path.joinpath(self.name + ".sh"), "w+") as file:
+        with open(self.path.joinpath("submit.sh"), "w+") as file:
             file.write(
                 """#!/bin/bash
 #SBATCH --time={walltime}:00:00 \t\t# walltime in h
@@ -357,18 +364,17 @@ mpirun -np {cpus} bash -c "ulimit -s unlimited && aims.171221_1.scalapack.mpi.x"
 #SBATCH --exclusive
 #SBATCH --mem-per-cpu={memory}MB \t\t# memory per node per cpu
 #SBATCH -J {name} \t\t\t# job name
-#SBATCH --error=slurm.out \t\t# stdout
-#SBATCH --output=slurm.err \t\t# stderr
+#SBATCH --error=slurm.err \t\t# stdout
+#SBATCH --output=slurm.out \t\t# stderr
 
-module use /projects/m_chemie/privatemodules/
-module add aims/aims_2166
+module use /home/kempt/Roman_AIMS_env/modules
+module load aims_env
 
 COMPUTE_DIR=aims_$SLURM_JOB_ID
 ws_allocate -F ssd $COMPUTE_DIR 7
 export AIMS_SCRDIR=/ssd/ws/$USER-$COMPUTE_DIR
 
-export OMP_NUM_THREADS=1
-srun aims.200313.scalapack.mpi.x > aims.out
+srun $AIMS_EXECUTABLE > aims.out
             """.format(
                     name=self.name,
                     cpus=self.nodes * self.ppn,

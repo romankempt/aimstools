@@ -40,7 +40,7 @@ def combine(
 
     if ratios == []:
         ratios = [1 for x in range(len(results))]
-    fig = plt.figure(constrained_layout=True, figsize=(ncols * 6.4 / 2, nrows * 4.8),)
+    fig = plt.figure(constrained_layout=True, figsize=(ncols * 6.4 / 2.5, nrows * 5.8),)
     spec = gridspec.GridSpec(ncols=ncols, nrows=nrows, figure=fig, width_ratios=ratios)
 
     indices = np.array(range(len(results))).reshape((nrows, ncols))
@@ -56,9 +56,9 @@ def combine(
                     overlay_SOC in [True, "True", 1, "yes", "y"]
                 ):
                     bs = bandstructure.bandstructure(var.path, get_SOC=False)
-                    _, _ = (
+                    _, var_energy_limits = (
                         keywords.pop("color", ""),
-                        keywords.pop("var_energy_limits", []),
+                        keywords.pop("var_energy_limits", [3]),
                     )
                     axes = overlay_bandstructures(
                         bandstrucs=[bs, var],
@@ -66,7 +66,7 @@ def combine(
                         labels=["ZORA", "ZORA+SOC"],
                         axes=axes,
                         fig=fig,
-                        var_energy_limits=2,
+                        var_energy_limits=var_energy_limits,
                         **keywords,
                     )
                     if ax == 0:
@@ -146,13 +146,9 @@ def overlay_bandstructures(
     if labels == []:
         labels = [str(i) for i in range(len(bandstrucs))]
 
-    nr1 = bandstrucs[0]
-    kpath = nr1.kpath[0]
-    for j in range(1, len(nr1.kpath)):
-        kpath += "-{}".format(nr1.kpath[j])
     handles = []
     if fig == None:
-        fig = plt.figure(figsize=(len(nr1.kpath) / 1.5, 3))
+        fig = plt.figure(figsize=(len(bandstrucs[0].kpath) / 1.5, 3))
     if axes == None:
         axes = plt.gca()
     for ax in range(len(bandstrucs)):
@@ -162,6 +158,10 @@ def overlay_bandstructures(
             bs.plot(fig=fig, axes=axes, color=colors[ax], **keywords)
             handles.append(Line2D([0], [0], color=colors[ax], label=labels[ax], lw=1.5))
         else:
+            _, _ = (
+                keywords.pop("fix_energy_limits", 0),
+                keywords.pop("var_energy_limits", 0),
+            )
             bs.plot(
                 fig=fig,
                 axes=axes,
@@ -177,5 +177,6 @@ def overlay_bandstructures(
         borderpad=0.4,
         ncol=2,
         loc="upper right",
+        handletextpad=0.1,
     )
     return axes

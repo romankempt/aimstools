@@ -38,33 +38,32 @@ class density_of_states(postprocess):
         - provide a function to plot orbital-resolved DOS of atom.
     """
 
-    def __init__(self, outputfile, get_SOC=True, spin=None, shift_type="middle"):
+    def __init__(self, outputfile, get_SOC=True, spin=None):
         super().__init__(outputfile, get_SOC=get_SOC, spin=spin)
         if self.success == False:
             sys.exit("Calculation did not converge.")
         self.band_gap = self.CBM - self.VBM
-        dosfiles = self.__get_raw_data(get_SOC)
+        dosfiles = self.__get_dos_files(get_SOC)
         dos_per_atom = []
         for atom in self.structure.species.keys():
             atomic_dos = self.__sort_dosfiles(dosfiles, atom)
             atomic_dos = self.__sum_dosfiles(atomic_dos)
             dos_per_atom.append(atomic_dos)
         self.dos_per_atom = dict(zip(self.structure.species.keys(), dos_per_atom))
-        for atom in self.dos_per_atom.keys():
-            self.dos_per_atom[atom][:, 1:] = (
-                self.dos_per_atom[atom][:, 1:] * self.structure.species[atom]
-            )
-        self.shift_type = shift_type
+        # for atom in self.dos_per_atom.keys():
+        #     self.dos_per_atom[atom][:, 1:] = (
+        #         self.dos_per_atom[atom][:, 1:] * self.structure.species[atom]
+        #     )
         self.total_dos = self.__get_total_dos(self.dos_per_atom)
 
     def __str__(self):
         return "DOS"
 
-    def __get_raw_data(self, get_SOC):
-        """ Get .raw.out files.
+    def __get_dos_files(self, get_SOC):
+        """ Get atom_projected dos files.
             get_SOC : True or False to obtain the ones with or without SOC.
             """
-        dosfiles = list(self.path.glob("*raw*"))
+        dosfiles = list(self.path.glob("*atom_projected*"))
         if (self.active_SOC == True) and (self.spin == None):
             if get_SOC == True:
                 dosfiles = [str(i) for i in dosfiles if "no_soc" not in str(i)]
@@ -103,6 +102,8 @@ class density_of_states(postprocess):
             dosfiles = [str(i) for i in dosfiles if "spin_up" in str(i)]
         elif (self.active_SOC == False) and (self.spin == 2):
             dosfiles = [str(i) for i in dosfiles if "spin_dn" in str(i)]
+        else:
+            dosfiles = [str(i) for i in dosfiles]
         return dosfiles
 
     def __sort_dosfiles(self, dosfiles, atom_type):
@@ -118,7 +119,8 @@ class density_of_states(postprocess):
         for entry in atom_wise_files:
             array = np.loadtxt(entry, dtype=float, comments="#")
             list_of_arrays.append(array)
-        array = np.sum(list_of_arrays, axis=0) / len(list_of_arrays)
+        array = np.sum(list_of_arrays, axis=0)
+        array[:, 0] /= len(list_of_arrays)
         return array
 
     def __get_total_dos(self, dos_per_atom):
@@ -129,19 +131,41 @@ class density_of_states(postprocess):
         total_dos = np.sum(total_dos, axis=0) / len(dos_per_atom.keys())
         return total_dos
 
-    def __shift_to(self, energy, shift_type):
-        """ Shifts Fermi level of DOS spectrum according to shift_type attribute. """
+    def __shift_to(self, energy, energy_reference):
+        """ Shifts Fermi level of spectrum according to energy_reference attribute.
+
+        If the work function has been calculated, the band structure will be shifted to the absolute value of the VBM.
+        
+        Returns:
+            array: spectrum attribute
+        """
+        VBM = self.VBM - self.fermi_level
+        CBM = self.CBM - self.fermi_level
+        if self.work_function != None:
+            energy -= self.upper_vacuum_potential
+            VBM -= self.upper_vacuum_potential
+            CBM -= self.upper_vacuum_potential
+            energy_reference = "work_function"
         if (self.band_gap < 0.1) or (self.spin != None):
-            shift_type = "fermi"
-            energy -= self.fermi_level
-        elif (shift_type == None) or (shift_type == "none"):
-            # energy += self.fermi_level
-            pass
-        elif shift_type == "middle":
-            energy -= (self.VBM + self.CBM) / 2
-        elif shift_type == "VBM":
-            energy -= self.VBM
-        return energy
+            energy_reference = "fermi"  # nothing to be done here
+        elif (energy_reference == None) or (energy_reference == "none"):
+            energy += self.fermi_level
+            VBM += self.fermi_level
+            CBM += self.fermi_level
+        elif energy_reference == "middle":
+            energy -= (VBM + CBM) / 2
+            VBM = -self.band_gap / 2
+            CBM = self.band_gap / 2
+        elif energy_reference == "VBM":
+            energy -= VBM
+            CBM = self.band_gap
+            VBM = 0
+        elif energy_reference == "work_function":
+            energy += self.fermi_level
+            VBM += self.fermi_level
+            CBM += self.fermi_level
+            self.energy_reference = "work_function"
+        return energy, VBM, CBM
 
     def plot(self, atom, orbital=None, fig=None, axes=None, fill="gradient", **kwargs):
         """ Plots the DOS of a single species.
@@ -151,7 +175,8 @@ class density_of_states(postprocess):
             orbital (int): None --> total DOS; 0 --> s, 1 --> p, 2 --> d, 3 --> f etc.
             fig (matplotlib figure): Figure to draw the plot on.
             axes (matplotlib axes): Axes to draw the plot on.
-            fill (str): Supported fill methods are None, "gradient", or "constant". Gradient is still a bit wonky.
+            fill (str): Supported fill methods are None, "gradient", or "constant".
+            mark_fermi_level (str): Color to mark fermi level, defaults to "none".
             **kwargs (dict): Passed to matplotlib plotting function.        
         
         Returns:
@@ -162,10 +187,11 @@ class density_of_states(postprocess):
         if axes == None:
             axes = plt.gca()
         if orbital == None:  # This retrieves the total DOS.
-            xy = self.dos_per_atom[atom][:, [0, 1]]
+            xy = self.dos_per_atom[atom][:, [0, 1]].copy()
         else:
-            xy = self.dos_per_atom[atom][:, [0, orbitals[orbital]]]
-
+            xy = self.dos_per_atom[atom][:, [0, orbitals[orbital]]].copy()
+        x = xy[:, 1].copy()
+        y = xy[:, 0].copy()
         for key in list(kwargs.keys()):
             if key in self._postprocess__global_plotproperties.keys():
                 setattr(
@@ -174,18 +200,13 @@ class density_of_states(postprocess):
             else:
                 self._postprocess__mplkwargs[key] = kwargs[key]
 
-        xy[:, 0] = self.__shift_to(xy[:, 0], self.shift_type)
-        VBM = np.max(xy[:, 0][xy[:, 0] < 0]) if self.shift_type != None else self.VBM
-        CBM = np.min(xy[:, 0][xy[:, 0] > 0]) if self.shift_type != None else self.CBM
+        y, VBM, CBM = self.__shift_to(y, self.energy_reference)
         if self.fix_energy_limits == []:
             lower_ylimit = VBM - self.var_energy_limits
             upper_ylimit = CBM + self.var_energy_limits
         else:
             lower_ylimit = self.fix_energy_limits[0]
             upper_ylimit = self.fix_energy_limits[1]
-
-        x = xy[:, 1]
-        y = xy[:, 0]
 
         if fill == None:
             axes.plot(x, y, color=self.color, **self._postprocess__mplkwargs)
@@ -194,23 +215,36 @@ class density_of_states(postprocess):
             self.__gradient_fill(x, y, axes, self.color)
         elif fill == "constant":
             axes.fill_betweenx(y, 0, x, color=self.color)
-
         xy = xy[(xy[:, 0] > lower_ylimit) & (xy[:, 0] < upper_ylimit)]
         axes.set_xlim([0, np.max(xy[:, 1]) + 0.1])
         axes.set_ylim([lower_ylimit, upper_ylimit])
         axes.set_xticks([])
         axes.set_xlabel("DOS")
-        if self.shift_type == None:
-            axes.axhline(y=self.fermi_level, color="k", alpha=0.5, linestyle="--")
+        if self.energy_reference == None or self.energy_reference == "none":
+            if self.mark_fermi_level != "none":
+                axes.axhline(
+                    y=(VBM + CBM) / 2,
+                    color=self.mark_fermi_level,
+                    alpha=0.5,
+                    linestyle="--",
+                )
             axes.set_ylabel("E [eV]")
+        elif self.energy_reference == "work_function":
+            if self.mark_fermi_level != "none":
+                axes.axhline(
+                    y=VBM, color=self.mark_fermi_level, alpha=0.5, linestyle="--"
+                )
+            axes.set_ylabel(r"E-E$_\mathrm{vacuum}$ [eV]")
         else:
-            axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")
+            if self.mark_fermi_level != "none":
+                axes.axhline(
+                    y=0, color=self.mark_fermi_level, alpha=0.5, linestyle="--"
+                )
             axes.set_ylabel(r"E-E$_\mathrm{F}$ [eV]")
         ylocs = ticker.MultipleLocator(
             base=0.5
         )  # this locator puts ticks at regular intervals
         axes.yaxis.set_major_locator(ylocs)
-        axes.axhline(y=0, color="k", alpha=0.5, linestyle="--")
         axes.set_title(str(self.title), loc="center")
         return axes
 

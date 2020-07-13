@@ -36,7 +36,7 @@ class postprocess:
         self.__read_geometry()
         self.__read_control()
         if self.success == True:
-            self.__read_output()
+            self.__read_output(get_SOC)
         self.color_dict = color_dict
         self.__set_global_plotproperties()
         self.__mplkwargs = {}
@@ -123,19 +123,22 @@ class postprocess:
         ## band structure specific information
         if "BS" in self.calc_type:
             self.ksections = []
-            self.kvectors = {"G": np.array([0.0, 0.0, 0.0])}
+            self.special_points = {}
             for entry in bandlines:
                 self.ksections.append((entry[-2], entry[-1]))
-                self.kvectors[entry[-1]] = np.array(
+                self.special_points[entry[-1]] = np.array(
                     [entry[5], entry[6], entry[7]], dtype=float
                 )
-                self.kvectors[entry[-2]] = np.array(
+                self.special_points[entry[-2]] = np.array(
                     [entry[2], entry[3], entry[4]], dtype=float
                 )
 
-    def __read_output(self):
+    def __read_output(self, get_SOC=True):
         # Retrieve information such as Fermi level and band gap from output file.
         self.smallest_direct_gap = "Direct gap not determined. This usually happens if the fundamental gap is direct."
+        self.work_function = None
+        fermi_levels = []
+        soc, scalar = False, False
         with open(self.outputfile, "r") as file:
             for line in file.readlines():
                 if "Chemical potential" in line:
@@ -147,7 +150,7 @@ class postprocess:
                             self.fermi_level = max([up_fermi_level, down_fermi_level])
                 if "Chemical potential (Fermi level)" in line:
                     fermi_level = line.replace("eV", "")
-                    self.fermi_level = float(fermi_level.split()[-1])
+                    fermi_levels.append(float(fermi_level.split()[-1]))
                 if "Smallest direct gap :" in line:
                     self.smallest_direct_gap = line
                 if "Number of k-points" in line:
@@ -156,12 +159,41 @@ class postprocess:
                     self.VBM = float(line.split()[5])
                 if "Lowest unoccupied state (CBM) at" in line:
                     self.CBM = float(line.split()[5])
-                if "Chemical potential is" in line:
-                    self.fermi_level = float(line.split()[-2])
+                if ("Chemical potential is") in line:
+                    # This is specific for SOC band structures. SOC fermi level is much higher!
+                    fermi_levels.append(float(line.split()[-2]))
                 if "Total energy uncorr" in line:
                     self.total_energy = float(line.split()[-2])
                 if "Begin self-consistency iteration #" in line:
                     self.n_scf_cycles = int(line.split()[-1])
+                if """Work function ("upper" slab surface)""" in line:
+                    self.work_function = float(line.split()[-2])
+                if """Potential vacuum level, "upper" slab surface:""" in line:
+                    self.upper_vacuum_potential = float(line.split()[-2])
+                if """Potential vacuum level, "lower" slab surface:""" in line:
+                    self.lower_vacuum_potential = float(line.split()[-2])
+                if """Scalar-relativistic "band gap" of total set of bands:""" in line:
+                    scalar = True
+                    soc = False
+                if """Spin-orbit-coupled "band gap" of total set of bands:""" in line:
+                    soc = True
+                    scalar = False
+                if "| Lowest unoccupied state:" in line and scalar:
+                    self.CBM = float(line.split()[-2])
+                if "| Lowest unoccupied state:" in line and soc and get_SOC:
+                    self.CBM = float(line.split()[-2])
+                if "| Highest occupied state :" in line and scalar:
+                    self.VBM = float(line.split()[-2])
+                if "| Highest occupied state :" in line and soc and get_SOC:
+                    self.VBM = float(line.split()[-2])
+
+        if self.active_SOC and get_SOC:
+            # SOC calculations have two fermi levels, one with zora, one without. The last one should be with SOC.
+            self.fermi_level = fermi_levels[-1]
+        elif self.active_SOC and get_SOC == False:
+            self.fermi_level = fermi_levels[-2]
+        else:
+            self.fermi_level = fermi_levels[-1]
         self.band_gap = np.abs(self.CBM - self.VBM)
 
     def __set_global_plotproperties(self):
@@ -170,18 +202,20 @@ class postprocess:
         # general plotsettings for bs, dos, fatbas
         d["title"] = ""
         d["color"] = "k"
-        d["shift_type"] = "middle"
+        d["energy_reference"] = "middle"
         d["fix_energy_limits"] = []
         d["var_energy_limits"] = 1.0
         d["linewidths"] = 1.5
 
         # more specific to bs
+        d["mark_fermi_level"] = "none"
         d["mark_gap"] = "lightgray"
         d["cmap"] = "Blues"
         d["nbands"] = False
         d["interpolation_step"] = False
         d["mode"] = "lines"
         d["capstyle"] = "round"
+        d["kpath"] = None
 
         self.__global_plotproperties = d
         for key, item in d.items():

@@ -6,16 +6,19 @@ This library contains a personal collection of scripts to handle AIMS calculatio
 
 I recommend using Anaconda to manage package dependencies and updates. See [here](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html).
 
-Simply download the zip from github. Then run:
+Directly install from git:
 
 ```bash
-pip install AIMS_tools-master.zip
+pip install git+https://github.com/romankempt/AIMS_tools
 ```
 
-Set the path to the aims species (basis sets) in your environment variables (e.g., in the .bashrc):
+Or download from git and install from the zip.
+
+If you are using AIMS_tools locally, you need to specify the path to the aims species (basis sets) and executable in your environment variables (e.g., in the .bashrc). On Taurus, loading the module will automatically take care of that.
 
 ```bash
 export AIMS_SPECIES_DIR="path/to/directory"
+export AIMS_EXECUTABLE="aims.mpi.x"
 ```
 
 - On t3000, this one is "/chemsoft/FHI-aims/stable/species_defaults/"
