@@ -18,6 +18,17 @@ from ase.utils.sphinx import mol_role
 sys.path.insert(0, os.path.abspath("../AIMS_tools"))
 sys.path.insert(0, os.path.abspath(".."))
 
+import re
+
+VERSIONFILE = "../interfacebuilder/__init__.py"
+verstrline = open(VERSIONFILE, "rt").read()
+VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
+mo = re.search(VSRE, verstrline, re.M)
+if mo:
+    version = mo.group(1)
+else:
+    raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
+
 import recommonmark
 from recommonmark.transform import AutoStructify
 
@@ -28,14 +39,7 @@ copyright = "2019, Roman Kempt"
 author = "Roman Kempt"
 
 # The full version, including alpha/beta/rc tags
-def find_version():
-    with open("../setup.py", "r") as file:
-        line = [line for line in file.readlines() if "version=" in line][0]
-        version = line.split("=")[-1]
-    return version
-
-
-release = find_version()
+release = version
 
 
 # -- General configuration ---------------------------------------------------
