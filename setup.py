@@ -3,7 +3,7 @@ from distutils.core import setup
 
 import re
 
-VERSIONFILE = "interfacebuilder/__init__.py"
+VERSIONFILE = "AIMS_tools/__init__.py"
 verstrline = open(VERSIONFILE, "rt").read()
 VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
 mo = re.search(VSRE, verstrline, re.M)
