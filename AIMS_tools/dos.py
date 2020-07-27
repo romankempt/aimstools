@@ -50,10 +50,6 @@ class density_of_states(postprocess):
             atomic_dos = self.__sum_dosfiles(atomic_dos)
             dos_per_atom.append(atomic_dos)
         self.dos_per_atom = dict(zip(self.structure.species.keys(), dos_per_atom))
-        # for atom in self.dos_per_atom.keys():
-        #     self.dos_per_atom[atom][:, 1:] = (
-        #         self.dos_per_atom[atom][:, 1:] * self.structure.species[atom]
-        #     )
         self.total_dos = self.__get_total_dos(self.dos_per_atom)
 
     def __str__(self):
@@ -63,7 +59,12 @@ class density_of_states(postprocess):
         """ Get atom_projected dos files.
             get_SOC : True or False to obtain the ones with or without SOC.
             """
-        dosfiles = list(self.path.glob("*atom_projected*"))
+        import re
+
+        regex = re.compile(r"^atom_proj(ected)?_dos_[A-Z]([a-z])?\d{4}\.dat")
+        dosfiles = [
+            str(j) for j in list(self.path.glob("*.dat*")) if regex.match(str(j))
+        ]
         if (self.active_SOC == True) and (self.spin == None):
             if get_SOC == True:
                 dosfiles = [str(i) for i in dosfiles if "no_soc" not in str(i)]

@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath(".."))
 
 import re
 
-VERSIONFILE = "../interfacebuilder/__init__.py"
+VERSIONFILE = "../AIMS_tools/__init__.py"
 verstrline = open(VERSIONFILE, "rt").read()
 VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
 mo = re.search(VSRE, verstrline, re.M)

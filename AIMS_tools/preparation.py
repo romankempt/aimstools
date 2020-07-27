@@ -258,7 +258,7 @@ class prepare:
                 self.memory = 62
                 self.ppn = 24
                 self.nodes = 1
-                self.walltime = 23
+                self.walltime = 5
             if self.cost == "medium":
                 self.memory = 62
                 self.ppn = 24
@@ -357,27 +357,33 @@ mpirun -np {cpus} bash -c "ulimit -s unlimited && aims.171221_1.scalapack.mpi.x"
         with open(self.path.joinpath("submit.sh"), "w+") as file:
             file.write(
                 """#!/bin/bash
-#SBATCH --time={walltime}:00:00 \t\t# walltime in h
-#SBATCH --nodes={nodes} \t\t\t# number of nodes
-#SBATCH --ntasks={cpus} \t\t\t# number of cpus
-#SBATCH --ntasks-per-node={ppn} \t \t # cpus per node
-#SBATCH --exclusive
-#SBATCH --mem-per-cpu={memory}MB \t\t# memory per node per cpu
-#SBATCH -J {name} \t\t\t# job name
-#SBATCH --error=slurm.err \t\t# stdout
-#SBATCH --output=slurm.out \t\t# stderr
+#SBATCH --time={walltime}:00:00     \t# walltime in h
+#SBATCH --nodes={nodes}             \t# number of nodes
+#SBATCH --ntasks-per-node={ppn}     \t# cpus per node
+#SBATCH --exclusive                 \t# assert that job takes full nodes
+#SBATCH --mem-per-cpu={memory}MB    \t# memory per node per cpu (1972MB on romeo)
+#SBATCH -J {name}                   \t# job name  
+#SBATCH --error=slurm.err           \t# stdout
+#SBATCH --output=slurm.out          \t# stderr
+##SBATCH --partition=haswell64      \t# partition name, also gpu1, gpu2, romeo...
+##SBATCH --gres=gpu:4               \t# on gpu1 2 gpus, on gpu2 4 gpus
+
+# when using gpus, assert that use_gpu is in control.in !
 
 module use /home/kempt/Roman_AIMS_env/modules
 module load aims_env
 
-COMPUTE_DIR=aims_$SLURM_JOB_ID
-ws_allocate -F ssd $COMPUTE_DIR 7
-export AIMS_SCRDIR=/ssd/ws/$USER-$COMPUTE_DIR
+echo "slurm job ID: $SLURM_JOB_ID"
 
-srun $AIMS_EXECUTABLE > aims.out
+# this debug flag is specific to the AMD cpus
+if [$SLURM_JOB_PARTITION == "romeo"]; then
+    export export MKL_DEBUG_CPU_TYPE=5
+fi
+
+# srun_aims is a bash script given by aims_env that executes the AIMS binary and sets additional environment variables
+srun_aims > aims.out
             """.format(
                     name=self.name,
-                    cpus=self.nodes * self.ppn,
                     ppn=self.ppn,
                     memory=int(int(self.memory) * 1000 / (self.ppn)),
                     walltime=self.walltime,

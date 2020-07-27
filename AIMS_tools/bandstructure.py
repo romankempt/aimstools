@@ -110,8 +110,8 @@ class bandstructure(postprocess):
         return path
 
     def __get_bandfiles(self, get_SOC):
-        """Sort bandfiles according to k-path, spin, SOC and GW.
-        As you can see, the naming of band files in Aims is terribly inconsistent."""
+        """Sort bandfiles according to k-path, spin, SOC and GW."""
+
         if self.spin != None:
             stem = "band" + str(self.spin)
         else:

@@ -30,7 +30,6 @@ AIMS_tools's documentation
    structuretools
    preparation
    postprocessing
-   interfaces   
 
 .. toctree::
    :maxdepth: 3
