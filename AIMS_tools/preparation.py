@@ -357,31 +357,27 @@ mpirun -np {cpus} bash -c "ulimit -s unlimited && aims.171221_1.scalapack.mpi.x"
         with open(self.path.joinpath("submit.sh"), "w+") as file:
             file.write(
                 """#!/bin/bash
-#SBATCH --time={walltime}:00:00     \t# walltime in h
-#SBATCH --nodes={nodes}             \t# number of nodes
+#SBATCH --time={walltime}:00:00     \t\t\t# walltime in h
+#SBATCH --nodes={nodes}             \t\t# number of nodes
 #SBATCH --ntasks-per-node={ppn}     \t# cpus per node
-#SBATCH --exclusive                 \t# assert that job takes full nodes
+#SBATCH --exclusive                 # assert that job takes full nodes
 #SBATCH --mem-per-cpu={memory}MB    \t# memory per node per cpu (1972MB on romeo)
-#SBATCH -J {name}                   \t# job name  
+#SBATCH -J {name}                   # job name  
 #SBATCH --error=slurm.err           \t# stdout
 #SBATCH --output=slurm.out          \t# stderr
-##SBATCH --partition=haswell64      \t# partition name, also gpu1, gpu2, romeo...
-##SBATCH --gres=gpu:4               \t# on gpu1 2 gpus, on gpu2 4 gpus
+##SBATCH --partition=haswell64      \t# partition name, can also be gpu2 or romeo
+##SBATCH --gres=gpu:4               \t# using 4 gpus per node
 
 # when using gpus, assert that use_gpu is in control.in !
+# gpu1 partition will not be supported by the end of the year
 
 module use /home/kempt/Roman_AIMS_env/modules
 module load aims_env
 
 echo "slurm job ID: $SLURM_JOB_ID"
 
-# this debug flag is specific to the AMD cpus
-if [$SLURM_JOB_PARTITION == "romeo"]; then
-    export export MKL_DEBUG_CPU_TYPE=5
-fi
-
 # srun_aims is a bash script given by aims_env that executes the AIMS binary and sets additional environment variables
-srun_aims > aims.out
+source srun_aims > aims.out
             """.format(
                     name=self.name,
                     ppn=self.ppn,
