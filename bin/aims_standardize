@@ -19,8 +19,13 @@ def parseArguments():
         type=float,
         default=1e-4,
     )
-    # symmetries?
 
+    parser.add_argument(
+        "--enforce2D",
+        help="Enforce 2D representation if system appears 2D.",
+        type=bool,
+        default=True,
+    )
     # Parse arguments
     args = parser.parse_args()
     return args
@@ -30,4 +35,9 @@ if __name__ == "__main__":
     args = parseArguments()
     struc = structure(args.structure)
     struc.standardize(symprec=args.prec)
-    struc.atoms.write(args.structure)
+    if args.enforce2D and struc.is_2d():
+        struc.atoms = struc.enforce_2d()
+    if args.structure.split(".")[-1] == "xyz":
+        struc.atoms.write(args.structure, vec_cell=True)
+    else:
+        struc.atoms.write(args.structure)

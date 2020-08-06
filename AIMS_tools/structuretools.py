@@ -232,7 +232,9 @@ class structure:
             logging.warning("Number of atoms changed due to standardization.")
             logging.warning("Reverting spglib standardization.")
         finally:
-            atoms.set_cell(atoms.cell.standard_form()[0], scale_atoms=True)
+            rcell, Q = atoms.cell.standard_form()
+            atoms.set_cell(rcell)
+            atoms.set_positions((Q @ atoms.positions.T).T)
         atoms = self.recenter(atoms)
         if self.is_2d(atoms) != True:
             logging.warning("Enforcing 2D system failed.")
