@@ -206,7 +206,7 @@ class structure:
                     atoms = ase.geometry.permute_axes(atoms, new + [npbcax])
                     assert self.is_2d(atoms), "Permutation to 2D not working."
             self.atoms = atoms
-            self.lattice = self.atoms.cell.get_bravais_lattice().crystal_family
+            self.lattice = atoms.cell.get_bravais_lattice().crystal_family
 
     def enforce_2d(self, atoms=None):
         """ Enforces a special representation of a two-dimensional system.
@@ -221,17 +221,19 @@ class structure:
         else:
             atoms = self.atoms.copy()
         logging.info("Enforcing standardized 2D representation ...")
-        atoms = self.atoms
         try:
-            self.standardize()
+            self.standardize(atoms)
             assert len(atoms) == len(
                 self.atoms
             ), "Number of atoms changed due to standardization. Reverting."
         except:
-            self.atoms = atoms
+            self.atoms = atoms.copy()
             logging.warning("Number of atoms changed due to standardization.")
             logging.warning("Reverting spglib standardization.")
         finally:
+            logging.warning(
+                "Using ASE standardization, check if cell is set correctly."
+            )
             rcell, Q = atoms.cell.standard_form()
             atoms.set_cell(rcell)
             atoms.set_positions((Q @ atoms.positions.T).T)

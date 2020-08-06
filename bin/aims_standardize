@@ -34,9 +34,17 @@ def parseArguments():
 if __name__ == "__main__":
     args = parseArguments()
     struc = structure(args.structure)
-    struc.standardize(symprec=args.prec)
+
     if args.enforce2D and struc.is_2d():
         struc.atoms = struc.enforce_2d()
+    else:
+        try:
+            struc.standardize(symprec=args.prec)
+        except:
+            logging.info("Spglib standardization did not work, trying ASE standard...")
+            rcell, Q = struc.atoms.cell.standard_form()
+            struc.atoms.set_cell(rcell)
+            struc.atoms.set_positions((Q @ struc.atoms.positions.T).T)
     if args.structure.split(".")[-1] == "xyz":
         struc.atoms.write(args.structure, vec_cell=True)
     else:
