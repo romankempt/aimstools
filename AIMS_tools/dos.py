@@ -59,12 +59,9 @@ class density_of_states(postprocess):
         """ Get atom_projected dos files.
             get_SOC : True or False to obtain the ones with or without SOC.
             """
-        import re
-
-        regex = re.compile(r"^atom_proj(ected)?_dos_[A-Z]([a-z])?\d{4}\.dat")
-        dosfiles = [
-            str(j) for j in list(self.path.glob("*.dat*")) if regex.match(str(j))
-        ]
+        regex = re.compile(r"atom_proj(ected)?_dos_[A-Z]([a-z])?\d{4}\.dat")
+        dosfiles = list(self.path.glob("*.dat"))
+        dosfiles = [j for j in dosfiles if bool(regex.match(str(j.parts[-1])))]
         if (self.active_SOC == True) and (self.spin == None):
             if get_SOC == True:
                 dosfiles = [str(i) for i in dosfiles if "no_soc" not in str(i)]
@@ -105,6 +102,7 @@ class density_of_states(postprocess):
             dosfiles = [str(i) for i in dosfiles if "spin_dn" in str(i)]
         else:
             dosfiles = [str(i) for i in dosfiles]
+
         return dosfiles
 
     def __sort_dosfiles(self, dosfiles, atom_type):
@@ -121,7 +119,7 @@ class density_of_states(postprocess):
             array = np.loadtxt(entry, dtype=float, comments="#")
             list_of_arrays.append(array)
         array = np.sum(list_of_arrays, axis=0)
-        array[:, 0] /= len(list_of_arrays)
+        array[:, 0] = array[:, 0] / len(list_of_arrays)
         return array
 
     def __get_total_dos(self, dos_per_atom):
@@ -272,10 +270,9 @@ class density_of_states(postprocess):
             z, aspect="auto", extent=[xmin, xmax, ymin, ymax], origin="upper"
         )
         xy = np.column_stack([x, y])
-        path = np.vstack([[0, ymin], xy, [0, ymax], [0, ymax], [0, ymax]])
-        path = Path(path)
+        path = np.vstack([[0, ymin], xy, [0, ymax], [0, 0], [0, 0]])
+        path = Path(path, closed=True)
         patch = PathPatch(path, facecolor="none", edgecolor="none")
-        # clip_path = Polygon(xy, facecolor="none", edgecolor="none", closed=False)
         axes.add_patch(patch)
         im.set_clip_path(patch)
 

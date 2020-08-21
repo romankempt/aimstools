@@ -591,7 +591,14 @@ class fatbandstructure(bandstructure):
                     kpoints.shape[0], int(self.nstates / 2), self.ncons
                 )
             segments[section] = (kaxis, ev)
-            reverse = (section[1], section[0])
+            reverse = (
+                section[1],
+                section[0],
+            )  # putting in the reverses for the mulliken contributions might be harder
+            # if reverse not in self.mlk_bandsegments.keys():
+            #     kpoints = kpoints[::-1]
+            #     eigenvalues = eigenvalues[::-1]
+            #     bandsegments[reverse] = (kpoints, eigenvalues)
         return segments
 
     def __collect_contributions(self):
@@ -611,9 +618,11 @@ class fatbandstructure(bandstructure):
         Returns:
             dict: Dictionary of atom : (kaxis, spectrum) pairs.
         """
-        segments = [
-            (self.kpath[i], self.kpath[i + 1]) for i in range(len(self.kpath) - 1)
-        ]
+        path = parse_path_string(self.kpath)
+        segments = []
+        for p in path:
+            l = [(i, j) for i, j in zip(p[:-1], p[1:])]
+            segments += l
         nkpoints_per_sec = self.nkpoints
         reverse = {(k[1], k[0]): v for (k, v) in nkpoints_per_sec.items()}
         nkpoints_per_sec.update(reverse)
@@ -785,7 +794,7 @@ class fatbandstructure(bandstructure):
                 )
                 break
         else:
-            self.kpath = newpath
+            self.kpath = "".join(newpath)
             self.atoms_to_plot = {
                 k: v
                 for k, v in self.structure.atom_indices.items()
@@ -1155,11 +1164,12 @@ class fatbandstructure(bandstructure):
         axes.set_xlim([0, np.max(x)])
         axes.set_xticks(self.klabel_coords)
         xlabels = []
-        for i in range(len(self.kpath)):
-            if self.kpath[i] == "G":
+        klabels = [val for sublist in parse_path_string(self.kpath) for val in sublist]
+        for i in klabels:  # I have to add jumps!
+            if i == "G":
                 xlabels.append(r"$\Gamma$")
             else:
-                xlabels.append(self.kpath[i])
+                xlabels.append(i)
         axes.set_xticklabels(xlabels)
         axes.set_ylabel(r"E-E$_\mathrm{F}$ [eV]")
         ylocs = ticker.MultipleLocator(

@@ -41,7 +41,7 @@ class prepare:
         # Initialisation
         try:
             self.species_dir = os.getenv("AIMS_SPECIES_DIR")
-            assert self.species_dir != None, "Basis sets not found!"
+            assert self.species_dir not in [None, ""], "Basis sets not found!"
         except:
             logging.critical("Basis sets not found!")
         cwd = Path.cwd()
