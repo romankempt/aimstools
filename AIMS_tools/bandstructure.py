@@ -368,7 +368,7 @@ class bandstructure(postprocess):
                 )
             axes.set_ylabel(r"E-E$_\mathrm{F}$ [eV]")
         axes.grid(which="major", axis="x", linestyle=":")
-        for j in self.kjumps:
+        for j in self.kjumps.copy():
             axes.axvline(
                 x=j,
                 ymin=lower_ylimit,
@@ -634,6 +634,8 @@ class fatbandstructure(bandstructure):
             start_index = 0
             kaxis = np.zeros((nkpoints))
             spectrum = np.zeros((nkpoints, int(self.nstates / channels), self.ncons))
+            i = 0
+            jumps = []
             for section in segments:
                 klength = self.atom_contributions[atom][section][0] + klabel_coords[-1]
                 klabel_coords.append(klength[-1])
@@ -642,8 +644,12 @@ class fatbandstructure(bandstructure):
                 cons = self.atom_contributions[atom][section][1]
                 spectrum[start_index:end_index, :, :] = cons
                 start_index = end_index
+                if segments[i][0] != segments[i - 1][1] and i != 0:
+                    jumps.append(klabel_coords[-2])
+                i += 1
             atom_spectrum[atom] = (kaxis, spectrum)
             self.klabel_coords = klabel_coords
+            self.kjumps = jumps
         energy = atom_spectrum[1][1][:, :, 1]
         self.spectrum = np.column_stack(
             [atom_spectrum[1][0], atom_spectrum[1][1][:, :, 1]]
@@ -918,13 +924,32 @@ class fatbandstructure(bandstructure):
         axes.set_ylim([lower_ylimit, upper_ylimit])
         axes.set_xlim([0, np.max(x)])
         axes.set_xticks(self.klabel_coords)
+        path = parse_path_string(self.kpath)
+        fpath = []
+        for l in path:
+            for j in l:
+                fpath.append(j)
+            fpath.append(",")
+        path = fpath[:-1]
         xlabels = []
-        for i in range(len(self.kpath)):
-            if self.kpath[i] == "G":
-                xlabels.append(r"$\Gamma$")
+        xr = iter(range(len(path)))
+        for i in xr:
+            if path[i] != ",":
+                xlabels.append(path[i])
             else:
-                xlabels.append(self.kpath[i])
+                xlabels[-1] = xlabels[-1] + "|" + path[i + 1]
+                next(xr)
+        xlabels = [j if j != "G" else r"$\Gamma$" for j in xlabels]
         axes.set_xticklabels(xlabels)
+        for j in self.kjumps.copy():
+            axes.axvline(
+                x=j,
+                ymin=lower_ylimit,
+                ymax=upper_ylimit,
+                linestyle="-",
+                color="k",
+                linewidth=1.5,
+            )
         axes.set_ylabel(r"E-E$_\mathrm{F}$ [eV]")
         ylocs = ticker.MultipleLocator(
             base=0.5
