@@ -848,12 +848,12 @@ class fatbandstructure(bandstructure):
         if type(atom) == str:
             atom = [k for k, v in self.atoms_to_plot.items() if v == atom][0]
 
-        x = self.atom_spectra[atom][0]
-        y = self.atom_spectra[atom][1][:, :, 1]  # energy
+        x = self.atom_spectra[atom][0].copy()
+        y = self.atom_spectra[atom][1][:, :, 1].copy()  # energy
         y, VBM, CBM = self._shift_to(y, self.energy_reference)
         if type(contribution) == str:
             con = con_dict[contribution]
-            con = self.atom_spectra[atom][1][:, :, con]
+            con = self.atom_spectra[atom][1][:, :, con].copy()
         else:
             con = contribution
 

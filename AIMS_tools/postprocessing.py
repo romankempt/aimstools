@@ -100,7 +100,9 @@ class postprocess:
                 read = False if line.startswith("#") else True
                 if read:
                     if "output band" in line:
-                        bandlines.append(line.split())
+                        fline = line.replace("Gamma", "G")
+                        fline = fline.replace("gamma", "G")
+                        bandlines.append(fline.split())
                         self.calc_type.add("BS")
                     if "include_spin_orbit" in line:
                         self.active_SOC = True
