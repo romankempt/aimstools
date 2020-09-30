@@ -356,3 +356,34 @@ class structure:
                         pbc[axes] = False
                         break
         return pbc
+
+    def hexagonal_to_rectangular(self, atoms=None):
+        """ Changes hexagonal / trigonal unit cell to equivalent rectangular representation.
+        
+        Returns:
+            atoms: ase.atoms.Atoms object
+        """
+
+        if atoms == None:
+            atoms = self.atoms.copy()
+
+        self.standardize(atoms)
+        atoms = self.atoms.copy()
+        old = atoms.cell.copy()
+        a = old[0, :]
+        b = old[1, :]
+        c = old[2, :]
+        newb = 2 * b + a
+        newcell = np.array([a, newb, c])
+        new = ase.build.make_supercell(atoms, [[3, 0, 0], [0, 3, 0], [0, 0, 1]])
+        new.set_cell(newcell, scale_atoms=False)
+        spos = new.get_scaled_positions(wrap=False)
+        inside = np.where(
+            (spos[:, 0] >= 0)
+            & (spos[:, 0] < 0.9999)
+            & (spos[:, 1] >= 0)
+            & (spos[:, 1] < 0.9999)
+        )[0]
+        new = new[inside]
+        return new
+
