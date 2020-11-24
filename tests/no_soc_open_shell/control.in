@@ -1,0 +1,136 @@
+#===============================================================================
+# FHI-aims file: ./control.in
+# Created using the Atomic Simulation Environment (ASE)
+# Tue Nov 10 17:37:33 2020
+#===============================================================================
+xc                                 pbe
+#include_spin_orbit
+check_stacksize .false.
+# Common choices of dispersion methods:
+ 	 vdw_correction_hirshfeld
+# 	 many_body_dispersion
+# 	 many_body_dispersion_nl 	 beta=0.81
+spin                               collinear
+default_initial_moment 2
+k_grid                             6 6 6
+relativistic                       atomic_zora scalar
+### SCF settings 
+adjust_scf 	 always 	 3 
+# frozen_core_scf 	 .true. 
+charge_mix_param  0.02
+occupation_type 	 gaussian 	 0.1
+# sc_accuracy_eev   1E-3 	 	 # sum of eigenvalues convergence
+# sc_accuracy_etot  1E-6 	 	 # total energy convergence
+sc_accuracy_rho   1E-3 	 	 # electron density convergence
+# elsi_restart 	 read_and_write 	 1000
+### band structure section 
+## Brillouin Zone section Nr. 1
+output band 0.000000 0.000000 0.000000 	 0.500000 -0.500000 0.500000 	 31 	 G H
+output band 0.500000 -0.500000 0.500000 	 0.000000 0.000000 0.500000 	 31 	 H N
+output band 0.000000 0.000000 0.500000 	 0.000000 0.000000 0.000000 	 31 	 N G
+output band 0.000000 0.000000 0.000000 	 0.250000 0.250000 0.250000 	 31 	 G P
+output band 0.250000 0.250000 0.250000 	 0.500000 -0.500000 0.500000 	 31 	 P H
+## Brillouin Zone section Nr. 2
+output band 0.250000 0.250000 0.250000 	 0.000000 0.000000 0.500000 	 31 	 P N
+### band structure section 
+## Brillouin Zone section Nr. 1
+output band_mulliken 0.000000 0.000000 0.000000 	 0.500000 -0.500000 0.500000 	 31 	 G H
+output band_mulliken 0.500000 -0.500000 0.500000 	 0.000000 0.000000 0.500000 	 31 	 H N
+output band_mulliken 0.000000 0.000000 0.500000 	 0.000000 0.000000 0.000000 	 31 	 N G
+output band_mulliken 0.000000 0.000000 0.000000 	 0.250000 0.250000 0.250000 	 31 	 G P
+output band_mulliken 0.250000 0.250000 0.250000 	 0.500000 -0.500000 0.500000 	 31 	 P H
+## Brillouin Zone section Nr. 2
+output band_mulliken 0.250000 0.250000 0.250000 	 0.000000 0.000000 0.500000 	 31 	 P N
+### DOS section 
+output atom_proj_dos  -10 0 300 0.05       # Estart Eend n_points broadening
+output species_proj_dos  -10 0 300 0.05       # Estart Eend n_points broadening
+output dos  -10 0 300 0.05       # Estart Eend n_points broadening
+#output atom_proj_dos_tetrahedron  -10 0 300 0.05       # Estart Eend n_points broadening
+#output species_proj_dos_tetrahedron  -10 0 300 0.05       # Estart Eend n_points broadening
+#output dos_tetrahedron  -10 0 300 0.05       # Estart Eend n_points broadening
+#===============================================================================
+
+################################################################################
+#
+#  FHI-aims code project
+#  VB, Fritz-Haber Institut, 2009
+#
+#  Suggested "light" defaults for Fe atom (to be pasted into control.in file)
+#  Be sure to double-check any results obtained with these settings for post-processing,
+#  e.g., with the "tight" defaults and larger basis sets.
+#
+################################################################################
+  species        Fe
+#     global species definitions
+    nucleus             26
+    mass                55.845
+#
+    l_hartree           4
+#
+    cut_pot             3.5          1.5  1.0
+    basis_dep_cutoff    1e-4
+#
+    radial_base         51 5.0
+    radial_multiplier   1
+    angular_grids       specified
+      division   0.4337   50
+      division   0.8154  110
+      division   1.1046  194
+      division   1.3713  302
+#      division   1.5424  434
+#      division   1.7365  590
+#      division   1.9587  770
+#      division   1.9990  974
+#      division   2.4139 1202
+#      outer_grid  1202
+      outer_grid  302
+################################################################################
+#
+#  Definition of "minimal" basis
+#
+################################################################################
+#     valence basis states
+    valence      4  s   2.
+    valence      3  p   6.
+    valence      3  d   6.
+#     ion occupancy
+    ion_occ      4  s   1.
+    ion_occ      3  p   6.
+    ion_occ      3  d   5.
+################################################################################
+#
+#  Suggested additional basis functions. For production calculations, 
+#  uncomment them one after another (the most important basis functions are
+#  listed first).
+#
+#  Constructed for dimers: 1.45 A, 1.725 A, 2.25 A, 3.00 A, 4.00 A
+#
+################################################################################
+#  "First tier" - improvements: -300.53 meV to -10.50 meV 
+     hydro 4 f 9.4
+     hydro 2 p 2.2
+     hydro 5 g 12.4
+     hydro 3 d 3.1
+     ionic 4 s auto
+#  "Second tier" - improvements: -16.31 meV to -0.65 meV
+#     hydro 3 d 6.2
+#     hydro 6 h 19.2
+#     hydro 4 f 15.2
+#     hydro 4 f 6.6
+#     hydro 3 p 3
+#     hydro 5 g 13.2
+#     hydro 1 s 0.65  
+#  "Third tier" - improvements: -1.60 meV to -0.10 meV
+#     hydro 4 d 7.8
+#     hydro 4 p 19.6
+#     hydro 4 d 10.4
+#     ionic 4 p auto
+#     hydro 6 h 17.6
+#     hydro 5 f 27.2
+#     hydro 4 s 4.8
+#  "Fourth tier": improvements -0.13 meV and below
+#     hydro 5 f 12
+#     hydro 5 g 10.4
+#     hydro 5 p 8.4
+#     hydro 4 d 14.8
+#     hydro 2 s 1.9

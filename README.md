@@ -1,6 +1,6 @@
-# AIMS_tools
+# aimstools
 
-This library contains a personal collection of scripts to handle AIMS calculations. It's mainly meant for private use or to be shared with students and colleagues.
+This library contains a personal collection of scripts to handle FHI-aims calculations. It's mainly meant for private use or to be shared with students and colleagues.
 
 ## Installation
 
@@ -9,20 +9,18 @@ I recommend using Anaconda to manage package dependencies and updates. See [here
 Directly install from git:
 
 ```bash
-pip install git+https://github.com/romankempt/AIMS_tools
+pip install git+https://github.com/romankempt/aimstools
 ```
 
 Or download from git and install from the zip.
 
-If you are using AIMS_tools locally, you need to specify the path to the aims species (basis sets) and executable in your environment variables (e.g., in the .bashrc). On Taurus, loading the module will automatically take care of that.
+If you are using AIMS_tools locally, you need to specify the path to the aims species (basis sets) and executable in your environment variables (e.g., in the .bashrc).
+On our HPC systems, my module environments take care of that.
 
 ```bash
 export AIMS_SPECIES_DIR="path/to/directory"
 export AIMS_EXECUTABLE="aims.mpi.x"
 ```
-
-- On t3000, this one is "/chemsoft/FHI-aims/stable/species_defaults/"
-- On taurus, this one is "/projects/m_chemie/FHI-aims/aims_200112/species_defaults/"
 
 
 ## Documentation

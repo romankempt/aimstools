@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
-from AIMS_tools.preparation import prepare
+from aimstools.misc import *
+from aimstools.preparation import FHIAimsSetup, FHIVibesSetup
 
 
 def parseArguments():
@@ -8,50 +9,80 @@ def parseArguments():
     parser = argparse.ArgumentParser()
 
     # Positional mandatory arguments
-    parser.add_argument("geometry", help="Path to geometry", type=str)
+    parser.add_argument("geometryfile", help="Path to geometry file", type=str)
 
     # Optional arguments
     parser.add_argument(
-        "-cluster", help="t3000 or taurus (default taurus)", type=str, default="taurus"
-    )
-    parser.add_argument(
-        "-cost",
-        help="low, medium or high (automatically adjusts memory and nodes)",
-        type=str,
-        default="low",
-    )
-    parser.add_argument(
-        "-xc",
-        help="exchange correlation functional (default pbe)",
+        "--xc",
+        help="Exchange correlation functional (default pbe)",
         type=str,
         default="pbe",
     )
     parser.add_argument(
-        "-spin", help="spin keyword (default none)", type=str, default="none"
+        "--spin",
+        help="Spin keyword (none or collinear, default none)",
+        type=str,
+        default="none",
     )
-    parser.add_argument("-tier", help="basis set tier (default 2)", type=int, default=2)
     parser.add_argument(
-        "-basis", help="basis set type (default tight)", type=str, default="tight"
+        "-t", "--tier", help="basis set tier (default 1)", type=int, default=1
+    )
+    parser.add_argument(
+        "-b",
+        "--basis",
+        help="Basis set type (default tight)",
+        type=str,
+        default="tight",
     )
     parser.add_argument(
         "-k_grid",
-        help="k-points per reciprocal lattice direction for x, y, z (default: 6 6 6)",
+        help="Number of k-points per reciprocal lattice direction for x, y, z",
         nargs="+",
         type=int,
-        default=[6, 6, 6],
+        default=[],
     )
     parser.add_argument(
-        "-task",
+        "-k",
+        "--k_density",
+        help="Line k-point density (default: 5)",
+        type=int,
+        default=5,
+    )
+    parser.add_argument(
+        "-j",
+        "--jobs",
+        "--task",
+        "--tasks",
         nargs="+",
-        help="""list of task(s) to perform:
+        help="""List of task(s) to perform:
         None (default) = single point;
-        BS = band structure;
-        fatBS = mulliken-projected band structure;
-        DOS = (atom-projected) density of states;
-        GO = geometry optimisation;
-        phonons = phonopy interface""",
+        bs = band structure;
+        fatbs = mulliken-projected band structure;
+        dos = density of states;
+        go = relaxation (via FHI-vibes);
+        phonons = phonons (via FHI-vibes)""",
         type=str,
-        default=[],
+        default=["None"],
+        dest="tasks",
+    )
+    parser.add_argument(
+        "-f",
+        help="Force overwrite existing files.",
+        action="store_true",
+        dest="overwrite",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        help="Verbosity level, e.g. -v, -vv, default 0)",
+        action="count",
+        default=0,
+    )
+    parser.add_argument(
+        "-s",
+        "--standardize",
+        help="Standardize structure via spglib with enforced axes order.",
+        action="store_true",
     )
     # Parse arguments
     args = parser.parse_args()
@@ -59,13 +90,50 @@ def parseArguments():
 
 
 if __name__ == "__main__":
-    args = parseArguments()
-    job = prepare(args.geometry, **vars(args))
-    job.setup_calculator()
-    job.adjust_control()
-    if "GO" in list(args.task):
-        job.adjust_geometry()
-    if job.cluster == "t3000":
-        job.write_submit_t3000()
-    elif job.cluster == "taurus":
-        job.write_submit_taurus()
+    args = vars(parseArguments())
+    overwrite = args.pop("overwrite")
+    verbosity = args.pop("verbose")
+    geometryfile = args.pop("geometryfile")
+    standardize = args.pop("standardize")
+    tasks = args["tasks"]
+    set_verbosity_level(verbosity)
+    vibes_keywords = [
+        "relaxation",
+        "go",
+        "geometry",
+        "phonons",
+        "phonon",
+        "phonopy",
+    ]
+    aims_keywords = ["bs", "dos", "fatbs"]
+
+    tasks = [k.lower() for k in args["tasks"]]
+    if any(x in vibes_keywords for x in args["tasks"]):
+        assert not any(
+            x in aims_keywords for x in tasks
+        ), "You cannot perform electronic analysis in relaxations or phonon calculations."
+        relax = any(x in ["relaxation", "go", "geometry"] for x in tasks)
+        phon = any(x in ["phonons", "phonon", "phonopy"] for x in tasks)
+        assert not (
+            relax and phon
+        ), "You can only specify either relaxation or phonons as task."
+        vibup = FHIVibesSetup(geometryfile, **args)
+        if standardize:
+            logger.info("Standardizing structure ...")
+            vibup.structure.standardize()
+        vibup.setup_geometry(overwrite=overwrite)
+        if relax:
+            vibup.setup_relaxation(overwrite=overwrite)
+            vibup.write_submission_file("relaxation", overwrite=overwrite)
+        elif phon:
+            vibup.setup_phonopy(overwrite=overwrite)
+            vibup.write_submission_file("phonopy", overwrite=overwrite)
+    else:
+        ais = FHIAimsSetup(geometryfile, **args)
+        if standardize:
+            logger.info("Standardizing structure ...")
+            ais.structure.standardize()
+        ais.setup_geometry(overwrite=overwrite)
+        ais.setup_control(overwrite=overwrite)
+        ais.write_submission_file(overwrite=overwrite)
+

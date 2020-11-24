@@ -15,12 +15,12 @@ import sys
 import sphinx_rtd_theme
 from ase.utils.sphinx import mol_role
 
-sys.path.insert(0, os.path.abspath("../AIMS_tools"))
+sys.path.insert(0, os.path.abspath("../aimstools"))
 sys.path.insert(0, os.path.abspath(".."))
 
 import re
 
-VERSIONFILE = "../AIMS_tools/__init__.py"
+VERSIONFILE = "../aimstools/__init__.py"
 verstrline = open(VERSIONFILE, "rt").read()
 VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
 mo = re.search(VSRE, verstrline, re.M)
@@ -34,7 +34,7 @@ from recommonmark.transform import AutoStructify
 
 # -- Project information -----------------------------------------------------
 
-project = "AIMS_tools"
+project = "aimstools"
 copyright = "2019, Roman Kempt"
 author = "Roman Kempt"
 

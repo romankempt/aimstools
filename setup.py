@@ -3,7 +3,7 @@ from distutils.core import setup
 
 import re
 
-VERSIONFILE = "AIMS_tools/__init__.py"
+VERSIONFILE = "aimstools/__init__.py"
 verstrline = open(VERSIONFILE, "rt").read()
 VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
 mo = re.search(VSRE, verstrline, re.M)
@@ -13,23 +13,17 @@ else:
     raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
 
 setup(
-    name="AIMS_tools",
+    name="aimstools",
     version=version,
     author="Roman Kempt",
     author_email="roman.kempt@tu-dresden.de",
-    description="A small toolbox to handle AIMS calculations.",
+    description="A toolbox to handle AIMS calculations.",
     long_description=open("README.md").read(),
     license="LGPLv3",
-    url="https://github.com/romankempt/AIMS_tools",
-    download_url="https://github.com/romankempt/AIMS_tools",
-    packages=["AIMS_tools"],
-    scripts=[
-        "bin/aims_prepare",
-        "bin/aims_sort",
-        "bin/aims_plot",
-        "bin/aims_kconvergence",
-        "bin/aims_standardize",
-    ],
+    url="https://github.com/romankempt/aimstools",
+    download_url="https://github.com/romankempt/aimstools",
+    packages=["aimstools"],
+    scripts=["bin/aims_prepare", "bin/aims_plot",],
     install_requires=["spglib", "numpy", "scipy", "matplotlib", "ase", "networkx"],
     classifiers=[
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",

@@ -1,4 +1,4 @@
-# AIMS_tools
+# aimstools
 
 This library contains a personal collection of scripts to handle AIMS calculations. It's mainly meant for private use or to be shared with students and colleagues.
 
@@ -7,11 +7,8 @@ This library contains a personal collection of scripts to handle AIMS calculatio
 
 I recommend using Anaconda to manage package dependencies and updates. See [here](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html).
 
-Simply download the zip from github. Then run:
 
-```bash
-pip install AIMS_tools-master.zip
-```
+to be rewritten
 
 Set the path to the aims species (basis sets) in your environment variables (e.g., in the .bashrc):
 
