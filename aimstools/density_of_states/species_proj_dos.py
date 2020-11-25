@@ -203,16 +203,31 @@ class SpeciesProjectedDOSMethods:
             labels
         ), "Number of contributions does not match number of labels."
 
-        handles = []
+        handles = [
+            Line2D([0], [0], label=l, color=c, lw=1.0) for l, c in zip(labels, colors)
+        ]
         with AxesContext(ax=axes, main=main, **axargs) as axes:
-            x = self.spectrum.energies
+            ev = self.spectrum.energies
             for i, con in enumerate(list_of_contributions):
                 m = main if i == 0 else False
-                dosplot = DOSPlot(x=x, con=con, l=l, color=colors[i], main=m, **dosargs)
+                dosplot = DOSPlot(
+                    x=ev, con=con, l=l, color=colors[i], main=m, **dosargs
+                )
                 axes = dosplot.draw()
                 x, y = dosplot.xy
                 axes.plot(x, y, color=colors[i], **kwargs)
-                handles += dosplot.handles
+            if dosargs["show_total"] not in [False, "None", "none", None, []]:
+                handles.insert(
+                    0,
+                    Line2D(
+                        [0],
+                        [0],
+                        color=mutedblack,
+                        label="total",
+                        linestyle=(0, (1, 1)),
+                        lw=1.0,
+                    ),
+                )
             axes.legend(
                 handles=handles, frameon=True, loc="center right", fancybox=False
             )

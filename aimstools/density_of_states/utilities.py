@@ -137,10 +137,12 @@ class DOSPlot:
     def set_window(self, window):
         if (type(window) == float) or (type(window) == int):
             w = -window, window
+            if self.ref in ["work function", "user-specified"]:
+                w = -window - self.shift, window - self.shift
         elif len(window) == 2:
             w = window[0], window[1]
-        if self.ref in ["work function", "user-specified"]:
-            w = w[0] - self.shift, w[1] - self.shift
+        else:
+            raise Exception("Window not recognized.")
         return w
 
     def get_xy_labels(self):

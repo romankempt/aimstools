@@ -107,8 +107,12 @@ if __name__ == "__main__":
     bsdir = args.pop("bandstructure")
     dosdir = args.pop("densityofstates")
     mlkdir = args.pop("mulliken_bandstructure")
-    i = 2 if bsdir != None else 0
+    i = 0
+    if bsdir != None:
+        i += 1
     if mlkdir != None:
+        i += 1
+    if bsdir or mlkdir:
         i += 1
     if dosdir != None:
         i += 1

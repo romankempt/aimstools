@@ -98,8 +98,8 @@ class BandStructurePlot:
             lower_ylimit, upper_ylimit = window[0], window[1]
             if self.ref in ["work function", "user-specified"]:
                 lower_ylimit, upper_ylimit = (
-                    window[0] - self.shift,
-                    window[1] - self.shift,
+                    window[0],
+                    window[1],
                 )
         else:
             logger.error("Energy window not recognized.")
