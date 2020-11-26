@@ -1,5 +1,7 @@
 # aimstools
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/romankempt/aimstools/HEAD)
+
 This library contains a personal collection of scripts to handle FHI-aims calculations. It's mainly meant for private use or to be shared with students and colleagues.
 
 ## Installation
