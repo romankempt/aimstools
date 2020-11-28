@@ -14,7 +14,7 @@ from collections import namedtuple
 def find_fragments(atoms) -> list:
     """ Finds unconnected structural fragments by constructing
     the first-neighbor topology matrix and the resulting graph
-    of connected vortices. 
+    of connected vertices. 
     
     Args:
         atoms: :class:`~ase.atoms.Atoms` or :class:`~aimstools.structuretools.structure.Structure`

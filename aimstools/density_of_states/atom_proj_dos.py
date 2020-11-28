@@ -51,7 +51,7 @@ class AtomProjectedDOS(DOSBaseClass, SpeciesProjectedDOSMethods):
             energies = []
             contributions = []
             for s in range(nspins):
-                atom_file = [k[s] for k in dosfiles if re.match(pattern, str(k[s]))]
+                atom_file = [k[s] for k in dosfiles if re.search(pattern, str(k[s]))]
                 assert (
                     len(atom_file) == 1
                 ), "Multiple species-projected dos files found for same species. Something must have gone wrong. Found: {}".format(

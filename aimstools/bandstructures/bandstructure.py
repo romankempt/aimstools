@@ -70,7 +70,7 @@ class BandStructure:
 
     @property
     def bandstructure_soc(self):
-        """ Returns :class:`~aimstools.bandstructures.regular_bandstructure` without spin-orbit coupling."""
+        """ Returns :class:`~aimstools.bandstructures.regular_bandstructure` with spin-orbit coupling."""
         return self._bs_soc
 
     @property

@@ -156,21 +156,16 @@ class DOSPlot:
         return (xlabel, ylabel)
 
     def get_xy_limits(self):
+        # I'm always setting the limits relative to the total dos
         window = self.window
-        x, y = self.x, self.y
-        if self.show_total not in ["None", None, False, []] and self.main:
-            x, y = self.get_total_dos()
-
-        old_doslimits = self.ax.get_ylim()
-        if self.flip:
-            old_doslimits = self.ax.get_xlim()
+        x, y = self.get_total_dos()
 
         lower_elimit, upper_elimit = window
         # assert that DOS either starts at 0 or a negative peak for spin
         ly = np.min(y[(x >= lower_elimit) & (x <= upper_elimit)])
-        ly = min([0, ly, old_doslimits[0]])
+        ly = min([0, ly])
         uy = np.max(y[(x >= lower_elimit) & (x <= upper_elimit)])
-        uy = max([0, uy, old_doslimits[1]])
+        uy = max([0, uy])
         return [(lower_elimit, upper_elimit), (ly, uy)]
 
     def show_fermi_level(self):

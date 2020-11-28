@@ -3,21 +3,35 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-aimstools's documentation
+Tools for FHI-aims
 ==========================
+
+This library contains a personal collection of scripts to handle FHI-aims calculations. It's mainly meant for private use or to be shared with students and colleagues.
 
 .. toctree::
    :maxdepth: 3
    :caption: Introduction:   
 
    intros/intro
-
+   intros/command_line
+   intros/compiling_aims
+   intros/boltztrap2
 
 .. toctree::
    :maxdepth: 3
-   :caption: Modules:   
+   :caption: Examples:
+   
+   notebooks/dosfigure.ipynb
 
-   aimstools/modules.rst
+.. toctree::
+   :maxdepth: 5
+   :caption: Modules
+
+   aimstools/structuretools/structuretools
+   aimstools/preparation/preparation
+   aimstools/postprocessing/postprocessing
+   aimstools/bandstructures/bandstructures
+   aimstools/density_of_states/density_of_states
 
 Indices and tables
 ==================
