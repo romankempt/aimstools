@@ -1,4 +1,4 @@
-# Tools for FHI-aims
+# Tools for FHI-aims - aimstools
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/romankempt/aimstools/HEAD)
 
@@ -23,9 +23,6 @@ On our HPC systems, my module environments take automatically take care of these
 export AIMS_SPECIES_DIR="path/to/directory"
 export AIMS_EXECUTABLE="aims.mpi.x"
 ```
-
-## Documentation
-The documentation is now available at [ReadTheDocs](https://aims-tools.readthedocs.io/en/master/).
 
 ## Requirements
 

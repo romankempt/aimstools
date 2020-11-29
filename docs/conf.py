@@ -58,6 +58,7 @@ intersphinx_mapping = {
 extensions = [
     "nbsphinx",
     "sphinx.ext.autodoc",
+    "sphinx_markdown_tables",
     "sphinx.ext.todo",
     "sphinx.ext.githubpages",
     "recommonmark",

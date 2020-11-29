@@ -39,6 +39,9 @@ class Structure(Atoms):
                     atoms = ase.io.read(geometry)
                 except Exception as excpt:
                     logger.error(str(excpt))
+                    raise Exception(
+                        "ASE was not able to recognize the file format, e.g., a non-standard cif-format."
+                    )
 
         assert type(atoms) == ase.atoms.Atoms, "Atoms not read correctly."
         # Get data from another Atoms object:

@@ -13,9 +13,20 @@ This library contains a personal collection of scripts to handle FHI-aims calcul
    :caption: Introduction:   
 
    intros/intro
-   intros/command_line
    intros/compiling_aims
    intros/boltztrap2
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Command-line tools:
+   
+   cli/preparing_aims 
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Workflows:
+
+   workflows/relaxation
 
 .. toctree::
    :maxdepth: 3

@@ -1,6 +1,7 @@
 # Tools for FHI-aims
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/romankempt/aimstools/HEAD)
+[![Documentation Status](https://readthedocs.org/projects/aims-tools/badge/?version=latest)](https://aims-tools.readthedocs.io/en/latest/?badge=latest)
 
 This library contains a personal collection of scripts to handle FHI-aims calculations. It's mainly meant for private use or to be shared with students and colleagues.
 
