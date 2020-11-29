@@ -34,6 +34,8 @@ setup(
             "pictures",
             "examples",
             "docs",
+            "*__pycache__*",
+            "*vscode*",
         ]
     ),
     scripts=["bin/aims_prepare", "bin/aims_plot",],
