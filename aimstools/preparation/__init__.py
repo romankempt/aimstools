@@ -9,7 +9,7 @@ import os
 
 assert (
     os.getenv("AIMS_SPECIES_DIR") != None
-), "FHI-aims species defaults not found iin environment (set $AIMS_SPECIES_DIR)."
+), "FHI-aims species defaults not found in environment (set $AIMS_SPECIES_DIR)."
 
 if os.getenv("AIMS_SLURM_TEMPLATE") == None:
     logger.info(
@@ -18,7 +18,7 @@ if os.getenv("AIMS_SLURM_TEMPLATE") == None:
 
 if os.getenv("VIBES_SLURM_TEMPLATE") == None:
     logger.info(
-        "FHI-aims slurm template not found in environment (set $AIMS_SLURM_TEMPLATE)."
+        "FHI-vibes slurm template not found in environment (set $VIBES_SLURM_TEMPLATE)."
     )
 
 if os.getenv("AIMS_EXECUTABLE") == None:

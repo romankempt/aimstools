@@ -80,7 +80,7 @@ class AtomProjectedDOS(DOSBaseClass, SpeciesProjectedDOSMethods):
             len(self.structure)
         ), "The index {} was not found in the structure.".format(index)
         x = self.spectrum.energies
-        con = self.spectrum.get_atom_contributions(index)
+        con = self.spectrum.get_atom_contribution(index)
         symbol = con.symbol
 
         number = symbols2numbers(symbol)[0]

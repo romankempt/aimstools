@@ -634,6 +634,56 @@ class MullikenBandStructure(BandStructureBaseClass):
 
         return axes
 
+    def plot_all_angular_momenta(
+        self, symbols="all", max_l="f", axes=None, colors=[], main=True, **kwargs
+    ):
+        axargs, kwargs, bsargs, mlkargs = self._process_kwargs(**kwargs)
+        scale_width = mlkargs.pop("scale_width", 2)
+
+        momenta = ("s", "p", "d", "f", "g", "h")
+        momenta = dict(zip(momenta, range(len(momenta))))
+        momenta = {k: v for k, v in momenta.items() if v <= momenta[max_l]}
+
+        if symbols in ["all", "None", None, "All", []]:
+            symbols = set([k.symbol for k in self.structure])
+        else:
+            symbols = set(symbols)
+
+        if colors == []:
+            cmap = plt.cm.get_cmap("tab10")
+            colors = [cmap(c) for c in np.linspace(0, 1, 6)]
+            colors = colors[: len(momenta)]
+
+        lcons = [
+            self.spectrum.get_group_contribution(symbols, l) for l in momenta.keys()
+        ]
+        con = np.zeros(lcons[0].contribution.shape)
+        for i, s, j in np.ndindex(con.shape):
+            # at each kpoint i, each spin s, each state j, compare which value is largest
+            l = [c.contribution[i, s, j] for c in lcons]
+            k = l.index(max(l))
+            # the index of the largest value is assigned to this point
+            con[i, s, j] = k + 1
+        con = MullikenContribution("Uh?", con, "eeeh")
+
+        cmap = ListedColormap(colors)
+        norm = BoundaryNorm(
+            [0.5 + j for j in range(len(colors))] + [len(colors) + 0.5], cmap.N
+        )
+        with AxesContext(ax=axes, main=main, **axargs) as axes:
+            bs = BandStructurePlot(main=main, **bsargs)
+            axes = bs.draw()
+            x, y = bs.xy
+            mlk = MullikenBandStructurePlot(
+                x=x, y=y, con=con, cmap=cmap, norm=norm, scale_width=False, **mlkargs
+            )
+            axes = mlk.draw()
+            clb = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=axes)
+            clb.set_ticks(range(1, len(colors) + 1))
+            clb.set_ticklabels(list(momenta.keys()))
+
+        return axes
+
     def plot(self, axes=None, color=mutedblack, main=True, **kwargs):
         axargs, kwargs, bsargs, _ = self._process_kwargs(**kwargs)
         with AxesContext(ax=axes, main=main, **axargs) as axes:

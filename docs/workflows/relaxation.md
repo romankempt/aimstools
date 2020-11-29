@@ -45,7 +45,7 @@ Change the following values:
 | `fmax` | Choose `5e-2` or `1e-3` if possible. |
 | `fix_symmetry` | When you have refined the structure, you may fix the symmetry. |
 
-If your structures does not converge for a stricter criterion of `fmax`, this might be an indication that you have to choose a denser `k_grid` or even tighter numerical settings, such as `sc_accuracy_rho 1e-7`. If your system is very flexible (e.g., rotating organic groups), then it might not be possible to set such a strict convergence criterion.
+If your structure does not converge for a stricter criterion of `fmax`, this might be an indication that you have to choose a denser `k_grid` or even tighter numerical settings, such as `sc_accuracy_rho 1e-7`. If your system is very flexible (e.g., rotating organic groups), then it might not be possible to set such a strict convergence criterion.
 
 ## Converging geometries for phonons
 

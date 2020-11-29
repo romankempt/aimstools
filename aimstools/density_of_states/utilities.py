@@ -278,7 +278,7 @@ class DOSSpectrum:
         tdos = sum([k for k in self.contributions])
         return tdos
 
-    def get_species_contributions(self, symbol):
+    def get_species_contribution(self, symbol):
         if self.type == "species":
             con = [k for k in self.contributions if k.symbol == symbol][0]
         elif self.type == "atom":
@@ -289,7 +289,7 @@ class DOSSpectrum:
             )
         return con
 
-    def get_atom_contributions(self, index):
+    def get_atom_contribution(self, index):
         assert (
             self.type == "atom"
         ), "This spectrum type does not support atom contributions."

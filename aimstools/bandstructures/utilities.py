@@ -248,10 +248,14 @@ class MullikenBandStructurePlot:
 
     def plot_scatter(self, band_x, band_y, band_width):
         axes = self.ax
+        if self.scale_width in [False, None, "none", 0]:
+            swidths = 1
+        else:
+            swidths = band_width.copy() * self.scale_width
         axes.scatter(
             band_x,
             band_y,
-            c=band_width * 2,
+            c=swidths,
             cmap=self.cmap,
             norm=self.norm,
             s=(band_width * 2),

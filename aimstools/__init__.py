@@ -9,7 +9,9 @@ if sys.version_info[0] == 2:
 __version__ = "0.5"
 
 
+from aimstools.structuretools import Structure
 from aimstools.bandstructures import BandStructure
 from aimstools.density_of_states import DensityOfStates
 
-__all__ = ["BandStructure", "DensityOfStates"]
+
+__all__ = ["Structure", "BandStructure", "DensityOfStates"]

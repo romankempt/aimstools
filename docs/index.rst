@@ -32,7 +32,10 @@ This library contains a personal collection of scripts to handle FHI-aims calcul
    :maxdepth: 3
    :caption: Examples:
    
+   notebooks/structuretools.ipynb
+   notebooks/bandstructures.ipynb
    notebooks/dosfigure.ipynb
+   notebooks/fatbands.ipynb
 
 .. toctree::
    :maxdepth: 5

@@ -42,6 +42,12 @@ class Structure(Atoms):
                     raise Exception(
                         "ASE was not able to recognize the file format, e.g., a non-standard cif-format."
                     )
+        elif Path(geometry).is_dir():
+            raise Exception(
+                "You specified a directory as input. The geometry must be a file."
+            )
+        else:
+            atoms = None
 
         assert type(atoms) == ase.atoms.Atoms, "Atoms not read correctly."
         # Get data from another Atoms object:
@@ -80,6 +86,7 @@ class Structure(Atoms):
         except:
             self.sg = ase.spacegroup.Spacegroup(1)
         self.lattice = self.cell.get_bravais_lattice().crystal_family
+        self._is_2d = None
 
     def copy(self):
         """Return a copy."""
@@ -203,12 +210,15 @@ class Structure(Atoms):
         Returns:
             bool: 2D or not to 2D, that is the question.
         """
-        atoms = self.copy()
-        pbcax = find_nonperiodic_axes(atoms)
-        if sum(list(pbcax.values())) == 2:
-            return True
+        if self._is_2d == None:
+            atoms = self.copy()
+            pbcax = find_nonperiodic_axes(atoms)
+            if sum(list(pbcax.values())) == 2:
+                return True
+            else:
+                return False
         else:
-            return False
+            return self._is_2d
 
     def find_nonperiodic_axes(self) -> dict:
         """ See :func:`~aimstools.structuretools.tools.find_nonperiodic_axes` """
@@ -242,9 +252,12 @@ class Structure(Atoms):
         atoms = hexagonal_to_rectangular(atoms)
         return self.__class__(atoms)
 
-    def view(self):
+    def view(self, viewer=None):
         """ Wrapper of ase.visualize.view() function. """
         from ase.visualize import view
 
-        v = view(self.atoms)
+        if viewer == None:
+            v = view(self.atoms)
+        else:
+            v = view(self.atoms, viewer=viewer)
         return v

@@ -69,7 +69,7 @@ class SpeciesProjectedDOSMethods:
             symbol in self.structure.symbols
         ), "The species {} was not found in the structure.".format(symbol)
         x = self.spectrum.energies
-        con = self.spectrum.get_species_contributions(symbol)
+        con = self.spectrum.get_species_contribution(symbol)
 
         number = symbols2numbers(symbol)[0]
         color = jmol_colors[number] if type(color) == type(None) else color
@@ -113,7 +113,7 @@ class SpeciesProjectedDOSMethods:
             for i, (s, c, _) in enumerate(scm):
                 m = main if i == 0 else False
                 x = self.spectrum.energies
-                con = self.spectrum.get_species_contributions(s)
+                con = self.spectrum.get_species_contribution(s)
                 dosplot = DOSPlot(x=x, con=con, l=l, main=m, color=c, **dosargs)
                 axes = dosplot.draw()
                 x, y = dosplot.xy
@@ -143,7 +143,7 @@ class SpeciesProjectedDOSMethods:
         handles = []
         with AxesContext(ax=axes, main=main, **axargs) as axes:
             en = self.spectrum.energies
-            con = sum([self.spectrum.get_species_contributions(k) for k in symbols])
+            con = sum([self.spectrum.get_species_contribution(k) for k in symbols])
             for i, (label, l) in enumerate(momenta.items()):
                 m = main if i == 0 else False
                 dosplot = DOSPlot(
