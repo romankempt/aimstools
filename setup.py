@@ -23,7 +23,7 @@ setup(
     license="LGPLv3",
     url="https://github.com/romankempt/aimstools",
     download_url="https://github.com/romankempt/aimstools",
-    packages=find_packages(),
+    packages=find_packages(where="aimstools"),
     scripts=["bin/aims_prepare", "bin/aims_plot",],
     install_requires=["spglib", "numpy", "scipy", "matplotlib", "ase", "networkx"],
     classifiers=[
