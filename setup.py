@@ -13,6 +13,7 @@ if mo:
 else:
     raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
 
+
 setup(
     name="aimstools",
     version=version,
@@ -23,7 +24,18 @@ setup(
     license="LGPLv3",
     url="https://github.com/romankempt/aimstools",
     download_url="https://github.com/romankempt/aimstools",
-    packages=find_packages(where="aimstools"),
+    packages=find_packages(
+        exclude=[
+            "*.tests",
+            "*.tests.*",
+            "tests.*",
+            "tests",
+            "WIP",
+            "pictures",
+            "examples",
+            "docs",
+        ]
+    ),
     scripts=["bin/aims_prepare", "bin/aims_plot",],
     install_requires=["spglib", "numpy", "scipy", "matplotlib", "ase", "networkx"],
     classifiers=[
