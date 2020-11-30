@@ -241,11 +241,13 @@ class FHIAimsSetup:
         self.tasks = ftasks
 
     def __write_bandstructure_tasks(self, line):
+        if self.structure.is_2d():
+            pbc = [True, True, False]
+        else:
+            pbc = [True, True, True]
         if "band structure" in self.tasks:
             line += "\n### Band structure section \n"
             logger.info("Setting up band structure calculation.")
-            if self.structure.is_2d():
-                pbc = [True, True, False]
             output_bands = self.get_bandpath_as_aims_strings(pbc=pbc)
             for band in output_bands:
                 if not band.startswith("#"):
