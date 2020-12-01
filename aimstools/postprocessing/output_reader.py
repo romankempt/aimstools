@@ -33,6 +33,9 @@ class FHIAimsOutputReader:
     def __init__(self, output) -> None:
 
         output = Path(output)
+        assert output.exists(), "The path {} does not exist.".format(
+            str(output)
+        )  # Thanks Aga ;D
         if output.is_file():
             self.outputfile = output
             self.outputdir = output.parent
