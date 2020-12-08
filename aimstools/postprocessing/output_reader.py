@@ -9,7 +9,7 @@ from collections import namedtuple
 
 
 class FHIAimsOutputReader:
-    """ Parses information from output file and control.in.
+    """Parses information from output file and control.in.
 
     Args:
         output (pathlib object): Directory of outputfile or outputfile.
@@ -28,7 +28,7 @@ class FHIAimsOutputReader:
         work_function (namedtuple): (upper_vacuum_level, lower_vacuum_level, upper_work_function, lower_work_function).
         nkpoints (int): Number of k-points.
         nscf_steps (int): Number of SCF steps.
-     """
+    """
 
     def __init__(self, output) -> None:
 
@@ -180,6 +180,7 @@ class FHIAimsOutputReader:
             "spin_N": 0,
             "spin_S": 0,
             "total_energy": None,
+            "electronic_free_energy": None,
             "band_extrema": None,
             "fermi_level": None,
             "work_function": None,
@@ -219,6 +220,8 @@ class FHIAimsOutputReader:
                 d["spin_S"] = float(re.search(r"\d+\.\d+", l).group())
             if re.match(r"\s+\|\s+\bTotal energy uncorrected\b\s+:", l):
                 d["total_energy"] = float(value.search(l).group())
+            if "| Electronic free energy        :" in l:
+                d["electronic_free_energy"] = float(value.search(l).group())
             if re.search(r"Highest occupied state \(VBM\)", l) and socread == False:
                 vbm = float(value.search(l).group())
             if re.search(r"Lowest unoccupied state \(CBM\)", l) and socread == False:

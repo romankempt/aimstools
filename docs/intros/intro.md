@@ -11,7 +11,6 @@ I recommend using Anaconda to manage package dependencies and updates. See [here
 You can directly install from git:
 
 ```bash
-conda install -c conda-forge git pip
 pip install git+https://github.com/romankempt/aimstools
 ```
 
@@ -36,6 +35,10 @@ export AIMS_EXECUTABLE="aims.mpi.x"
 - [FHI-vibes](https://vibes-developers.gitlab.io/vibes/) - An excellent interface for relaxations, phonon calculations and molecular dynamics.
 - [BoltzTraP2](https://gitlab.com/sousaw/BoltzTraP2) - Boltzmann transport theory to calculate electronic transport properties.
 - [2D-Interface-Builder](https://github.com/AK-Heine/2D-Interface-Builder) - My tool to build heterostructure interfaces via coincidence lattice theory.
+
+## Examples
+
+You can test the functionalities of this library via the [Binder link](https://mybinder.org/v2/gh/romankempt/aimstools/HEAD). Setting up the repository might take a little while. Afterwards, navigate to the `notebooks` directory and interact with `aimstools` in a live environment.
 
 ## Testing
 

@@ -56,8 +56,8 @@ def test_output_reader_closed_shell():
         "qpe_calc": None,
         "use_dipole_correction": False,
     }
-    for k1, k2 in zip(outr.control.keys(), comp.keys()):
-        assert outr.control[k1] == comp[k2], "Key {} does not match {}.".format(k1, k2)
+    for k in comp.keys():
+        assert outr.control[k] == comp[k], "Key {} does not match {}.".format(k)
     outd = {
         "aims_version": "201103",
         "commit_number": "faf196098",
@@ -70,10 +70,10 @@ def test_output_reader_closed_shell():
         "nkpoints": 365,
         "nscf_steps": 12,
     }
-    for k1, k2 in zip(outr._outputdict.keys(), outd.keys()):
-        assert (
-            outr._outputdict[k1] == outd[k2]
-        ), "Attribute {} does not match {}.".format(k1, k2)
+    for k in outd.keys():
+        assert outr._outputdict[k] == outd[k], "Attribute {} does not match {}.".format(
+            k
+        )
 
 
 def test_output_reader_open_shell():
@@ -115,8 +115,8 @@ def test_output_reader_open_shell():
         "qpe_calc": None,
         "use_dipole_correction": False,
     }
-    for k1, k2 in zip(outr.control.keys(), comp.keys()):
-        assert outr.control[k1] == comp[k2], "Key {} does not match {}.".format(k1, k2)
+    for k in comp.keys():
+        assert outr.control[k] == comp[k], "Key {} does not match {}.".format(k)
     outd = {
         "aims_version": "201103",
         "commit_number": "faf196098",
@@ -129,10 +129,10 @@ def test_output_reader_open_shell():
         "nkpoints": 216,
         "nscf_steps": 15,
     }
-    for k1, k2 in zip(outr._outputdict.keys(), outd.keys()):
-        assert (
-            outr._outputdict[k1] == outd[k2]
-        ), "Attribute {} does not match {}.".format(k1, k2)
+    for k in outd.keys():
+        assert outr._outputdict[k] == outd[k], "Attribute {} does not match {}.".format(
+            k
+        )
 
 
 def test_output_reader_open_shell_fixed():
@@ -173,8 +173,8 @@ def test_output_reader_open_shell_fixed():
         "use_dipole_correction": False,
     }
 
-    for k1, k2 in zip(outr.control.keys(), comp.keys()):
-        assert outr.control[k1] == comp[k2], "Key {} does not match {}.".format(k1, k2)
+    for k in comp.keys():
+        assert outr.control[k] == comp[k], "Key {} does not match {}.".format(k)
     outd = {
         "aims_version": "201103",
         "commit_number": "faf196098",
@@ -182,15 +182,20 @@ def test_output_reader_open_shell_fixed():
         "spin_S": 1.0,
         "total_energy": -34767.0342962745,
         "band_extrema": (-8.60761003, -9.08189184, -9.07974406, -8.83731232),
-        "fermi_level": (None, -8.9161675, -9.1563046488, -8.5621614354,),
+        "fermi_level": (
+            None,
+            -8.9161675,
+            -9.1563046488,
+            -8.5621614354,
+        ),
         "work_function": None,
         "nkpoints": 216,
         "nscf_steps": 13,
     }
-    for k1, k2 in zip(outr._outputdict.keys(), outd.keys()):
-        assert (
-            outr._outputdict[k1] == outd[k2]
-        ), "Attribute {} does not match {}.".format(k1, k2)
+    for k in outd.keys():
+        assert outr._outputdict[k] == outd[k], "Attribute {} does not match {}.".format(
+            k
+        )
 
 
 def test_output_reader_work_function():
@@ -225,24 +230,34 @@ def test_output_reader_work_function():
         "use_dipole_correction": True,
     }
 
-    for k1, k2 in zip(outr.control.keys(), comp.keys()):
-        assert outr.control[k1] == comp[k2], "Key {} does not match {}.".format(k1, k2)
+    for k in comp.keys():
+        assert outr.control[k] == comp[k], "Key {} does not match {}.".format(k)
     outd = {
         "aims_version": "200819",
         "commit_number": "009f8e893",
         "spin_N": 0,
         "spin_S": 0,
         "total_energy": -2169.26098443649,
-        "band_extrema": (-6.04870044, -1.40809218, -6.04869548, -1.40810407,),
+        "band_extrema": (
+            -6.04870044,
+            -1.40809218,
+            -6.04869548,
+            -1.40810407,
+        ),
         "fermi_level": (-2.85009039, -2.7033213, None, None),
-        "work_function": (-0.01324087, -0.01324087, 2.83684953, 2.83684953,),
+        "work_function": (
+            -0.01324087,
+            -0.01324087,
+            2.83684953,
+            2.83684953,
+        ),
         "nkpoints": 20,
         "nscf_steps": 11,
     }
-    for k1, k2 in zip(outr._outputdict.keys(), outd.keys()):
-        assert (
-            outr._outputdict[k1] == outd[k2]
-        ), "Attribute {} does not match {}.".format(k1, k2)
+    for k in outd.keys():
+        assert outr._outputdict[k] == outd[k], "Attribute {} does not match {}.".format(
+            k
+        )
 
 
 def test_hirshfeld_reader():
@@ -261,4 +276,3 @@ def test_hirshfeld_reader():
     c2 = hfr.total_charges
     for k1, v1 in c1.items():
         assert c2[k1] == v1, "Total charge reading did not work correctly."
-

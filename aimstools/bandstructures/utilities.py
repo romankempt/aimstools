@@ -55,12 +55,17 @@ class BandStructurePlot:
         labels, coords = self.set_x_labels()
         self.ax.set_xticks(coords)
         self.ax.set_xticklabels(labels)
-        self.ax.grid(which="major", axis="x", linestyle=(0, (1, 1)), linewidth=1.0)
         self.ax.tick_params(axis=u"x", which=u"both", length=0)
         if self.main:
+            self.ax.grid(
+                b=True, which="major", axis="x", linestyle=(0, (1, 1)), linewidth=1.0
+            )
             for j in self.jumps:
                 self.ax.axvline(
-                    x=j, linestyle="-", color=darkgray, linewidth=mpllinewidth,
+                    x=j,
+                    linestyle="-",
+                    color=darkgray,
+                    linewidth=mpllinewidth,
                 )
             if self.mark_fermi_level not in ["None", "none", None, False]:
                 self.show_fermi_level()

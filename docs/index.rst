@@ -13,8 +13,7 @@ This library contains a personal collection of scripts to handle FHI-aims calcul
    :caption: Introduction:   
 
    intros/intro
-   intros/compiling_aims
-   intros/boltztrap2
+   intros/index
 
 .. toctree::
    :maxdepth: 3
@@ -46,6 +45,7 @@ This library contains a personal collection of scripts to handle FHI-aims calcul
    aimstools/postprocessing/postprocessing
    aimstools/bandstructures/bandstructures
    aimstools/density_of_states/density_of_states
+   aimstools/phonons/phonons
 
 Indices and tables
 ==================

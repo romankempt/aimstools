@@ -38,7 +38,10 @@ setup(
             "*vscode*",
         ]
     ),
-    scripts=["bin/aims_prepare", "bin/aims_plot",],
+    scripts=[
+        "bin/aims_prepare",
+        "bin/aims_plot",
+    ],
     install_requires=["spglib", "numpy", "scipy", "matplotlib", "ase", "networkx"],
     classifiers=[
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",

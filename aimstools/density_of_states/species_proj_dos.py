@@ -62,7 +62,13 @@ class SpeciesProjectedDOSMethods:
         return axargs, kwargs, d
 
     def plot_one_species(
-        self, symbol, l="tot", axes=None, color=None, main=True, **kwargs,
+        self,
+        symbol,
+        l="tot",
+        axes=None,
+        color=None,
+        main=True,
+        **kwargs,
     ):
         axargs, kwargs, dosargs = self._process_kwargs(**kwargs)
         assert (
@@ -88,7 +94,13 @@ class SpeciesProjectedDOSMethods:
         return axes
 
     def plot_all_species(
-        self, symbols=[], l="tot", axes=None, colors=[], main=True, **kwargs,
+        self,
+        symbols=[],
+        l="tot",
+        axes=None,
+        colors=[],
+        main=True,
+        **kwargs,
     ):
         axargs, kwargs, dosargs = self._process_kwargs(**kwargs)
 
@@ -125,7 +137,13 @@ class SpeciesProjectedDOSMethods:
         return axes
 
     def plot_all_angular_momenta(
-        self, symbols=[], max_l="f", axes=None, colors=[], main=True, **kwargs,
+        self,
+        symbols=[],
+        max_l="f",
+        axes=None,
+        colors=[],
+        main=True,
+        **kwargs,
     ):
         axargs, kwargs, dosargs = self._process_kwargs(**kwargs)
         momenta = ("s", "p", "d", "f", "g", "h")
@@ -289,4 +307,3 @@ class SpeciesProjectedDOS(DOSBaseClass, SpeciesProjectedDOSMethods):
             dos_per_species.append(con)
         spectrum = DOSSpectrum(energies, dos_per_species, "species")
         return spectrum
-

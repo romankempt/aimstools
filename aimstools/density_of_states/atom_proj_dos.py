@@ -47,14 +47,14 @@ class AtomProjectedDOS(DOSBaseClass, SpeciesProjectedDOSMethods):
         for i, atom in enumerate(self.structure):
             symbol = atom.symbol
             index = i + 1
-            pattern = re.compile(r".*" + symbol + r"\d{0,3}" + str(index) + r".*")
+            pattern = re.compile(r".*" + symbol + "{0:04d}".format(index) + r".*")
             energies = []
             contributions = []
             for s in range(nspins):
                 atom_file = [k[s] for k in dosfiles if re.search(pattern, str(k[s]))]
                 assert (
                     len(atom_file) == 1
-                ), "Multiple species-projected dos files found for same species. Something must have gone wrong. Found: {}".format(
+                ), "Multiple atom-projected dos files found for same atom. Something must have gone wrong. Found: {}".format(
                     atom_file
                 )
                 array = np.loadtxt(atom_file[0], dtype=float, comments="#")
@@ -73,7 +73,13 @@ class AtomProjectedDOS(DOSBaseClass, SpeciesProjectedDOSMethods):
         return spectrum
 
     def plot_one_atom(
-        self, index, l="tot", axes=None, color=None, main=True, **kwargs,
+        self,
+        index,
+        l="tot",
+        axes=None,
+        color=None,
+        main=True,
+        **kwargs,
     ):
         axargs, kwargs, dosargs = self._process_kwargs(**kwargs)
         assert index in range(

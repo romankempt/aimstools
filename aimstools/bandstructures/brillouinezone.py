@@ -60,6 +60,9 @@ class BrillouineZone:
         self.special_points = special_points
         self.__set_bandpath(bandpathstring)
         self.is_2d = self.structure.is_2d()
+        logger.info(
+            "In some cases, some points in the Brillouine-Zone are shown wrongly. I have not figured out why yet. The band structure points are set up correctly."
+        )
 
     def __repr__(self):
         return "{}(structure={}, is_2d={})".format(
@@ -202,7 +205,13 @@ class BrillouineZone:
                 va = va_s[int(np.sign(y))]
                 if abs(z) < 1e-6:
                     axes.text(
-                        x, y, name, ha=ha, va=va, color="crimson", zorder=5,
+                        x,
+                        y,
+                        name,
+                        ha=ha,
+                        va=va,
+                        color="crimson",
+                        zorder=5,
                     )
 
         axes.set_axis_off()
@@ -213,4 +222,3 @@ class BrillouineZone:
         axes.set_aspect("equal")
 
         return axes
-

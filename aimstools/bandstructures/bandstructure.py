@@ -9,10 +9,10 @@ from matplotlib.lines import Line2D
 
 
 class BandStructure:
-    """ Represents a collection of band structures.
+    """Represents a collection of band structures.
 
     The bandstructure class is a wrapper for regular band structures and mulliken-projected band structures.
-    To access these classes individually, see :class:`~aimstools.bandstructures.regular_bandstructure` and 
+    To access these classes individually, see :class:`~aimstools.bandstructures.regular_bandstructure` and
     :class:`~aimstools.bandstructures.mulliken_bandstructure`. They are stored as properties (if calculated):
 
     >>> from aimstools import BandStructure
@@ -202,4 +202,3 @@ class BandStructure:
                     dgap.value, *dgap.k
                 )
             )
-

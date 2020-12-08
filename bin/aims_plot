@@ -68,12 +68,12 @@ def parseArguments():
 
 def parse_vars(extra_vars):
     """
-     Take a list of comma seperated key value pair strings, seperated
-     by comma strings like 'foo=bar' and return as dict.
-     :param extra_vars: list[str] ['foo=bar, 'key2=value2']
+    Take a list of comma seperated key value pair strings, seperated
+    by comma strings like 'foo=bar' and return as dict.
+    :param extra_vars: list[str] ['foo=bar, 'key2=value2']
 
-     :return: dict[str, str] {'foo': 'bar', 'key2': 'value2'}
-     """
+    :return: dict[str, str] {'foo': 'bar', 'key2': 'value2'}
+    """
     vars_list = []
     if extra_vars:
         for i in extra_vars:
@@ -123,24 +123,44 @@ if __name__ == "__main__":
     ws = 0.25
     if dosdir != None and mlkdir != None and bsdir != None:
         spec = gridspec.GridSpec(
-            ncols=i, nrows=1, figure=fig, width_ratios=[4, 4, 1, 4], wspace=ws,
+            ncols=i,
+            nrows=1,
+            figure=fig,
+            width_ratios=[4, 4, 1, 4],
+            wspace=ws,
         )
     elif dosdir != None and mlkdir != None and bsdir == None:
         spec = gridspec.GridSpec(
-            ncols=i, nrows=1, figure=fig, width_ratios=[4, 1, 4], wspace=ws,
+            ncols=i,
+            nrows=1,
+            figure=fig,
+            width_ratios=[4, 1, 4],
+            wspace=ws,
         )
     elif dosdir != None and mlkdir == None and bsdir != None:
         spec = gridspec.GridSpec(
-            ncols=i, nrows=1, figure=fig, width_ratios=[4, 1, 4], wspace=ws,
+            ncols=i,
+            nrows=1,
+            figure=fig,
+            width_ratios=[4, 1, 4],
+            wspace=ws,
         )
     else:
-        spec = gridspec.GridSpec(ncols=i, nrows=1, figure=fig, wspace=ws,)
+        spec = gridspec.GridSpec(
+            ncols=i,
+            nrows=1,
+            figure=fig,
+            wspace=ws,
+        )
 
     j = 0
     bs_scalar, bs_soc, mbs = None, None, None
     if bsdir != None:
         bs = BS(bsdir)
-        bs.get_properties()
+        try:
+            bs.get_properties()
+        except:
+            "Couldn't get bandstructure properties. Probably a metal. Remind Roman to fix this."
         ax_bs = fig.add_subplot(spec[j])
         plt.sca(ax_bs)
         if bs.soc:

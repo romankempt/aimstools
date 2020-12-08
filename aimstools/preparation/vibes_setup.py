@@ -9,7 +9,6 @@ from aimstools.preparation.templates import (
 
 from aimstools.preparation.utilities import monkhorstpack2kptdensity
 
-
 from pathlib import Path
 import os
 
@@ -29,8 +28,9 @@ class FHIVibesSetup(FHIAimsSetup):
         k_grid = self.aseargs["k_grid"]
         k_density = monkhorstpack2kptdensity(self.structure, k_grid)
 
+        mask = "[1,1,1,1,1,1]" if not self.structure.is_2d() else "[1,1,0,0,0,1]"
         template = vibes_relaxation_template.format(
-            xc=xc, basis=basis, tier=tier, kptdensity=k_density
+            xc=xc, basis=basis, tier=tier, kptdensity=k_density, mask=mask
         )
         relaxationfile = self.dirpath.joinpath("relaxation.in")
         if relaxationfile.exists() and (overwrite == False):
@@ -71,10 +71,11 @@ class FHIVibesSetup(FHIAimsSetup):
         else:
             with open(templatefile, "r") as file:
                 template = file.read()
+        jobname = self.structure.atoms.get_chemical_formula().format("metal")
         if task == "relaxation":
-            jobname = self.structure.atoms.get_chemical_formula() + "_relax"
+            jobname += "_relax"
         elif task == "phonopy":
-            jobname = self.structure.atoms.get_chemical_formula() + "_phon"
+            jobname += "_phon"
         template = template.format(jobname=jobname, task=task)
         submitfile = self.dirpath.joinpath("submit.sh")
         if submitfile.exists() and (overwrite == False):

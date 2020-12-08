@@ -53,7 +53,7 @@ def test_vibes_setup_relaxation():
         s1 = [line for line in f1.readlines() if not line.startswith("#")]
         s2 = [line for line in f2.readlines() if not line.startswith("#")]
     for l in s1:
-        assert l in s2, "Line {} not found in control.in.".format(l)
+        assert l in s2, "Line {} not found in relaxation.in.".format(l)
     shutil.rmtree(dirpath)
 
 
@@ -71,5 +71,5 @@ def test_vibes_setup_phonopy():
         s1 = [line for line in f1.readlines() if not line.startswith("#")]
         s2 = [line for line in f2.readlines() if not line.startswith("#")]
     for l in s1:
-        assert l in s2, "Line {} not found in control.in.".format(l)
+        assert l in s2, "Line {} not found in phonopy.in.".format(l)
     shutil.rmtree(dirpath)

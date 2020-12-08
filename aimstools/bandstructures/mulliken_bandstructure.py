@@ -170,7 +170,7 @@ class MullikenContribution:
 
 
 class MullikenBandStructure(BandStructureBaseClass):
-    """ Mulliken-projected band structure object.
+    """Mulliken-projected band structure object.
 
     A fat band structure shows the momentum-resolved Mulliken contribution of each atom to the energy.
     """

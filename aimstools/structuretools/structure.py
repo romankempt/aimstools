@@ -15,8 +15,8 @@ logger = logging.getLogger("root")
 
 
 class Structure(Atoms):
-    """ Extends the ase.atoms.Atoms class with some specific functions.
-    
+    """Extends the ase.atoms.Atoms class with some specific functions.
+
     Args:
         geometry (str): Path to structure file (.cif, .xyz ..) or atoms object.
 
@@ -102,10 +102,10 @@ class Structure(Atoms):
         return strc
 
     def standardize(self, to_primitive=True, symprec=1e-4) -> None:
-        """ Wrapper of the spglib standardize() function with extra features.
+        """Wrapper of the spglib standardize() function with extra features.
 
         For 2D systems, the non-periodic axis is enforced as the z-axis.
-        
+
         Args:
             to_primitive (bool): If True, primitive cell is obtained. If False, conventional cell is obtained.
             symprec (float): Precision to determine new cell.
@@ -150,17 +150,17 @@ class Structure(Atoms):
             self.__init__(atoms)
 
     def recenter(self) -> None:
-        """ Recenters atoms to be in the unit cell, with vacuum on both sides.
+        """Recenters atoms to be in the unit cell, with vacuum on both sides.
 
         The unit cell length c is always chosen such that it is larger than a and b.
-        
+
         Returns:
             atoms : modified atoms object.
 
         Note:
             The ase.atoms.center() method is supposed to do that, but sometimes separates the layers. I didn't find a good way to circumvene that.
 
-         """
+        """
         atoms = self.copy()
         atoms.wrap(pretty_translation=True)
         atoms.center(axis=(2))
@@ -202,11 +202,11 @@ class Structure(Atoms):
         self.__init__(atoms)
 
     def is_2d(self) -> bool:
-        """ Evaluates if structure is qualitatively two-dimensional.
+        """Evaluates if structure is qualitatively two-dimensional.
 
         Note:
             A 2D structure is considered 2D if only one axis is non-periodic.
-        
+
         Returns:
             bool: 2D or not to 2D, that is the question.
         """
@@ -258,6 +258,10 @@ class Structure(Atoms):
 
         if viewer == None:
             v = view(self.atoms)
+        elif viewer == "ngl":
+            v = view(self.atoms, viewer="ngl")
+            v.view.add_ball_and_stick()
+            v.view.camera = "orthographic"
         else:
             v = view(self.atoms, viewer=viewer)
         return v

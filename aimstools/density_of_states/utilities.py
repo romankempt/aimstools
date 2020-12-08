@@ -178,11 +178,17 @@ class DOSPlot:
             mark = 0.00
         if self.flip:
             self.ax.axhline(
-                y=mark, color=color, alpha=fermi_alpha, linestyle="--",
+                y=mark,
+                color=color,
+                alpha=fermi_alpha,
+                linestyle="--",
             )
         else:
             self.ax.axvline(
-                x=mark, color=color, alpha=fermi_alpha, linestyle="--",
+                x=mark,
+                color=color,
+                alpha=fermi_alpha,
+                linestyle="--",
             )
         return self.ax
 
@@ -307,11 +313,9 @@ class Contribution:
 
     def __add__(self, other) -> "Contribution":
         d = self.values + other.values
-        s = (
-            Formula.from_list([self.symbol, other.symbol])
-            .format("metal")
-            .format("reduce")
-        )
+        s1 = string2symbols(self.symbol)
+        s2 = string2symbols(other.symbol)
+        s = Formula.from_list(s1 + s2).format("reduce").format("metal")
         return Contribution(s, d)
 
     def __radd__(self, other):
@@ -333,7 +337,7 @@ class Contribution:
         assert all(
             k in chemical_symbols for k in s
         ), "Symbol is not an element from the PSE."
-        s = Formula.from_list(s).format("metal").format("reduce")
+        s = Formula.from_list(s).format("reduce").format("metal")
         self._symbol = s
 
     def get_latex_symbol(self):

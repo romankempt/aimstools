@@ -12,8 +12,8 @@ from pathlib import Path
 
 
 class FHIAimsSetup:
-    """ A base class to initialise and prepare AIMS calculations.
-    
+    """A base class to initialise and prepare AIMS calculations.
+
     Args:
         geometry (str): Path to geometry file.
     """
@@ -82,8 +82,8 @@ class FHIAimsSetup:
             self.__adjust_control(control)
 
     def get_bandpath_as_aims_strings(self, pbc=[True, True, True]):
-        """ This function sets up the band path according to AFLOW conventions.
-  
+        """This function sets up the band path according to AFLOW conventions.
+
         Returns:
             list: List of strings containing the k-path sections.
         """
@@ -121,8 +121,8 @@ class FHIAimsSetup:
         return output_bands
 
     def write_symmetry_block(self):
-        """ This function sets up parametric symmetry constraints for the FHI-aims lattice relaxation.
-        
+        """This function sets up parametric symmetry constraints for the FHI-aims lattice relaxation.
+
         Note:
             This function is deprecated. Use vibes relaxation or the ASE constraint instead.
 
@@ -326,7 +326,7 @@ class FHIAimsSetup:
         ):
             task += "_dos"
 
-        jobname = self.structure.atoms.get_chemical_formula() + task
+        jobname = self.structure.atoms.get_chemical_formula().format("metal") + task
         template = template.format(jobname=jobname, task=task)
         submitfile = self.dirpath.joinpath("submit.sh")
         if submitfile.exists() and (overwrite == False):
