@@ -116,8 +116,8 @@ vibes run {task} > log.{task}
 The fields `{jobname}` and `{task}` will be filled in by aimstools.
 
 
-## Setting up an X server for the WSL 2
-When using aimstools in the WSL you may want to view plots directly from your current shell without having to go back to your Windows system. To be able to do this a X server needs to be set up. This can be done e.g. by following the steps shown here.
+## Setting up a X server for the WSL 2
+When using aimstools in the WSL 2 you may want to view plots directly from your current shell without having to go back to your Windows system. To be able to do this a X server needs to be set up. This can be done e.g. by following the steps shown here.
 1) [Download](https://sourceforge.net/projects/vcxsrv/) VcXsrv and install it in your Windows system.
 
 2) Add the following lines to your `~/.bashrc`:
