@@ -114,3 +114,21 @@ vibes run {task} > log.{task}
 ```
 
 The fields `{jobname}` and `{task}` will be filled in by aimstools.
+
+
+## Setting up an X server for the WSL 2
+When using aimstools in the WSL you may want to view plots directly from your current shell without having to go back to your Windows system. To be able to do this a X server needs to be set up. This can be done as shown in the following.
+1) [Download](https://sourceforge.net/projects/vcxsrv/) VcXsrv and install it in your Windows system.
+2) Add the following lines to your ~/.bashrc:
+```
+export LIBGL_ALWAYS_INDIRECT=0
+export DISPLAY="`grep nameserver /etc/resolv.conf | sed 's/nameserver //'`:0"
+```
+3) Start VcXsrv (xlaunch.exe) with the following settings:
+* Multiple windows, display number -1
+* Start no client
+* Deactivate “Native opengl”
+* Activate “Disable access control”
+4) Allow VcXsrv in Windows Defender:
+* Activate for both UDP and TCP the incoming connection.
+* In properties “Advanced” (double-click on rule) activate both rules for pofiles domain and private (all 3 options listed should be active in the end).
