@@ -64,7 +64,7 @@ You need to:
     Enter the build directory, then:
 
     ```bash
-    cmake -C initial_cache.conda.cmake
+    cmake -C initial_cache.conda.cmake ..
     ```
 
     This will run CMake to prepare all files for linking and checks if the compilers work correctly. If everything configured correctly, run:

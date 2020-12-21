@@ -48,6 +48,9 @@ class FHIAimsOutputReader:
         geometry = self.outputdir.joinpath("geometry.in")
         assert geometry.exists(), "File geometry.in not found."
         self.structure = Structure(geometry)
+        logger.info(
+            "I should externalize the control reading in it's own class to make it accessible for workflows I guess..."
+        )
         self.control = self.read_control()
         self._outputdict = self.read_outputfile()
         if self.is_converged:

@@ -182,6 +182,7 @@ class DOSPlot:
                 color=color,
                 alpha=fermi_alpha,
                 linestyle="--",
+                linewidth=mpllinewidth,
             )
         else:
             self.ax.axvline(
@@ -189,6 +190,7 @@ class DOSPlot:
                 color=color,
                 alpha=fermi_alpha,
                 linestyle="--",
+                linewidth=mpllinewidth,
             )
         return self.ax
 

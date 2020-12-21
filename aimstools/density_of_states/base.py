@@ -64,7 +64,7 @@ class DOSBaseClass(FHIAimsOutputReader):
             )
         else:
             regex = re.compile(
-                r"atom_proj(ected)?_dos_" + spin + r"[A-Z]([a-z])?\d{4}\.dat\.no_soc"
+                r"atom_proj(ected)?_dos_" + spin + r"[A-Z]([a-z])?\d{4}\.dat"
             )
         dosfiles = list(self.outputdir.glob("*.dat*"))
         dosfiles = [j for j in dosfiles if bool(regex.match(str(j.parts[-1])))]
@@ -87,7 +87,7 @@ class DOSBaseClass(FHIAimsOutputReader):
             )
         else:
             regex = re.compile(
-                r"atom_proj(ected)?_dos_tetrahedron_[A-Z]([a-z])?\d{4}\.dat\.no_soc"
+                r"atom_proj(ected)?_dos_tetrahedron_[A-Z]([a-z])?\d{4}\.dat"
             )
         dosfiles = list(self.outputdir.glob("*.dat*"))
         dosfiles = [j for j in dosfiles if bool(regex.match(str(j.parts[-1])))]
@@ -178,8 +178,8 @@ class DOSBaseClass(FHIAimsOutputReader):
                 atom_proj_dos_files = self.__get_atom_proj_dos_tetrahedron_files_soc()
         if "species-projected dos tetrahedron" in self.tasks:
             if not soc:
-                species_proj_dos_files = self.__get_species_proj_dos_tetrahedron_files_scalar(
-                    spin=spin
+                species_proj_dos_files = (
+                    self.__get_species_proj_dos_tetrahedron_files_scalar(spin=spin)
                 )
             if soc:
                 species_proj_dos_files = (
@@ -189,7 +189,7 @@ class DOSBaseClass(FHIAimsOutputReader):
         return d(total_dos_files, atom_proj_dos_files, species_proj_dos_files)
 
     def get_dos_files(self, spin="none", soc=False):
-        """ Looks for dos files according to the tasks specified in control.in.
+        """Looks for dos files according to the tasks specified in control.in.
 
         By default, the tetrahedron method will be preferred other the old implementation.
 

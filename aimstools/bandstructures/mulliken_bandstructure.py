@@ -135,7 +135,9 @@ class MullikenContribution:
     def __add__(self, other) -> "MullikenContribution":
         l = "".join(set([self.l, other.l]))
         d = self.contribution + other.contribution
-        s = Formula.from_list([self.symbol, other.symbol]).format("reduce")
+        s1 = string2symbols(self.symbol)
+        s2 = string2symbols(other.symbol)
+        s = Formula.from_list(s1 + s2).format("reduce")
         return MullikenContribution(s, d, l)
 
     def __radd__(self, other):
@@ -295,6 +297,9 @@ class MullikenBandStructure(BandStructureBaseClass):
                         :, :, :, :, 2:
                     ]  # (natoms, nkpoints, nspins, nstates, [tot, s, p, d, f])
                 elif (s1, s2) in [(k, j) for j, k in bands.keys()]:
+                    logger.warning(
+                        "I'm not sure the flipping of certain axes is correct for mulliken bandstructures."
+                    )
                     data = bands[(s2, s1)].data
                     kpoints = np.dot(bands[(s2, s1)].kpoints, icell_cv)[::-1]
                     energies = data[0, :, :, :, 0]  # (nkpoints, nspins, nstates)
@@ -564,7 +569,13 @@ class MullikenBandStructure(BandStructureBaseClass):
         return axes
 
     def plot_majority_contributions(
-        self, list_of_contributions=[], axes=None, colors=[], main=True, **kwargs
+        self,
+        list_of_contributions=[],
+        axes=None,
+        colors=[],
+        main=True,
+        show_colorbar=True,
+        **kwargs
     ):
         axargs, kwargs, bsargs, mlkargs = self._process_kwargs(**kwargs)
         scale_width = mlkargs.pop("scale_width", 2)
@@ -609,9 +620,10 @@ class MullikenBandStructure(BandStructureBaseClass):
                 x=x, y=y, con=con, cmap=cmap, norm=norm, scale_width=False, **mlkargs
             )
             axes = mlk.draw()
-            clb = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=axes)
-            clb.set_ticks(range(1, len(colors) + 1))
-            clb.set_ticklabels(symbols)
+            if show_colorbar:
+                clb = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=axes)
+                clb.set_ticks(range(1, len(colors) + 1))
+                clb.set_ticklabels(symbols)
 
         return axes
 

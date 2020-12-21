@@ -60,7 +60,7 @@ mpllinewidth = 2.0
 
 
 class AxesContext:
-    """ Base axes context.
+    """Base axes context.
 
     Args:
         main (bool): Helper value to identify execution orders in nested contexts to save/show the figure only in the main context.
@@ -111,4 +111,3 @@ class AxesContext:
                     bbox_inches="tight",
                 )
         return None
-

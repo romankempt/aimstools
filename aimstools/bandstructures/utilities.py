@@ -263,7 +263,7 @@ class MullikenBandStructurePlot:
             c=swidths,
             cmap=self.cmap,
             norm=self.norm,
-            s=(band_width * 2),
+            s=swidths,
         )
 
     def interpol(self):

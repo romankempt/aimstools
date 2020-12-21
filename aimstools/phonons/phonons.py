@@ -274,6 +274,9 @@ class FHIVibesPhonons(FHIVibesParser):
 
         Regarding units, see: https://gitlab.com/vibes-developers/vibes/-/issues/41
 
+        Args:
+            unit (str): Either "per atom" or "per mol". "per atom" leaves the unit as given out by phonopy, "per mol" divides by the formula count.
+
         Note:
             The unit systems of free energy, heat capacity,
             and entropy are kJ/mol, J/K/mol, and J/K/mol, respectively,

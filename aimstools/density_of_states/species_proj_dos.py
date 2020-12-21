@@ -243,7 +243,7 @@ class SpeciesProjectedDOSMethods:
                         color=mutedblack,
                         label="total",
                         linestyle=(0, (1, 1)),
-                        lw=1.0,
+                        lw=mpllinewidth,
                     ),
                 )
             axes.legend(
