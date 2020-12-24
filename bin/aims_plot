@@ -166,15 +166,13 @@ if __name__ == "__main__":
         if bs.soc:
             bs_scalar = bs.bandstructure_zora
             bs_soc = bs.bandstructure_soc
-            bs_soc.plot(axes=ax_bs, color="royalblue", main=True, **kwargs)
+            bs_soc.plot(axes=ax_bs, color="crimson", main=True, **kwargs)
             bs_scalar.plot(
                 axes=ax_bs, color=mutedblack, alpha=0.5, main=False, **kwargs
             )
             handles = []
             handles.append(Line2D([0], [0], color=mutedblack, label="ZORA", lw=1.5))
-            handles.append(
-                Line2D([0], [0], color="royalblue", label="ZORA+SOC", lw=1.5)
-            )
+            handles.append(Line2D([0], [0], color="crimson", label="ZORA+SOC", lw=1.5))
             lgd = ax_bs.legend(
                 handles=handles,
                 frameon=True,

@@ -27,7 +27,7 @@ class FHIAimsSetup:
         self.structure = Structure(self.geometryfile)
 
         xc = kwargs.get("xc", "pbe")
-        spin = kwargs.get("spin", None)
+        spin = kwargs.get("spin", "None")
         tier = kwargs.get("tier", 1)
         basis = kwargs.get("basis", "tight")
         k_grid = kwargs.get("k_grid", [])

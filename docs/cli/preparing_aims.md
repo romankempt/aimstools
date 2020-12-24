@@ -1,7 +1,5 @@
 # Preparing FHI-aims calculations
 
-## Command-line utility aims_prepare
-
 The **preparation** module contains functionalities to set up the files needed for different tasks. This module is wrapped in the **aims_prepare** command line tool.
 The input is any file supported by the ASE containing (periodic) coordinate informations, e.g., .xyz, .cif or POSCAR.
 
@@ -21,7 +19,7 @@ aims_prepare.py --help
 | `-t, --tier` | Sets basis set tier 1, 2, 3 or 4. | 1 |
 | `-b, --basis` | Sets basis set integration grids. Can be light, tight or intermediate depending on species. | tight |
 | `-k, -k_density` | Chooses k-grid based on line k-point density. Preferred over -k_grid . | 5 points / Angström |
-| `-k_grid` | Explicitly sets number of k-points per reciprocal lattice direction for x, y and z. | None |
+| `--k_grid` | Explicitly sets number of k-points per reciprocal lattice direction for x, y and z. | None |
 | `-j, --jobs, --task, --tasks` | Sets up different types of FHI-aims or FHI-vibes tasks. See more below. | None |
 | `-v, --verbose, -vv, -vvv` | Sets verbosity level depending on number of "v". Verbosity levels are warning, info and debug. | 0 |
 | `-s, --standardize` | Standardize structure via spglib with enforced axes order. | False |

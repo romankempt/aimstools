@@ -46,7 +46,7 @@ The basic stuff is installed and you are good to go. You can now open a python s
 >>> import ase
 ``` 
 
-## Installing aimstools
+## Install aimstools
 
 When everything is set up, installing (and updating) aimstools is as easy as:
 
@@ -68,7 +68,7 @@ If the path to these is not showing in your shell, something went wrong during t
 
 To use all modules of aimstools locally, the minimum you need are the FHI-aims basis sets (species defaults). Please download these from the FHI-aims gitlab server or one of our HPC systems. Add `export AIMS_SPECIES_DIR="path/to/species_defaults"` to your `~\.bashrc`.
 
-## Installing FHI-vibes
+## Install FHI-vibes
 
 FHI-vibes is an excellent interface to run relaxations, phonon calculations and molecular dynamics. It is the recommended way by aimstools (so by me) to perform these tasks with FHI-aims.
 
@@ -116,22 +116,23 @@ vibes run {task} > log.{task}
 The fields `{jobname}` and `{task}` will be filled in by aimstools.
 
 
-## Setting up a X server for the WSL 2
-When using aimstools in the WSL 2 you may want to view plots directly from your current shell without having to go back to your Windows system. To be able to do this a X server needs to be set up. This can be done e.g. by following the steps shown here.
-1) [Download](https://sourceforge.net/projects/vcxsrv/) VcXsrv and install it in your Windows system.
+## Setting up an X server in the Windows Subsystem for Linux 2 (WSL 2)
+When using `aimstools` in WSL 2 you may want to view plots directly from your current shell without having to go back to your Windows system. Therefore, you have to set up an X server.
 
-2) Add the following lines to your `~/.bashrc`:
-```
-export LIBGL_ALWAYS_INDIRECT=0
-export DISPLAY="`grep nameserver /etc/resolv.conf | sed 's/nameserver //'`:0"
-```
+1. [Download](https://sourceforge.net/projects/vcxsrv/) VcXsrv and install it in your Windows system.
 
-3) Start VcXsrv (xlaunch.exe) with the following settings:
-* Multiple windows, display number -1
-* Start no client
-* Deactivate “Native opengl”
-* Activate “Disable access control”
+2. Add the following lines to your `~/.bashrc`:
+    ```
+    export LIBGL_ALWAYS_INDIRECT=0
+    export DISPLAY="`grep nameserver /etc/resolv.conf | sed 's/nameserver //'`:0"
+    ```
 
-4) Allow VcXsrv in Windows Defender:
-* Activate for both UDP and TCP the incoming connection.
-* In properties “Advanced” (double-click on rule) activate both rules for pofiles domain and private (all 3 options listed should be active in the end).
+3. Start VcXsrv (xlaunch.exe) with the following settings:
+    - Multiple windows, display number -1
+    - Start no client
+    - Deactivate “Native opengl”
+    - Activate “Disable access control”
+
+4. Allow VcXsrv to pass through the Firewall in Windows Defender:
+    - Activate for both UDP and TCP the incoming connection.
+    - In properties “Advanced” (double-click on rule) activate both rules for pofiles domain and private (all 3 options listed should be active in the end).

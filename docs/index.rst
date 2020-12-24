@@ -19,12 +19,15 @@ This library contains a personal collection of scripts to handle FHI-aims calcul
    :maxdepth: 3
    :caption: Command-line tools:
    
-   cli/preparing_aims 
+   cli/preparing_aims
+   cli/workflows
+   cli/visualization 
 
 .. toctree::
    :maxdepth: 3
    :caption: Workflows:
 
+   workflows/kpoint_convergence
    workflows/relaxation
 
 .. toctree::
@@ -46,6 +49,7 @@ This library contains a personal collection of scripts to handle FHI-aims calcul
    aimstools/bandstructures/bandstructures
    aimstools/density_of_states/density_of_states
    aimstools/phonons/phonons
+   aimstools/workflows/workflows
 
 Indices and tables
 ==================

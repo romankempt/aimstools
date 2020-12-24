@@ -31,4 +31,3 @@ if os.getenv("ASE_AIMS_COMMAND") == None:
 
 
 __all__ = ["FHIAimsSetup", "FHIVibesSetup"]
-

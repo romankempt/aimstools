@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+
+from aimstools.misc import *
+from aimstools.workflows import KPointConvergence
+
+import typer
+from typing import Tuple, List, Optional
+
+
+app = typer.Typer()
+
+
+@app.command()
+def converge_kpoints(
+    geometryfile: Optional[str] = typer.Argument(
+        None, help="Structure file to prepare calculations from."
+    ),
+    result_dir: Optional[str] = typer.Argument(
+        None, help="Result directory to process."
+    ),
+    xc: str = typer.Option("pbe", "--xc", help="Exchange correlation functional."),
+    spin: str = typer.Option(
+        "none",
+        "--spin",
+        help="Restricted (none) or unrestricted (collinear) spin treatment.",
+    ),
+    tier: int = typer.Option(1, "-t", "--tier", help="Basis set tier."),
+    basis: str = typer.Option("tight", "-b", "--basis", help="Basis set grid."),
+    interactive: bool = typer.Option(
+        False, "-i", help="Show plot interactively with plotly."
+    ),
+    verbose: int = typer.Option(
+        1, "--verbose", "-v", count=True, help="Set verbosity level."
+    ),
+):
+    """CLI tool for automatic k-point convergence.
+
+    If you specify a geometry file as input, all files will be prepared in the directory aimstools_kpoint_convergence.
+    If the result directory already exists, the results will be evaluated.
+    """
+    set_verbosity_level(verbose)
+    logger.info("Beginning workflow: KpointConvergence")
+    prepargs = {"xc": xc, "spin": spin, "tier": tier, "basis": basis}
+
+    kpc = KPointConvergence(
+        geometryfile=geometryfile, result_dir=result_dir, **prepargs
+    )
+    if interactive == False:
+        kpc.plot_results(show=False)
+    else:
+        try:
+            kpc.plot_interactive()
+        except:
+            logger.error(
+                "Something went wrong when trying to plot with plotly. Using matplotlib instead."
+            )
+            kpc.plot_results(show=True)
+
+
+if __name__ == "__main__":
+    app()

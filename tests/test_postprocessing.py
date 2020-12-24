@@ -71,9 +71,7 @@ def test_output_reader_closed_shell():
         "nscf_steps": 12,
     }
     for k in outd.keys():
-        assert outr._outputdict[k] == outd[k], "Attribute {} does not match {}.".format(
-            k
-        )
+        assert outr[k] == outd[k], "Attribute {} does not match {}.".format(k)
 
 
 def test_output_reader_open_shell():
@@ -130,9 +128,7 @@ def test_output_reader_open_shell():
         "nscf_steps": 15,
     }
     for k in outd.keys():
-        assert outr._outputdict[k] == outd[k], "Attribute {} does not match {}.".format(
-            k
-        )
+        assert outr[k] == outd[k], "Attribute {} does not match {}.".format(k)
 
 
 def test_output_reader_open_shell_fixed():
@@ -193,9 +189,7 @@ def test_output_reader_open_shell_fixed():
         "nscf_steps": 13,
     }
     for k in outd.keys():
-        assert outr._outputdict[k] == outd[k], "Attribute {} does not match {}.".format(
-            k
-        )
+        assert outr[k] == outd[k], "Attribute {} does not match {}.".format(k)
 
 
 def test_output_reader_work_function():
@@ -255,9 +249,7 @@ def test_output_reader_work_function():
         "nscf_steps": 11,
     }
     for k in outd.keys():
-        assert outr._outputdict[k] == outd[k], "Attribute {} does not match {}.".format(
-            k
-        )
+        assert outr[k] == outd[k], "Attribute {} does not match {}.".format(k)
 
 
 def test_hirshfeld_reader():

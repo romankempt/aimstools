@@ -35,7 +35,7 @@ def parseArguments():
         default="tight",
     )
     parser.add_argument(
-        "-k_grid",
+        "--k_grid",
         help="Number of k-points per reciprocal lattice direction for x, y, z",
         nargs="+",
         type=int,
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     aims_keywords = ["bs", "dos", "fatbs"]
 
     tasks = [k.lower() for k in args["tasks"]]
-    if any(x in vibes_keywords for x in args["tasks"]):
+    if any(x in vibes_keywords for x in tasks):
         assert not any(
             x in aims_keywords for x in tasks
         ), "You cannot perform electronic analysis in relaxations or phonon calculations."
@@ -136,4 +136,3 @@ if __name__ == "__main__":
         ais.setup_geometry(overwrite=overwrite)
         ais.setup_control(overwrite=overwrite)
         ais.write_submission_file(overwrite=overwrite)
-
