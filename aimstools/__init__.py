@@ -6,7 +6,7 @@ from distutils.version import LooseVersion
 if sys.version_info[0] == 2:
     raise ImportError("Requires Python3. This is Python2.")
 
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 
 
 from aimstools.structuretools import Structure

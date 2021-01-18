@@ -39,7 +39,7 @@ setup(
         ]
     ),
     scripts=["bin/aims_prepare", "bin/aims_plot", "bin/aims_workflow"],
-    install_requires=["spglib", "numpy", "scipy", "matplotlib", "ase", "networkx"],
+    install_requires=["spglib", "numpy", "scipy", "matplotlib", "ase", "networkx", "pandas", "pretty_errors", "rich", "pyyaml", "typer"],
     classifiers=[
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
         "Operating System :: OS Independent",

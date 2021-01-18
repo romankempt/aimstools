@@ -8,6 +8,7 @@ from aimstools.preparation.templates import aims_slurm_template
 from ase.calculators.calculator import kptdensity2monkhorstpack
 
 import os
+import numpy as np
 from pathlib import Path
 
 
@@ -82,12 +83,12 @@ class FHIAimsSetup:
             self.__adjust_control(control)
 
     def get_bandpath_as_aims_strings(self, pbc=[True, True, True]):
-        """This function sets up the band path according to AFLOW conventions.
+        """This function sets up the band path according to Setyawan-Curtarolo conventions.
 
         Returns:
             list: List of strings containing the k-path sections.
         """
-        from ase.dft.kpoints import parse_path_string
+        from ase.dft.kpoints import parse_path_string, kpoint_convert
 
         atoms = self.structure.atoms
         atoms.pbc = pbc
@@ -97,7 +98,6 @@ class FHIAimsSetup:
         # list Of lists of path segments
         points = atoms.cell.get_bravais_lattice(pbc=atoms.pbc).bandpath().special_points
         segments = []
-        npoints = 31
         for seg in path:
             section = [(i, j) for i, j in zip(seg[:-1], seg[1:])]
             segments.append(section)
@@ -106,6 +106,9 @@ class FHIAimsSetup:
         for seg in segments:
             output_bands.append("## Brillouin Zone section Nr. {:d}\n".format(index))
             for sec in seg:
+                dist = np.array(points[sec[1]]) - np.array(points[sec[0]])
+                length = np.linalg.norm(kpoint_convert(atoms.cell, skpts_kc=dist))
+                npoints = np.int_(np.round(np.asarray(length) * 20))
                 vec1 = "{:.6f} {:.6f} {:.6f}".format(*points[sec[0]])
                 vec2 = "{:.6f} {:.6f} {:.6f}".format(*points[sec[1]])
                 output_bands.append(
@@ -291,6 +294,7 @@ class FHIAimsSetup:
                 if write:
                     if "xc" in line:  # corrections to the functional
                         line = self.__adjust_xc(line)
+                        line += "output_level \t \t MD_light\n"
                     elif ("spin" in line) and ("collinear" in line):
                         line += "#default_initial_moment   0.1      # only necessary if not specified in geometry.in\n"
                     elif "k_grid" in line:

@@ -7,10 +7,12 @@ from aimstools.structuretools.tools import (
     find_nonperiodic_axes,
     hexagonal_to_rectangular,
 )
+from aimstools.structuretools.vtkviewer import VTKViewer as Viewer
 
 __all__ = [
     "Structure",
     "find_fragments",
     "find_nonperiodic_axes",
     "hexagonal_to_rectangular",
+    "Viewer",
 ]

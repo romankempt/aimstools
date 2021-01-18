@@ -12,16 +12,16 @@ from collections import namedtuple
 
 
 def find_fragments(atoms) -> list:
-    """ Finds unconnected structural fragments by constructing
+    """Finds unconnected structural fragments by constructing
     the first-neighbor topology matrix and the resulting graph
-    of connected vertices. 
-    
+    of connected vertices.
+
     Args:
         atoms: :class:`~ase.atoms.Atoms` or :class:`~aimstools.structuretools.structure.Structure`
 
     Note:
         Requires networkx library.
-    
+
     Returns:
         list: NamedTuple with indices and atoms object.
 
@@ -29,7 +29,9 @@ def find_fragments(atoms) -> list:
 
     atoms = atoms.copy()
     nl = neighborlist.NeighborList(
-        ase.neighborlist.natural_cutoffs(atoms), self_interaction=False, bothways=True,
+        ase.neighborlist.natural_cutoffs(atoms),
+        self_interaction=False,
+        bothways=True,
     )
     nl.update(atoms)
     connectivity_matrix = nl.get_connectivity_matrix(sparse=False)
@@ -79,7 +81,7 @@ def find_fragments(atoms) -> list:
 
 
 def find_nonperiodic_axes(atoms) -> dict:
-    """ Evaluates if given structure is qualitatively periodic along certain lattice directions.
+    """Evaluates if given structure is qualitatively periodic along certain lattice directions.
 
     Args:
         atoms: ase.atoms.Atoms object.
@@ -122,10 +124,10 @@ def find_nonperiodic_axes(atoms) -> dict:
 
 
 def hexagonal_to_rectangular(atoms) -> ase.atoms.Atoms:
-    """ Changes hexagonal / trigonal unit cell to equivalent rectangular representation.
+    """Changes hexagonal / trigonal unit cell to equivalent rectangular representation.
 
     Cell must be in standard form.
-    
+
     Args:
         atoms: ase.atoms.Atoms object
 
