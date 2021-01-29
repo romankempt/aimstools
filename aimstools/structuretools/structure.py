@@ -92,11 +92,18 @@ class Structure(Atoms):
     def _check_lattice_vectors(self):
         cell = self.cell.copy()
         zerovecs = np.where(~cell.any(axis=1))[0]
+        if len(zerovecs) == 3:
+            logger.warning("Aimstools currently does not support molecules.")
         for i in zerovecs:
-            logger.warning(
-                "Setting lattice vector {} to 100 Angström.".format("xyz"[i])
+            min_p, max_p = (
+                np.min(self.positions[:, i]) - 25,
+                np.max(self.positions[:, i]) + 25,
             )
-            cell[i, i] = 100
+            d = abs(max_p - min_p)
+            logger.warning(
+                "Setting lattice vector {} to {:.4f} Angström.".format("xyz"[i], d)
+            )
+            cell[i, i] = abs(d)
         self.set_cell(cell)
         self.pbc = [True, True, True]
 
