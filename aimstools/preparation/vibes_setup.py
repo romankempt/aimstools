@@ -26,11 +26,23 @@ class FHIVibesSetup(FHIAimsSetup):
         basis = self.basis
         tier = self.aseargs["tier"]
         k_grid = self.aseargs["k_grid"]
+        spin = self.aseargs["spin"]
         k_density = monkhorstpack2kptdensity(self.structure, k_grid)
+
+        calculator_kwargs = []
+        if spin == "collinear":
+            calculator_kwargs.append("default_initial_moment: 0.1")
+        calculator_kwargs = "\n".join(str(k) for k in calculator_kwargs) + "\n"
 
         mask = "[1,1,1,1,1,1]" if not self.structure.is_2d() else "[1,1,0,0,0,1]"
         template = vibes_relaxation_template.format(
-            xc=xc, basis=basis, tier=tier, kptdensity=k_density, mask=mask
+            xc=xc,
+            basis=basis,
+            tier=tier,
+            kptdensity=k_density,
+            mask=mask,
+            spin=spin,
+            calculator_kwargs=calculator_kwargs,
         )
         relaxationfile = self.dirpath.joinpath("relaxation.in")
         if relaxationfile.exists() and (overwrite == False):
@@ -48,10 +60,21 @@ class FHIVibesSetup(FHIAimsSetup):
         basis = self.basis
         tier = self.aseargs["tier"]
         k_grid = self.aseargs["k_grid"]
+        spin = self.aseargs["spin"]
         k_density = monkhorstpack2kptdensity(self.structure, k_grid)
 
+        calculator_kwargs = []
+        if spin == "collinear":
+            calculator_kwargs.append("default_initial_moment: 0.1")
+        calculator_kwargs = "\n".join(str(k) for k in calculator_kwargs) + "\n"
+
         template = vibes_phonopy_template.format(
-            xc=xc, basis=basis, tier=tier, kptdensity=k_density
+            xc=xc,
+            basis=basis,
+            tier=tier,
+            kptdensity=k_density,
+            spin=spin,
+            calculator_kwargs=calculator_kwargs,
         )
         phonopyfile = self.dirpath.joinpath("phonopy.in")
         if phonopyfile.exists() and (overwrite == False):

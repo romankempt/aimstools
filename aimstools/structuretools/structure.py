@@ -80,6 +80,7 @@ class Structure(Atoms):
             charges=charges,
             momenta=momenta,
         )
+        self._check_lattice_vectors()
 
         try:
             self.sg = ase.spacegroup.get_spacegroup(self, symprec=1e-2)
@@ -87,6 +88,17 @@ class Structure(Atoms):
             self.sg = ase.spacegroup.Spacegroup(1)
         self.lattice = self.cell.get_bravais_lattice().crystal_family
         self._is_2d = None
+
+    def _check_lattice_vectors(self):
+        cell = self.cell.copy()
+        zerovecs = np.where(~cell.any(axis=1))[0]
+        for i in zerovecs:
+            logger.warning(
+                "Setting lattice vector {} to 100 Angström.".format("xyz"[i])
+            )
+            cell[i, i] = 100
+        self.set_cell(cell)
+        self.pbc = [True, True, True]
 
     def copy(self):
         """Return a copy."""

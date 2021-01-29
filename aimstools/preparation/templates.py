@@ -3,12 +3,14 @@ name:                          aims
 
 [calculator.parameters]
 xc:                            {xc}
+spin:                          {spin}
 many_body_dispersion_nl:
 tier: {tier}
 sc_accuracy_rho: 1e-6
 charge_mix_param: 0.2
 occupation_type: gaussian 0.01
 sc_iter_limit: 100
+{calculator_kwargs}
 
 [calculator.kpoints]
 density: {kptdensity}
@@ -45,12 +47,14 @@ name:                          aims
 
 [calculator.parameters]
 xc:                            {xc}
+spin:                          {spin}
 many_body_dispersion_nl:
 tier: {tier}
 sc_accuracy_rho: 1e-6
 charge_mix_param: 0.2
 occupation_type: gaussian 0.01
 sc_iter_limit: 100
+{calculator_kwargs}
 
 [calculator.kpoints]
 density: {kptdensity}

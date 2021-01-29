@@ -36,12 +36,11 @@ class KPointConvergence:
 
     def __init__(self, geometryfile=None, result_dir=None, **preparation_kwargs):
         dirname = "aimstools_kpoint_convergence"
-
         # setting up file paths
         assert (geometryfile == None) or (
             result_dir == None
         ), "You have to specify either a geometry input for preparation or a result directory for evaluation."
-        if (str(Path(geometryfile).absolute().parts[-1] == dirname)) and (
+        if (str(Path(geometryfile).absolute().parts[-1]) == dirname) and (
             result_dir == None
         ):
             result_dir = Path(geometryfile)
@@ -54,13 +53,20 @@ class KPointConvergence:
             logger.info("Result directory found in current working directory.")
             result_dir = Path().cwd().joinpath(dirname)
 
+        mode = None
         # setting up the mode
         if geometryfile != None:
             self.maindir = Path().cwd()
             self.geometryfile = geometryfile
             mode = "prepare"
+            logger.info(
+                "Entering preparation mode with geometryfile {} .".format(
+                    str(geometryfile)
+                )
+            )
         elif result_dir != None:
             mode = "evaluate"
+            logger.info("Entering evaluation mode...")
             p = Path(result_dir).absolute()
             if str(p.parts[-1]) == dirname:
                 self.maindir = Path(result_dir).parent
@@ -70,17 +76,18 @@ class KPointConvergence:
                 ), "Result directory not found."
                 self.maindir = Path(result_dir)
             else:
+                logger.error("Something went wrong.")
                 raise Exception("Input not recognized.")
         else:
+            logger.error("Something went horribly wrong.")
             raise Exception("Input not recognized.")
 
         self.dirname = dirname
+        self.mode = mode
 
         if mode == "prepare":
-            logger.info("Preparing calculations for k-grid convergence ...")
             self.prepare_k_point_convergence(**preparation_kwargs)
         elif mode == "evaluate":
-            logger.info("Evaluating calculations for k-grid convergence ...")
             self.results = self.evaluate_results()
             logger.info("Results are shown below:")
             self.log_results()

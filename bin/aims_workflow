@@ -45,16 +45,17 @@ def converge_kpoints(
     kpc = KPointConvergence(
         geometryfile=geometryfile, result_dir=result_dir, **prepargs
     )
-    if interactive == False:
-        kpc.plot_results(show=False)
-    else:
-        try:
-            kpc.plot_interactive()
-        except:
-            logger.error(
-                "Something went wrong when trying to plot with plotly. Using matplotlib instead."
-            )
-            kpc.plot_results(show=True)
+    if kpc.mode == "evaluate":
+        if interactive == False:
+            kpc.plot_results(show=False)
+        else:
+            try:
+                kpc.plot_interactive()
+            except:
+                logger.error(
+                    "Something went wrong when trying to plot with plotly. Using matplotlib instead."
+                )
+                kpc.plot_results(show=True)
 
 
 if __name__ == "__main__":
