@@ -122,7 +122,7 @@ todo_include_todos = True
 # At the bottom of conf.py
 github_doc_root = "https://github.com/rtfd/recommonmark/tree/master/doc/"
 
-
+nbsphinx_allow_errors = True
 def setup(app):
     app.add_config_value(
         "recommonmark_config",
