@@ -38,6 +38,7 @@ This library contains a personal collection of scripts to handle FHI-aims calcul
    notebooks/bandstructures.ipynb
    notebooks/dosfigure.ipynb
    notebooks/fatbands.ipynb
+   notebooks/absorption.ipynb
 
 .. toctree::
    :maxdepth: 5
@@ -49,6 +50,7 @@ This library contains a personal collection of scripts to handle FHI-aims calcul
    aimstools/bandstructures/bandstructures
    aimstools/density_of_states/density_of_states
    aimstools/phonons/phonons
+   aimstools/dielectric_function/dielectric_function
    aimstools/workflows/workflows
 
 Indices and tables

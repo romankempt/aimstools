@@ -95,7 +95,7 @@ class Spectrum:
 
 
 class AbsorptionSpectrum(FHIAimsOutputReader):
-    """Analysis and ploting of absorption spectrum via the linear macroscopic dielectric function."""
+    """Analysis and plotting of absorption spectrum via the linear macroscopic dielectric function."""
 
     def __init__(self, outputfile):
         super().__init__(outputfile)
