@@ -66,6 +66,7 @@ class FHIAimsControlReader(dict):
             "mulliken_band_sections": [],
             "qpe_calc": None,
             "use_dipole_correction": False,
+            "compute_dielectric": False,
         }
         tasks = set()
         band_sections = []
@@ -131,6 +132,10 @@ class FHIAimsControlReader(dict):
             # charge analysis variants
             if re.search(r"\boutput\s+hirshfeld\b", line):
                 tasks.add("hirshfeld charge analysis")
+            # TDDFT absorption spectrum
+            if "compute_dielectric" in line:
+                p["compute_dielectric"] = line.split()[-2:]
+                tasks.add("absorption")
 
         p["tasks"] = tasks
         p["band_sections"] = band_sections

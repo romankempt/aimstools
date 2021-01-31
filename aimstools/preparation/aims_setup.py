@@ -241,6 +241,8 @@ class FHIAimsSetup:
             ftasks.add("relaxation")
         if is_in(["phonons", "phonon", "phonopy"], tasks):
             ftasks.add("phonons")
+        if is_in(["absorption", "UV-Vis"], tasks):
+            ftasks.add("absorption")
         self.tasks = ftasks
 
     def __write_bandstructure_tasks(self, line):
@@ -284,6 +286,16 @@ class FHIAimsSetup:
             line += "output atom_proj_dos_tetrahedron -20 0 300\n"
         return line
 
+    def __write_absorption_tasks(self, line):
+        if "absorption" in self.tasks:
+            line += "\n### TDDFT Absorption spectrum\n"
+            logger.info("Setting up absorption spectrum calculation.")
+            line += "#The first value \omega_max in eV specifies the energy of the incoming photon and the upper limit of possible excitations.\n"
+            line += "#The second value n_\omega specifies the number of frequency points to propagate through.\n"
+            line += "compute_dielectric 15 100\n"
+            line += "dielectric_broadening gaussian 0.1\n"
+        return line
+
     def __adjust_control(self, controlfile):
         """ This function adds some useful lines to the control.in """
         with open(controlfile, "r+") as file:
@@ -301,6 +313,7 @@ class FHIAimsSetup:
                         line = self.__adjust_scf(line)
                         line = self.__write_bandstructure_tasks(line)
                         line = self.__write_dos_tasks(line)
+                        line = self.__write_absorption_tasks(line)
                 file.write(line)
 
     def write_submission_file(self, overwrite=False):

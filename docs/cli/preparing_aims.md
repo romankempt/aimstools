@@ -12,28 +12,29 @@ The script has different options. Show these with:
 aims_prepare.py --help
 ```
 
-| option | function | default |
-|---|---|---|
-| `--xc` | Sets exchange-correlation functional and additional keywords, e.g., for hybrid functionals. | PBE |
-| `--spin` | Sets spin to none or collinear and adds additional keywords for the initial spin moment. | none |
-| `-t, --tier` | Sets basis set tier 1, 2, 3 or 4. | 1 |
-| `-b, --basis` | Sets basis set integration grids. Can be light, tight or intermediate depending on species. | tight |
-| `-k, -k_density` | Chooses k-grid based on line k-point density. Preferred over -k_grid . | 5 points / Angström |
-| `--k_grid` | Explicitly sets number of k-points per reciprocal lattice direction for x, y and z. | None |
-| `-j, --jobs, --task, --tasks` | Sets up different types of FHI-aims or FHI-vibes tasks. See more below. | None |
-| `-v, --verbose, -vv, -vvv` | Sets verbosity level depending on number of "v". Verbosity levels are warning, info and debug. | 0 |
-| `-s, --standardize` | Standardize structure via spglib with enforced axes order. | False |
-| `-f` | Force overwrite of existing files. | False |
+| option                        | function                                                                                       | default             |
+| ----------------------------- | ---------------------------------------------------------------------------------------------- | ------------------- |
+| `--xc`                        | Sets exchange-correlation functional and additional keywords, e.g., for hybrid functionals.    | PBE                 |
+| `--spin`                      | Sets spin to none or collinear and adds additional keywords for the initial spin moment.       | none                |
+| `-t, --tier`                  | Sets basis set tier 1, 2, 3 or 4.                                                              | 1                   |
+| `-b, --basis`                 | Sets basis set integration grids. Can be light, tight or intermediate depending on species.    | tight               |
+| `-k, -k_density`              | Chooses k-grid based on line k-point density. Preferred over -k_grid .                         | 5 points / Angström |
+| `--k_grid`                    | Explicitly sets number of k-points per reciprocal lattice direction for x, y and z.            | None                |
+| `-j, --jobs, --task, --tasks` | Sets up different types of FHI-aims or FHI-vibes tasks. See more below.                        | None                |
+| `-v, --verbose, -vv, -vvv`    | Sets verbosity level depending on number of "v". Verbosity levels are warning, info and debug. | 0                   |
+| `-s, --standardize`           | Standardize structure via spglib with enforced axes order.                                     | False               |
+| `-f`                          | Force overwrite of existing files.                                                             | False               |
 
 The supported tasks for the option `-j` are:
 
-| keyword | task |
-|---|---|
-| `bs` | Sets up regular bandstructure calculation with Setyawan-Curtarolo convention regarding Brillouine zone sampling. |
-| `fatbs` | Sets up mulliken bandstructure calculation with Setyawan-Curtarolo convention regarding Brillouine zone sampling. |
-| `dos` | Sets up density of states calculation. By default, atom-projected and total density of states with the tetrahedron method are chosen. |
-| `go` | Sets up relaxation with FHI-vibes. |
-| `phonons` | Sets up phonon calculation with FHI-vibes. |
+| keyword      | task                                                                                                                                  |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `bs`         | Sets up regular bandstructure calculation with Setyawan-Curtarolo convention regarding Brillouine zone sampling.                      |
+| `fatbs`      | Sets up mulliken bandstructure calculation with Setyawan-Curtarolo convention regarding Brillouine zone sampling.                     |
+| `dos`        | Sets up density of states calculation. By default, atom-projected and total density of states with the tetrahedron method are chosen. |
+| `go`         | Sets up relaxation with FHI-vibes.                                                                                                    |
+| `phonons`    | Sets up phonon calculation with FHI-vibes.                                                                                            |
+| `absorption` | Sets up calculation of the dielectric tensor.                                                                                         |
 
 The options `bs`, `dos` and `fatbs` are additive, whereas the options `go` and `phonons` are exclusive.
 

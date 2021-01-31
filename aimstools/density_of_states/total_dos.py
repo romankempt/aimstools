@@ -90,4 +90,3 @@ class TotalDOS(DOSBaseClass):
             axes.plot(x, y, color=color, **kwargs)
 
         return axes
-

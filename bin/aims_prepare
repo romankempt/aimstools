@@ -60,7 +60,8 @@ def parseArguments():
         fatbs = mulliken-projected band structure;
         dos = density of states;
         go = relaxation (via FHI-vibes);
-        phonons = phonons (via FHI-vibes)""",
+        phonons = phonons (via FHI-vibes);
+        absorption = UV/Vis absorption spectrum (TDDFT)""",
         type=str,
         default=["None"],
         dest="tasks",
@@ -105,7 +106,7 @@ if __name__ == "__main__":
         "phonon",
         "phonopy",
     ]
-    aims_keywords = ["bs", "dos", "fatbs"]
+    aims_keywords = ["bs", "dos", "fatbs", "absorption"]
 
     tasks = [k.lower() for k in args["tasks"]]
     if any(x in vibes_keywords for x in tasks):
