@@ -1,0 +1,197 @@
+#===============================================================================
+# FHI-aims file: control.in
+# Created using the Atomic Simulation Environment (ASE)
+# Thu Nov 19 19:47:51 2020
+#===============================================================================
+xc                                 pbe
+check_stacksize .false.
+relativistic atomic_zora scalar
+# include_spin_orbit
+## Common choices of dispersion methods:
+# 	 vdw_correction_hirshfeld
+# 	 many_body_dispersion
+# 	 many_body_dispersion_nl
+spin                               none
+k_grid                             6 6 6
+
+### SCF settings 
+adjust_scf 	 always 	 3 
+sc_iter_limit 	 100
+# frozen_core_scf 	 .true. 
+# charge_mix_param 	 0.02
+# occupation_type 	 gaussian 	 0.1 
+# sc_accuracy_rho 	 1E-6 	 	 # electron density convergence
+# elsi_restart 	 read_and_write 	 1000
+
+### Mulliken-projected band structure section 
+## Brillouin Zone section Nr. 1
+output band_mulliken 0.000000 0.000000 0.000000 	 0.000000 0.500000 0.000000 	 31 	 G X
+output band_mulliken 0.000000 0.500000 0.000000 	 0.500000 0.500000 0.000000 	 31 	 X M
+output band_mulliken 0.500000 0.500000 0.000000 	 0.000000 0.000000 0.000000 	 31 	 M G
+output band_mulliken 0.000000 0.000000 0.000000 	 0.500000 0.500000 0.500000 	 31 	 G R
+output band_mulliken 0.500000 0.500000 0.500000 	 0.000000 0.500000 0.000000 	 31 	 R X
+## Brillouin Zone section Nr. 2
+output band_mulliken 0.500000 0.500000 0.000000 	 0.500000 0.500000 0.500000 	 31 	 M R
+# band_mulliken_orbit_num 50 	 # number of orbitals to be written out, default is 50 for scalar and 100 for soc#===============================================================================
+
+################################################################################
+#
+#  FHI-aims code project
+#  VB, Fritz-Haber Institut, 2009
+#
+#  Suggested "light" defaults for Fe atom (to be pasted into control.in file)
+#  Be sure to double-check any results obtained with these settings for post-processing,
+#  e.g., with the "tight" defaults and larger basis sets.
+#
+################################################################################
+  species        Fe
+#     global species definitions
+    nucleus             26
+    mass                55.845
+#
+    l_hartree           4
+#
+    cut_pot             3.5          1.5  1.0
+    basis_dep_cutoff    1e-4
+#
+    radial_base         51 5.0
+    radial_multiplier   1
+    angular_grids       specified
+      division   0.4337   50
+      division   0.8154  110
+      division   1.1046  194
+      division   1.3713  302
+#      division   1.5424  434
+#      division   1.7365  590
+#      division   1.9587  770
+#      division   1.9990  974
+#      division   2.4139 1202
+#      outer_grid  1202
+      outer_grid  302
+################################################################################
+#
+#  Definition of "minimal" basis
+#
+################################################################################
+#     valence basis states
+    valence      4  s   2.
+    valence      3  p   6.
+    valence      3  d   6.
+#     ion occupancy
+    ion_occ      4  s   1.
+    ion_occ      3  p   6.
+    ion_occ      3  d   5.
+################################################################################
+#
+#  Suggested additional basis functions. For production calculations, 
+#  uncomment them one after another (the most important basis functions are
+#  listed first).
+#
+#  Constructed for dimers: 1.45 A, 1.725 A, 2.25 A, 3.00 A, 4.00 A
+#
+################################################################################
+#  "First tier" - improvements: -300.53 meV to -10.50 meV 
+     hydro 4 f 9.4
+     hydro 2 p 2.2
+     hydro 5 g 12.4
+     hydro 3 d 3.1
+     ionic 4 s auto
+#  "Second tier" - improvements: -16.31 meV to -0.65 meV
+#     hydro 3 d 6.2
+#     hydro 6 h 19.2
+#     hydro 4 f 15.2
+#     hydro 4 f 6.6
+#     hydro 3 p 3
+#     hydro 5 g 13.2
+#     hydro 1 s 0.65  
+#  "Third tier" - improvements: -1.60 meV to -0.10 meV
+#     hydro 4 d 7.8
+#     hydro 4 p 19.6
+#     hydro 4 d 10.4
+#     ionic 4 p auto
+#     hydro 6 h 17.6
+#     hydro 5 f 27.2
+#     hydro 4 s 4.8
+#  "Fourth tier": improvements -0.13 meV and below
+#     hydro 5 f 12
+#     hydro 5 g 10.4
+#     hydro 5 p 8.4
+#     hydro 4 d 14.8
+#     hydro 2 s 1.9
+################################################################################
+#
+#  FHI-aims code project
+#  VB, Fritz-Haber Institut, 2009
+#
+#  Suggested "light" defaults for S atom (to be pasted into control.in file)
+#  Be sure to double-check any results obtained with these settings for post-processing,
+#  e.g., with the "tight" defaults and larger basis sets.
+#
+################################################################################
+  species        S
+#     global species definitions
+    nucleus             16
+    mass                32.065
+#
+    l_hartree           4
+#
+    cut_pot             3.5          1.5  1.0
+    basis_dep_cutoff    1e-4
+#
+    radial_base         44 5.0
+    radial_multiplier   1
+    angular_grids       specified
+      division   0.4665  110
+      division   0.5810  194
+      division   0.7139  302
+#      division   0.8274  434
+#      division   0.9105  590
+#      division   1.0975  770
+#      division   1.2028  974
+#      outer_grid  974
+      outer_grid  302
+################################################################################
+#
+#  Definition of "minimal" basis
+#
+################################################################################
+#     valence basis states
+    valence      3  s   2.
+    valence      3  p   4.
+#     ion occupancy
+    ion_occ      3  s   1.
+    ion_occ      3  p   3.
+################################################################################
+#
+#  Suggested additional basis functions. For production calculations, 
+#  uncomment them one after another (the most important basis functions are
+#  listed first).
+#
+#  Constructed for dimers: 1.6 A, 1.9 A, 2.5 A, 3.25 A, 4.0 A
+#
+################################################################################
+#  "First tier" - improvements: -652.81 meV to -45.53 meV
+     ionic 3 d auto
+     hydro 2 p 1.8
+     hydro 4 f 7
+     ionic 3 s auto
+#  "Second tier" - improvements: -30.20 meV to -1.74 meV
+#     hydro 4 d 6.2
+#     hydro 5 g 10.8
+#     hydro 4 p 4.9
+#     hydro 5 f 10
+#     hydro 1 s 0.8
+#  "Third tier" - improvements: -1.04 meV to -0.20 meV
+#     hydro 3 d 3.9
+#     hydro 3 d 2.7
+#     hydro 5 g 12
+#     hydro 4 p 10.4
+#     hydro 5 f 12.4
+#     hydro 2 s 1.9
+#  "Fourth tier" - improvements: -0.35 meV to -0.06 meV
+#     hydro 4 d 10.4
+#     hydro 4 p 7.2
+#     hydro 4 d 10
+#     hydro 5 g 19.2
+#     hydro 4 s 12
+#

@@ -1,0 +1,30 @@
+[calculator]
+name:                          aims
+
+[calculator.parameters]
+xc:                            pbe
+many_body_dispersion_nl:
+tier: 1
+sc_accuracy_rho: 1e-3
+charge_mix_param: 0.2
+occupation_type: gaussian 0.01
+sc_iter_limit: 100
+check_stacksize: .false.
+
+[calculator.kpoints]
+density: 5.49
+
+[calculator.basissets]
+default:                       light
+
+[calculator.socketio]
+port: auto
+
+[phonopy]
+supercell_matrix:              [2, 2, 2]
+displacement:                  0.01
+is_diagonal:                   True
+is_plusminus:                  auto
+symprec:                       1e-03
+q_mesh:                        [45, 45, 45]
+workdir:                       phonopy

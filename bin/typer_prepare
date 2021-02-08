@@ -1,0 +1,99 @@
+#!/usr/bin/env python
+import typer
+from aimstools.misc import *
+from aimstools.preparation import FHIAimsSetup, FHIVibesSetup
+
+from typing import Tuple, List, Optional
+
+
+def main(
+    geometryfile: str,
+    tasks: Optional[List[str]] = typer.Option(
+        None,
+        help="Tasks to perform.",
+    ),
+    xc: str = typer.Option("pbe", "--xc", help="Exchange correlation functional."),
+    spin: str = typer.Option(
+        "none",
+        "--spin",
+        help="Restricted (none) or unrestricted (collinear) spin treatment.",
+    ),
+    tier: int = typer.Option(1, "-t", "--tier", help="Basis set tier."),
+    basis: str = typer.Option("tight", "-b", "--basis", help="Basis set grid."),
+    k_grid: Tuple[int, int, int] = typer.Option(
+        (None, None, None),
+        "--k_grid",
+        help="Number of k-points per reciprocal lattice direction.",
+    ),
+    k_density: float = typer.Option(
+        5, "-k", "--k_density", help="Line k-point density in points / Angström."
+    ),
+    overwrite: bool = typer.Option(
+        False, "-f", "--force_overwrite", help="Force overwrite existing files."
+    ),
+    verbose: int = typer.Option(
+        0, "--verbose", "-v", count=True, help="Set verbosity level."
+    ),
+    standardize: bool = typer.Option(
+        False,
+        "-s",
+        "--standardize",
+        help="Standardize structure via spglib with enforced axes order.",
+    ),
+):
+
+    set_verbosity_level(verbose)
+    vibes_keywords = [
+        "relaxation",
+        "go",
+        "geometry",
+        "phonons",
+        "phonon",
+        "phonopy",
+    ]
+    aims_keywords = ["bs", "dos", "fatbs"]
+    k_grid = [] if k_grid == (None, None, None) else k_grid
+    tasks = [k.lower() for k in tasks] if tasks != None else []
+
+    args = {
+        "xc": xc,
+        "spin": spin,
+        "tier": tier,
+        "basis": basis,
+        "k_grid": k_grid,
+        "k_density": k_density,
+        "tasks": tasks,
+    }
+
+    if any(x in vibes_keywords for x in tasks):
+        assert not any(
+            x in aims_keywords for x in tasks
+        ), "You cannot perform electronic analysis in relaxations or phonon calculations."
+        relax = any(x in ["relaxation", "go", "geometry"] for x in tasks)
+        phon = any(x in ["phonons", "phonon", "phonopy"] for x in tasks)
+        assert not (
+            relax and phon
+        ), "You can only specify either relaxation or phonons as task."
+        vibup = FHIVibesSetup(geometryfile, **args)
+        if standardize:
+            logger.info("Standardizing structure ...")
+            vibup.structure.standardize()
+        vibup.setup_geometry(overwrite=overwrite)
+        if relax:
+            vibup.setup_relaxation(overwrite=overwrite)
+            vibup.write_submission_file("relaxation", overwrite=overwrite)
+        elif phon:
+            vibup.setup_phonopy(overwrite=overwrite)
+            vibup.write_submission_file("phonopy", overwrite=overwrite)
+    else:
+        ais = FHIAimsSetup(geometryfile, **args)
+        if standardize:
+            logger.info("Standardizing structure ...")
+            ais.structure.standardize()
+        ais.setup_geometry(overwrite=overwrite)
+        ais.setup_control(overwrite=overwrite)
+        ais.write_submission_file(overwrite=overwrite)
+
+
+if __name__ == "__main__":
+    typer.run(main)
