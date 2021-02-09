@@ -52,6 +52,7 @@ class DOSPlot:
         fill=None,
         flip=True,
         show_total=None,
+        total_dos=None,
         main=True,
     ) -> None:
         self.ax = plt.gca()
@@ -76,6 +77,7 @@ class DOSPlot:
         self.fill = fill
         self.color = color
         self.show_total = show_total
+        self.total_dos = total_dos
         self.main = main
         self._handles = []
 
@@ -195,9 +197,10 @@ class DOSPlot:
         return self.ax
 
     def get_total_dos(self):
+        tdos = self.total_dos
         x = self.x
         s = 1 if self.spin == 0 else -1
-        y = self.con.values[:, self.spin, 0].copy() * s
+        y = tdos.values[:, self.spin, 0].copy() * s
         if self.broadening > 0.0:
             y = smear_dos(x, y, self.broadening)
         return x, y

@@ -36,10 +36,7 @@ class SpeciesProjectedDOSMethods:
         d["broadening"] = kwargs.pop("broadening", 0.0)
         d["fill"] = kwargs.pop("fill", "gradient")
         d["show_total"] = kwargs.pop("show_total", True)
-        show_total = kwargs.pop("show_total", True)
 
-        if show_total:
-            d["show_total"] = self.spectrum.get_total_dos()
         self.set_energy_reference(reference, self.soc)
         ref, shift = self.energy_reference
         fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
@@ -59,16 +56,11 @@ class SpeciesProjectedDOSMethods:
         d["ref"] = ref
         d["shift"] = shift
         d["fermi_level"] = fermi_level
+        d["total_dos"] = self.spectrum.get_total_dos()
         return axargs, kwargs, d
 
     def plot_one_species(
-        self,
-        symbol,
-        l="tot",
-        axes=None,
-        color=None,
-        main=True,
-        **kwargs,
+        self, symbol, l="tot", axes=None, color=None, main=True, **kwargs
     ):
         axargs, kwargs, dosargs = self._process_kwargs(**kwargs)
         assert (
@@ -94,13 +86,7 @@ class SpeciesProjectedDOSMethods:
         return axes
 
     def plot_all_species(
-        self,
-        symbols=[],
-        l="tot",
-        axes=None,
-        colors=[],
-        main=True,
-        **kwargs,
+        self, symbols=[], l="tot", axes=None, colors=[], main=True, **kwargs
     ):
         axargs, kwargs, dosargs = self._process_kwargs(**kwargs)
 
@@ -137,13 +123,7 @@ class SpeciesProjectedDOSMethods:
         return axes
 
     def plot_all_angular_momenta(
-        self,
-        symbols=[],
-        max_l="f",
-        axes=None,
-        colors=[],
-        main=True,
-        **kwargs,
+        self, symbols=[], max_l="f", axes=None, colors=[], main=True, **kwargs
     ):
         axargs, kwargs, dosargs = self._process_kwargs(**kwargs)
         momenta = ("s", "p", "d", "f", "g", "h")

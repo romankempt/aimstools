@@ -77,6 +77,7 @@ class TotalDOS(DOSBaseClass):
         d["ref"] = ref
         d["shift"] = shift
         d["fermi_level"] = fermi_level
+        d["total_dos"] = self.spectrum.get_total_dos()
         return axargs, kwargs, d
 
     def plot(self, axes=None, color=mutedblack, main=True, **kwargs):
