@@ -57,21 +57,21 @@ def test_output_reader_closed_shell():
         "use_dipole_correction": False,
     }
     for k in comp.keys():
-        assert outr.control[k] == comp[k], "Key {} does not match {}.".format(k)
+        assert outr.control[k] == comp[k], "Key {} does not match.".format(k)
     outd = {
         "aims_version": "201103",
         "commit_number": "faf196098",
         "spin_N": 0,
         "spin_S": 0,
         "total_energy": -0.158031167777533e05,
-        "band_extrema": (-5.62574054, -4.97520046, -5.61079465, -4.97519331),
+        "band_extrema": (-5.62574054, -4.98948152, -5.61079465, -4.98947105),
         "fermi_level": (-5.58219687, -0.50198861e01, None, None),
         "work_function": None,
         "nkpoints": 365,
         "nscf_steps": 12,
     }
     for k in outd.keys():
-        assert outr[k] == outd[k], "Attribute {} does not match {}.".format(k)
+        assert outr[k] == outd[k], "Attribute {} does not match.".format(k)
 
 
 def test_output_reader_open_shell():
@@ -114,21 +114,21 @@ def test_output_reader_open_shell():
         "use_dipole_correction": False,
     }
     for k in comp.keys():
-        assert outr.control[k] == comp[k], "Key {} does not match {}.".format(k)
+        assert outr.control[k] == comp[k], "Key {} does not match.".format(k)
     outd = {
         "aims_version": "201103",
         "commit_number": "faf196098",
         "spin_N": 2.22204,
         "spin_S": 1.11102,
         "total_energy": -34767.8892822522,
-        "band_extrema": (-9.16890066, -8.84338083, -8.87712372, -8.84392225),
+        "band_extrema": (-8.87695760, -8.87087166, -8.87671237, -8.87445964),
         "fermi_level": (-8.87479742, -8.8757381, None, None),
         "work_function": None,
         "nkpoints": 216,
         "nscf_steps": 15,
     }
     for k in outd.keys():
-        assert outr[k] == outd[k], "Attribute {} does not match {}.".format(k)
+        assert outr[k] == outd[k], "Attribute {} does not match.".format(k)
 
 
 def test_output_reader_open_shell_fixed():
@@ -170,26 +170,21 @@ def test_output_reader_open_shell_fixed():
     }
 
     for k in comp.keys():
-        assert outr.control[k] == comp[k], "Key {} does not match {}.".format(k)
+        assert outr.control[k] == comp[k], "Key {} does not match.".format(k)
     outd = {
         "aims_version": "201103",
         "commit_number": "faf196098",
         "spin_N": 2.0,
         "spin_S": 1.0,
         "total_energy": -34767.0342962745,
-        "band_extrema": (-8.60761003, -9.08189184, -9.07974406, -8.83731232),
-        "fermi_level": (
-            None,
-            -8.9161675,
-            -9.1563046488,
-            -8.5621614354,
-        ),
+        "band_extrema": (-8.88303445, -8.87083234, -8.93837923, -8.91412160),
+        "fermi_level": (None, -8.9161675, -9.1563046488, -8.5621614354),
         "work_function": None,
         "nkpoints": 216,
         "nscf_steps": 13,
     }
     for k in outd.keys():
-        assert outr[k] == outd[k], "Attribute {} does not match {}.".format(k)
+        assert outr[k] == outd[k], "Attribute {} does not match.".format(k)
 
 
 def test_output_reader_work_function():
@@ -225,31 +220,20 @@ def test_output_reader_work_function():
     }
 
     for k in comp.keys():
-        assert outr.control[k] == comp[k], "Key {} does not match {}.".format(k)
+        assert outr.control[k] == comp[k], "Key {} does not match.".format(k)
     outd = {
         "aims_version": "200819",
         "commit_number": "009f8e893",
         "spin_N": 0,
         "spin_S": 0,
         "total_energy": -2169.26098443649,
-        "band_extrema": (
-            -6.04870044,
-            -1.40809218,
-            -6.04869548,
-            -1.40810407,
-        ),
         "fermi_level": (-2.85009039, -2.7033213, None, None),
-        "work_function": (
-            -0.01324087,
-            -0.01324087,
-            2.83684953,
-            2.83684953,
-        ),
+        "work_function": (-0.01324087, -0.01324087, 2.83684953, 2.83684953),
         "nkpoints": 20,
         "nscf_steps": 11,
     }
     for k in outd.keys():
-        assert outr[k] == outd[k], "Attribute {} does not match {}.".format(k)
+        assert outr[k] == outd[k], "Attribute {} does not match.".format(k)
 
 
 def test_hirshfeld_reader():

@@ -7,6 +7,7 @@ import tempfile
 import shutil
 
 from aimstools.preparation import FHIAimsSetup, FHIVibesSetup
+from aimstools.postprocessing import FHIAimsControlReader
 import ase.io
 
 
@@ -28,14 +29,20 @@ def test_aims_setup():
     assert georef == geocomp, "File geometry.in not written correctly."
 
     ais.setup_control()
-    controlref = Path("tests/preparation/control.in")
-    controlcomp = Path(dirpath).joinpath("control.in")
-    with open(controlref, "r") as f1, open(controlcomp, "r") as f2:
-        s1 = [line.strip() for line in f1.readlines() if not line.startswith("#")]
-        s2 = [line.strip() for line in f2.readlines() if not line.startswith("#")]
-
-    for l in s1:
-        assert l in s2, "Line {} not found in control.in.".format(l)
+    controlref = FHIAimsControlReader("tests/preparation/control.in")
+    controlcomp = FHIAimsControlReader(Path(dirpath).joinpath("control.in"))
+    for k in [
+        "xc",
+        "dispersion_correction",
+        "relativistic",
+        "include_spin_orbit",
+        "k_grid",
+        "spin",
+        "default_initial_moment",
+        "fixed_spin_moment",
+        "use_dipole_correction",
+    ]:
+        assert controlcomp[k] == controlref[k], "Key {} does not match.".format(k)
     shutil.rmtree(dirpath)
 
 
