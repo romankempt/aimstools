@@ -143,7 +143,9 @@ if __name__ == "__main__":
         try:
             bs.get_properties()
         except:
-            "Couldn't get bandstructure properties. Probably a metal. Remind Roman to fix this."
+            logger.error(
+                "Couldn't get bandstructure properties. Probably a metal. Remind Roman to fix this."
+            )
         ax_bs = fig.add_subplot(spec[j])
         plt.sca(ax_bs)
         if bs.soc:

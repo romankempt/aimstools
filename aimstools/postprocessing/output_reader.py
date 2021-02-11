@@ -269,8 +269,12 @@ class FHIAimsOutputReader(dict):
         scalar_fermi_level_up, scalar_fermi_level_dn = None, None
         pot_upper, pot_lower, wf_upper, wf_lower = None, None, None, None
 
+        from itertools import cycle
+
         socread = False
-        for l in lines:
+        iterable = cycle(lines)
+        for i in range(len(lines)):
+            l = next(iterable)
             if "FHI-aims version" in l:
                 d["aims_version"] = l.strip().split()[-1]
             if "Commit number" in l:
@@ -326,6 +330,14 @@ class FHIAimsOutputReader(dict):
             if re.search(r"Potential vacuum level, \"lower\" slab surface", l):
                 pot_lower = float(value.search(l).group())
 
+            # VBM and CBM information from bandstructure
+            if 'Scalar-relativistic "band gap" of total set of bands:' in l:
+                cbm = float(next(iterable).strip().split()[-2])
+                vbm = float(next(iterable).strip().split()[-2])
+            if 'Spin-orbit-coupled "band gap" of total set of bands:' in l:
+                cbm_soc = float(next(iterable).strip().split()[-2])
+                vbm_soc = float(next(iterable).strip().split()[-2])
+
         # VBM, CBM
         be = namedtuple(
             "band_extrema", ["vbm_scalar", "cbm_scalar", "vbm_soc", "cbm_soc"]
@@ -357,16 +369,24 @@ class FHIAimsOutputReader(dict):
             self[key] = item
 
     def check_consistency(self):
-        vbm, cbm = self.band_extrema.vbm_scalar, self.band_extrema.cbm_scalar
+        vbm, cbm, vbm_soc, cbm_soc = self.band_extrema
         if self.control["fixed_spin_moment"] == None:
             assert (
                 vbm < cbm
             ), "Scalar valence bands are above conduction bands. Either the calculation was inaccurate or the parsing went wrong."
+            scalar_gap = cbm - vbm
             if self.control["include_spin_orbit"]:
-                vbm, cbm = self.band_extrema.vbm_soc, self.band_extrema.cbm_soc
                 assert (
-                    vbm < cbm
+                    vbm_soc < cbm_soc
                 ), "SOC valence bands are above conduction bands. Either the calculation was inaccurate or the parsing went wrong."
+                soc_gap = cbm_soc - vbm_soc
+                if scalar_gap > 0.1 and soc_gap < 0.1:
+                    logger.warning(
+                        "System is semiconducting without SOC and becomes metallic with SOC. This is probably due to bad occupations."
+                    )
+                    logger.warning(
+                        "You should check your numerical settings (sc_accuracy_rho, k_grid...)."
+                    )
 
     def get_bandgap(self):
         b = namedtuple("band_gap", ["scalar", "soc"])
