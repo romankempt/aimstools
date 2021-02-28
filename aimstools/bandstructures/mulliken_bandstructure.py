@@ -22,6 +22,21 @@ import time
 
 
 class MullikenSpectrum:
+    """Container class for eigenvalue spectrum and mulliken contributions.
+
+    Attributes:
+        atoms (ase.atoms.Atoms): ASE atoms object.
+        kpoints (ndarray): (nkpoints, 3) array with k-points.
+        kpoint_axis (ndarray): (nkpoints, 1) linear plotting axis.
+        eigenvalues (ndarray): (nkpoints, nbands) array with eigenvalues in eV.
+        occupations (ndarray): (nkpoints, nbands) array with occupations.
+        contributions (MullikenContribution): `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution`.
+        label_coords (list): List of k-point label coordinates on the plotting axis.
+        kpoint_labels (list): List of k-point labels.
+        jumps (list): List of jumps from unconnected Brillouin zone sections on the plotting axis.
+
+    """
+
     def __init__(
         self,
         atoms,
@@ -45,12 +60,19 @@ class MullikenSpectrum:
         self.jumps = jumps
 
     def get_atom_contribution(self, index, l="tot"):
-        l = self.l2index(l)
+        """Returns `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution` of given atom index.
+
+        Args:
+            index (int): Index of atom.
+            l (optional): Angular momentum. Defaults to "tot".
+        """
+        l = self._l2index(l)
         s = self.atoms[index].symbol
         con = self.contributions[index, :, :, :, l].copy()
         return MullikenContribution(s, con, l)
 
     def get_symbol(self, symbol):
+        """Formats given symbol."""
         assert type(symbol) == str, "Symbol must be a string."
         try:
             s = string2symbols(symbol)
@@ -63,8 +85,14 @@ class MullikenSpectrum:
         return s
 
     def get_species_contribution(self, symbol, l="tot"):
+        """Returns `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution` of given species symbol.
+
+        Args:
+            symbol (str): Species symbol, e.g., "C".
+            l (optional): Angular momentum. Defaults to "tot".
+        """
         symbol = self.get_symbol(symbol)
-        l = self.l2index(l)
+        l = self._l2index(l)
         assert symbol in self.atoms.symbols, "Symbol {} not part of atoms.".format(
             symbol
         )
@@ -74,11 +102,12 @@ class MullikenSpectrum:
         return MullikenContribution(symbol, cons, l)
 
     def get_group_contribution(self, symbols, l="tot"):
+        """Returns sum of `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution` of given list of species."""
         symbols = [self.get_symbol(s) for s in symbols]
         cons = sum([self.get_species_contribution(s, l) for s in symbols])
         return cons
 
-    def l2index(self, l):
+    def _l2index(self, l):
         if l in [None, "none", "None", "total", "tot"]:
             return 0
         elif l in ["s", 0]:
@@ -103,12 +132,20 @@ class MullikenSpectrum:
 
 
 class MullikenContribution:
+    """Container class to hold mulliken-projected atomic contributions to the band structure.
+
+    MullikenContribution supports addition and substraction.
+
+    Attributes:
+        contribution (ndarray): (natoms, nkpoints, nspins, nstates, 5) array with the last five axes being the angular momenta (tot, s, p, d, f).
+    """
+
     def __init__(self, symbol, contribution, l) -> None:
         self._symbol = symbol
         self.contribution = contribution
-        self._l = self.index2l(l)
+        self._l = self._index2l(l)
 
-    def index2l(self, l):
+    def _index2l(self, l):
         if type(l) == int:
             if l == 0:
                 return "total"
@@ -155,17 +192,21 @@ class MullikenContribution:
 
     @property
     def symbol(self):
+        """Formatted symbol of the contribution."""
         return self._symbol
 
     @property
     def con(self):
+        """Short-hand for self.contribution"""
         return self.contribution
 
     @property
     def l(self):
+        """Angular momentum."""
         return self._l
 
     def get_latex_symbol(self):
+        """Returns latex-formatted symbol string."""
         s = self.symbol
         s = Formula(s)
         return s.format("latex")
@@ -174,7 +215,10 @@ class MullikenContribution:
 class MullikenBandStructure(BandStructureBaseClass):
     """Mulliken-projected band structure object.
 
-    A fat band structure shows the momentum-resolved Mulliken contribution of each atom to the energy.
+    A mulliken-projected band structure shows the momentum-resolved Mulliken contribution of each atom to the energy.
+
+    Attributes:
+        spectrum: `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenSpectrum`.        
     """
 
     def __init__(self, outputfile, soc=False) -> None:
@@ -194,7 +238,7 @@ class MullikenBandStructure(BandStructureBaseClass):
             )
         bandfiles = self.get_bandfiles(spin=self.spin, soc=soc)
         self.bandfiles = bandfiles.mulliken
-        self.bands = self.read_mlk_bandfiles(spin=self.spin)
+        self.bands = self._read_mlk_bandfiles(spin=self.spin)
         self.spectrum = self.get_mlk_spectrum()
 
     def __repr__(self):
@@ -202,7 +246,7 @@ class MullikenBandStructure(BandStructureBaseClass):
             self.__class__.__name__, repr(self.outputfile), self.soc
         )
 
-    def read_mlk_bandfiles(self, spin="none"):
+    def _read_mlk_bandfiles(self, spin="none"):
         # Turns out that any attemps to use regex (np.fromregex, re.finditer ...) are much slower in this case than just pure string matching.
         atoms = self.structure.copy()
         natoms = len(atoms)
@@ -268,6 +312,10 @@ class MullikenBandStructure(BandStructureBaseClass):
         return bands
 
     def get_mlk_spectrum(self, bandpath=None):
+        """ Returns `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenSpectrum` for a given bandpath.
+        
+        Bandpath should be ASE-formatted string, e.g., "GMKG,A", where the "," denotes jumps.
+        """
         bands = self.bands
         atoms = self.structure.copy()
         start = time.time()
@@ -297,19 +345,16 @@ class MullikenBandStructure(BandStructureBaseClass):
                         :, :, :, :, 2:
                     ]  # (natoms, nkpoints, nspins, nstates, [tot, s, p, d, f])
                 elif (s1, s2) in [(k, j) for j, k in bands.keys()]:
-                    logger.warning(
-                        "I'm not sure the flipping of certain axes is correct for mulliken bandstructures."
-                    )
                     data = bands[(s2, s1)].data
                     kpoints = np.dot(bands[(s2, s1)].kpoints, icell_cv)[::-1]
                     energies = data[0, :, :, :, 0]  # (nkpoints, nspins, nstates)
-                    energies = np.flip(energies, axis=0)
+                    energies = energies[::-1, :, :]
                     occ = data[0, :, :, :, 1]  # (nkpoints, nspins, nstates)
-                    occ = np.flip(occ, axis=0)
+                    occ = occ[::-1, :, :]
                     con = data[
                         :, :, :, :, 2:
                     ]  # (natoms, nkpoints, nspins, nstates, [tot, s, p, d, f])
-                    con = np.flip(con, axis=1)
+                    con = con[:, ::-1, ...]
                 else:
                     raise Exception(
                         "Neither {}-{} nor {}-{} were found.".format(s1, s2, s2, s1)
@@ -349,52 +394,7 @@ class MullikenBandStructure(BandStructureBaseClass):
         )
         return spec
 
-    def __write_contributions(self):
-        arrs = []
-        names = []
-        for index, atom in self.atoms_to_plot.items():
-            for segment in self.mlk_bandsegments.keys():
-                name1 = "{}_{}_{}-{}_{}_fatband_kaxis.npy".format(
-                    atom, index, segment[0], segment[1], self.nkpoints[segment]
-                )
-                names.append(name1)
-                arrs.append(self.atom_contributions[index][segment][0])
-                name2 = "{}_{}_{}-{}_{}_fatband_contribution.npy".format(
-                    atom, index, segment[0], segment[1], self.nkpoints[segment]
-                )
-                names.append(name2)
-                arrs.append(self.atom_contributions[index][segment][1])
-        np.savez_compressed(
-            self.path.joinpath("fatbands_atom_contributions.npz"),
-            **dict(zip(names, arrs)),
-        )
-
-    def __read_contributions(self):
-        atom_contributions = {}
-        nkpoints = {}
-        data = dict(np.load(str(self.path.joinpath("fatbands_atom_contributions.npz"))))
-        for j, k in {a: b for a, b in data.items() if "kaxis" in a}.items():
-            ident1 = j.split("_fatband_")
-            for l, m in {a: b for a, b in data.items() if "contribution" in a}.items():
-                ident2 = l.split("_fatband_")
-                if ident1[0] == ident2[0]:
-                    atom, index, segment, nk1 = j.split("_")[:4]
-                    segment = (segment.split("-")[0], segment.split("-")[1])
-                    kaxis = k
-                    cons = m
-            self.natoms = len(self.structure.atoms)
-            self.nstates = int(cons.shape[1])
-            self.ncons = int(cons.shape[2])
-            nkpoints[segment] = int(nk1)
-            index = int(index)
-            if index not in atom_contributions.keys():
-                atom_contributions[index] = {segment: (kaxis, cons)}
-            else:
-                atom_contributions[index].update({segment: (kaxis, cons)})
-        self.nkpoints = nkpoints
-        return atom_contributions
-
-    def color_to_alpha_cmap(self, color):
+    def _color_to_alpha_cmap(self, color):
         cmap = LinearSegmentedColormap.from_list("", ["white", color])
         my_cmap = cmap(np.arange(cmap.N))
         my_cmap[:, -1] = np.linspace(0, 1, cmap.N)  # this adds alpha
@@ -445,13 +445,11 @@ class MullikenBandStructure(BandStructureBaseClass):
         d["ref"] = ref
         d["shift"] = shift
         d["fermi_level"] = fermi_level
+        d["spin"] = self.spin2index(spin)
+        d["mode"] = kwargs.pop("mode", "lines")
+        d["interpolate"] = kwargs.pop("interpolate", False)
 
-        m = {}
-        m["spin"] = self.spin2index(spin)
-        m["mode"] = kwargs.pop("mode", "lines")
-        m["interpolate"] = kwargs.pop("interpolate", False)
-
-        return axargs, kwargs, d, m
+        return axargs, kwargs, d
 
     def plot_contribution_of_one_atom(
         self, index, l="tot", color="crimson", axes=None, main=True, **kwargs
@@ -459,7 +457,7 @@ class MullikenBandStructure(BandStructureBaseClass):
         axargs, kwargs, bsargs, mlkargs = self._process_kwargs(**kwargs)
         spectrum = bsargs["spectrum"]
         con = spectrum.get_atom_contribution(index, l)
-        cmap = self.color_to_alpha_cmap(color)
+        cmap = self._color_to_alpha_cmap(color)
         norm = Normalize(vmin=0.0, vmax=1.0)
 
         with AxesContext(ax=axes, main=main, **axargs) as axes:
@@ -478,7 +476,7 @@ class MullikenBandStructure(BandStructureBaseClass):
 
         axargs, kwargs, bsargs, mlkargs = self._process_kwargs(**kwargs)
         spectrum = bsargs["spectrum"]
-        cmap = self.color_to_alpha_cmap(color)
+        cmap = self._color_to_alpha_cmap(color)
         norm = Normalize(vmin=0, vmax=1.0)
         con = spectrum.get_species_contribution(symbol, l=l)
 
@@ -496,7 +494,7 @@ class MullikenBandStructure(BandStructureBaseClass):
     def plot_all_species(
         self, symbols="all", l="tot", axes=None, colors=[], main=True, **kwargs
     ):
-        axargs, kwargs, bsargs, mlkargs = self._process_kwargs(**kwargs)
+        axargs, kwargs, bsargs = self._process_kwargs(**kwargs)
         spectrum = bsargs["spectrum"]
 
         if symbols in ["all", "None", None, "All", []]:
@@ -518,16 +516,13 @@ class MullikenBandStructure(BandStructureBaseClass):
 
         handles = []
         with AxesContext(ax=axes, main=main, **axargs) as axes:
-            bs = BandStructurePlot(main=main, **bsargs)
-            axes = bs.draw()
-            x, y = bs.xy
+            # axes = bs.draw()
+            # x, y = bs.xy
             for i, (s, c, m) in enumerate(scm):
-                cmap = self.color_to_alpha_cmap(c)
+                cmap = self._color_to_alpha_cmap(c)
                 con = spectrum.get_species_contribution(s, l=l)
                 norm = Normalize(vmin=0, vmax=1.0)
-                mlk = MullikenBandStructurePlot(
-                    x=x, y=y, con=con, cmap=cmap, norm=norm, **mlkargs
-                )
+                mlk = MullikenBandStructurePlot(con=con, cmap=cmap, norm=norm, **bsargs)
                 axes = mlk.draw()
                 handles.append(Line2D([0], [0], color=c, label=s, lw=1.5))
             axes.legend(
@@ -632,7 +627,7 @@ class MullikenBandStructure(BandStructureBaseClass):
     ):
         axargs, kwargs, bsargs, mlkargs = self._process_kwargs(**kwargs)
         con = contribution
-        cmap = self.color_to_alpha_cmap(color)
+        cmap = self._color_to_alpha_cmap(color)
         norm = Normalize(vmin=0, vmax=1.0)
 
         with AxesContext(ax=axes, main=main, **axargs) as axes:

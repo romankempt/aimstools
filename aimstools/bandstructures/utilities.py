@@ -13,7 +13,7 @@ class BandStructurePlot:
         self,
         spectrum=None,
         spin=None,
-        ref=None,
+        reference=None,
         shift=None,
         window=None,
         vbm=None,
@@ -30,7 +30,7 @@ class BandStructurePlot:
         x = spectrum.kpoint_axis.copy()
         y = spectrum.eigenvalues[:, spin, :].copy() - shift
         self.xy = (x, y)
-        self.ref = ref
+        self.reference = reference
         self.shift = shift
         self.fermi_level = fermi_level
         self.vbm, self.cbm = self.set_vbm_cbm(vbm, cbm)
@@ -62,10 +62,7 @@ class BandStructurePlot:
             )
             for j in self.jumps:
                 self.ax.axvline(
-                    x=j,
-                    linestyle="-",
-                    color=darkgray,
-                    linewidth=mpllinewidth,
+                    x=j, linestyle="-", color=darkgray, linewidth=mpllinewidth,
                 )
             if self.mark_fermi_level not in ["None", "none", None, False]:
                 self.show_fermi_level()
@@ -74,7 +71,7 @@ class BandStructurePlot:
         return self.ax
 
     def set_vbm_cbm(self, vbm, cbm):
-        if self.ref not in ["work function", "user-specified"]:
+        if self.reference not in ["work function", "user-specified"]:
             vbm -= self.fermi_level
             cbm -= self.fermi_level
         else:
@@ -83,9 +80,9 @@ class BandStructurePlot:
         return vbm, cbm
 
     def set_xy_labels(self):
-        if self.ref in ["fermi level", "VBM", "middle"]:
+        if self.reference in ["fermi level", "VBM", "middle"]:
             ylabel = r"E - E$_{\mathrm{F}}$ [eV]"
-        elif self.ref == "work function":
+        elif self.reference == "work function":
             ylabel = r"E - E$_{vacuum}$ [eV]"
         else:
             ylabel = r"E [eV]"
@@ -97,11 +94,11 @@ class BandStructurePlot:
         x, y = self.xy
         if (type(window) == float) or (type(window) == int):
             lower_ylimit, upper_ylimit = (-window, window)
-            if self.ref in ["work function", "user-specified"]:
+            if self.reference in ["work function", "user-specified"]:
                 lower_ylimit, upper_ylimit = (-window - self.shift, window - self.shift)
         elif len(window) == 2:
             lower_ylimit, upper_ylimit = window[0], window[1]
-            if self.ref in ["work function", "user-specified"]:
+            if self.reference in ["work function", "user-specified"]:
                 lower_ylimit, upper_ylimit = (
                     window[0],
                     window[1],
@@ -136,10 +133,10 @@ class BandStructurePlot:
         return labels, coords
 
     def show_fermi_level(self):
-        ref = self.ref
+        reference = self.reference
         value = self.shift
         color = self.mark_fermi_level
-        if ref in ["work function", "user-specified"]:
+        if reference in ["work function", "user-specified"]:
             mark = -value
         else:
             mark = 0.00
@@ -193,23 +190,44 @@ class BandStructurePlot:
         return vertices
 
 
-class MullikenBandStructurePlot:
+class MullikenBandStructurePlot(BandStructurePlot):
     def __init__(
         self,
-        x=None,
-        y=None,
-        spin=None,
         con=None,
         cmap=None,
         mode="lines",
         interpolate=False,
         norm=None,
         scale_width=2,
+        spectrum=None,
+        spin=None,
+        reference=None,
+        shift=None,
+        window=None,
+        vbm=None,
+        cbm=None,
+        direct_gap=None,
+        indirect_gap=None,
+        fermi_level=None,
+        mark_fermi_level=None,
+        mark_gap=False,
+        main=False,
     ) -> None:
-        self.ax = plt.gca()
-        self.x = x.copy()
-        self.y = y.copy()
-        self.spin = spin
+        super().__init__(
+            spectrum=spectrum,
+            spin=spin,
+            reference=reference,
+            shift=shift,
+            window=window,
+            vbm=vbm,
+            cbm=cbm,
+            direct_gap=direct_gap,
+            indirect_gap=indirect_gap,
+            fermi_level=fermi_level,
+            mark_fermi_level=mark_fermi_level,
+            mark_gap=mark_gap,
+            main=main,
+        )
         self.con = con
         self.cmap = cmap
         self.mode = mode
@@ -218,6 +236,28 @@ class MullikenBandStructurePlot:
         self.scale_width = scale_width
 
     def draw(self):
+        ylocs = ticker.MultipleLocator(base=0.5)
+        self.ax.yaxis.set_major_locator(ylocs)
+        self.ax.set_xlabel(self.xlabel)
+        self.ax.set_ylabel(self.ylabel)
+        self.ax.set_xlim(self.xlimits)
+        self.ax.set_ylim(self.ylimits)
+        labels, coords = self.set_x_labels()
+        self.ax.set_xticks(coords)
+        self.ax.set_xticklabels(labels)
+        self.ax.tick_params(axis=u"x", which=u"both", length=0)
+        if self.main:
+            self.ax.grid(
+                b=True, which="major", axis="x", linestyle=(0, (1, 1)), linewidth=1.0
+            )
+            for j in self.jumps:
+                self.ax.axvline(
+                    x=j, linestyle="-", color=darkgray, linewidth=mpllinewidth,
+                )
+            if self.mark_fermi_level not in ["None", "none", None, False]:
+                self.show_fermi_level()
+            if self.mark_gap not in ["None", "none", None, False]:
+                self.show_vertices()
         x = self.x
         y = self.y
         for band in range(y.shape[1]):
@@ -258,12 +298,7 @@ class MullikenBandStructurePlot:
         else:
             swidths = band_width.copy() * self.scale_width
         axes.scatter(
-            band_x,
-            band_y,
-            c=swidths,
-            cmap=self.cmap,
-            norm=self.norm,
-            s=swidths,
+            band_x, band_y, c=swidths, cmap=self.cmap, norm=self.norm, s=swidths,
         )
 
     def interpol(self):
