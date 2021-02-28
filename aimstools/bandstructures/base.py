@@ -63,13 +63,7 @@ class BandStructureBaseClass(FHIAimsOutputReader):
             logger.debug("Reference energy set to band gap middle.")
             if soc:
                 value = (band_extrema.cbm_soc + band_extrema.vbm_soc) / 2
-                logger.debug(
-                    "The mulliken bands with soc are wrongly referenced to the scalar fermi level. This is a work-around."
-                )
-                if self.task == "band structure":
-                    value -= fermi_level.soc
-                elif self.task == "mulliken-projected band structure":
-                    value -= fermi_level.scalar
+                value -= fermi_level.soc
             else:
                 value = (band_extrema.cbm_scalar + band_extrema.vbm_scalar) / 2
                 value -= fermi_level.scalar

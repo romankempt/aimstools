@@ -5,13 +5,14 @@ import networkx as nx
 
 import ase.io
 from ase import neighborlist, build
+from ase.data import covalent_radii
 
 from aimstools.misc import *
 
 from collections import namedtuple
 
 
-def find_fragments(atoms) -> list:
+def find_fragments(atoms, scale=1.0) -> list:
     """Finds unconnected structural fragments by constructing
     the first-neighbor topology matrix and the resulting graph
     of connected vertices.
@@ -28,11 +29,8 @@ def find_fragments(atoms) -> list:
     """
 
     atoms = atoms.copy()
-    nl = neighborlist.NeighborList(
-        ase.neighborlist.natural_cutoffs(atoms),
-        self_interaction=False,
-        bothways=True,
-    )
+    radii = scale * covalent_radii[atoms.get_atomic_numbers()]
+    nl = neighborlist.NeighborList(radii, skin=0, self_interaction=False, bothways=True)
     nl.update(atoms)
     connectivity_matrix = nl.get_connectivity_matrix(sparse=False)
 

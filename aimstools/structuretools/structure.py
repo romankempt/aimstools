@@ -120,7 +120,7 @@ class Structure(Atoms):
         strc = self.__class__(atoms)
         return strc
 
-    def standardize(self, to_primitive=True, symprec=1e-4) -> None:
+    def standardize(self, to_primitive=True, symprec=1e-4, angle_tolerance=5) -> None:
         """Wrapper of the spglib standardize() function with extra features.
 
         For 2D systems, the non-periodic axis is enforced as the z-axis.
@@ -142,7 +142,11 @@ class Structure(Atoms):
         )
         cell = (lattice, positions, numbers)
         newcell = spglib.standardize_cell(
-            cell, to_primitive=to_primitive, no_idealize=False, symprec=symprec
+            cell,
+            to_primitive=to_primitive,
+            no_idealize=False,
+            symprec=symprec,
+            angle_tolerance=angle_tolerance,
         )
         if newcell == None:
             logger.error("Cell could not be standardized.")
