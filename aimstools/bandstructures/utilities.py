@@ -9,8 +9,11 @@ import numpy as np
 
 
 class BandStructurePlot:
+    """ Context to draw band structure plot. Handles the correct shifting, labelling and axes limits."""
+
     def __init__(
         self,
+        ax=None,
         spectrum=None,
         spin=None,
         reference=None,
@@ -23,12 +26,14 @@ class BandStructurePlot:
         fermi_level=None,
         mark_fermi_level=None,
         mark_gap=False,
-        main=False,
     ) -> None:
-        self.ax = plt.gca()
+        self.ax = ax
         self.spectrum = spectrum
         x = spectrum.kpoint_axis.copy()
         y = spectrum.eigenvalues[:, spin, :].copy() - shift
+        self.x = x
+        self.y = y
+        self.spin = spin
         self.xy = (x, y)
         self.reference = reference
         self.shift = shift
@@ -43,7 +48,7 @@ class BandStructurePlot:
         self.xlimits, self.ylimits = self.set_xy_limits()
         self.mark_fermi_level = mark_fermi_level
         self.mark_gap = mark_gap
-        self.main = main
+        self.axes_order = axes_order.get()
 
     def draw(self):
         ylocs = ticker.MultipleLocator(base=0.5)
@@ -62,13 +67,14 @@ class BandStructurePlot:
             )
             for j in self.jumps:
                 self.ax.axvline(
-                    x=j, linestyle="-", color=darkgray, linewidth=mpllinewidth,
+                    x=j, linestyle="-", color=mutedblack, linewidth=mpllinewidth,
                 )
             if self.mark_fermi_level not in ["None", "none", None, False]:
                 self.show_fermi_level()
             if self.mark_gap not in ["None", "none", None, False]:
                 self.show_vertices()
-        return self.ax
+        axes_order.set(self.axes_order + 1)
+        logger.debug("Current axes order: {}".format(axes_order))
 
     def set_vbm_cbm(self, vbm, cbm):
         if self.reference not in ["work function", "user-specified"]:
@@ -193,13 +199,17 @@ class BandStructurePlot:
 class MullikenBandStructurePlot(BandStructurePlot):
     def __init__(
         self,
+        ax=None,
+        filename=None,
+        figsize=(5, 4),
+        title=None,
+        spectrum=None,
         con=None,
         cmap=None,
         mode="lines",
         interpolate=False,
         norm=None,
         scale_width=2,
-        spectrum=None,
         spin=None,
         reference=None,
         shift=None,
@@ -211,9 +221,12 @@ class MullikenBandStructurePlot(BandStructurePlot):
         fermi_level=None,
         mark_fermi_level=None,
         mark_gap=False,
-        main=False,
     ) -> None:
         super().__init__(
+            ax=ax,
+            filename=filename,
+            figsize=figsize,
+            title=title,
             spectrum=spectrum,
             spin=spin,
             reference=reference,
@@ -226,7 +239,6 @@ class MullikenBandStructurePlot(BandStructurePlot):
             fermi_level=fermi_level,
             mark_fermi_level=mark_fermi_level,
             mark_gap=mark_gap,
-            main=main,
         )
         self.con = con
         self.cmap = cmap
@@ -268,7 +280,8 @@ class MullikenBandStructurePlot(BandStructurePlot):
                 self.plot_linecollection(band_x, band_y, band_width)
             elif self.mode == "scatter":
                 self.plot_scatter(band_x, band_y, band_width)
-        return self.ax
+        axes_order.set(self.axes_order + 1)
+        logger.debug("Current axes order: {}".format(axes_order))
 
     def plot_linecollection(self, band_x, band_y, band_width):
         axes = self.ax

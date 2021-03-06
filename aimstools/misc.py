@@ -4,6 +4,12 @@ import pretty_errors
 
 from rich.logging import RichHandler
 
+import contextvars
+
+# declaring the variable
+axes_order = contextvars.ContextVar("axes_order", default=0)
+
+
 pretty_errors.configure(
     separator_character="*",
     filename_display=pretty_errors.FILENAME_EXTENDED,
@@ -91,17 +97,19 @@ class AxesContext:
         ax: "matplotlib.axes.Axes" = None,
         filename: str = None,
         figsize: tuple = (5, 4),
-        main: bool = False,
         title: str = None,
     ) -> None:
         self.ax = ax
         self.filename = filename
         self.figure = None
         self.figsize = figsize
-        self.main = main
         self.title = title
 
-    def __enter__(self) -> "matplotlib.axes.Axes":
+    def __enter__(self):
+        # calling set function to get a token object
+        order = axes_order.get()
+        self.main = not bool(order)
+        logger.debug("Is main context: {}".format(self.main))
         if self.ax is None:
             self.figure, self.ax = plt.subplots(figsize=self.figsize)
             self.show = True
@@ -109,18 +117,15 @@ class AxesContext:
             self.figure = plt.gcf()
             plt.sca(self.ax)
             self.show = False
-        logger.debug("Is main context: {}".format(self.main))
         if self.title != None:
             self.ax.set_title(str(self.title), loc="center")
-        return self.ax
+        return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback) -> None:
         if (exc_type is None) and (self.main):
             # If there was no exception, display/write the plot as appropriate
             if self.figure is None:
                 raise Exception("Something went wrong initializing matplotlib figure.")
-            if self.show:
-                plt.show()
             if self.filename is not None:
                 self.figure.savefig(
                     self.filename,

@@ -408,6 +408,7 @@ class MullikenBandStructure(BandStructureBaseClass):
         axargs["figsize"] = kwargs.pop("figsize", (5, 5))
         axargs["filename"] = kwargs.pop("filename", None)
         axargs["title"] = kwargs.pop("title", None)
+        _ = kwargs.pop("main", False)  # deprecated
 
         d = {}
         bandpath = kwargs.pop("bandpath", None)
@@ -442,7 +443,7 @@ class MullikenBandStructure(BandStructureBaseClass):
         d["cbm"] = cbm
         d["indirect_gap"] = indirect_gap
         d["direct_gap"] = direct_gap
-        d["ref"] = ref
+        d["reference"] = ref
         d["shift"] = shift
         d["fermi_level"] = fermi_level
         d["spin"] = self.spin2index(spin)
@@ -491,9 +492,9 @@ class MullikenBandStructure(BandStructureBaseClass):
 
         return axes
 
-    def plot_all_species(
-        self, symbols="all", l="tot", axes=None, colors=[], main=True, **kwargs
-    ):
+    def plot_all_species(self, symbols="all", l="tot", axes=None, colors=[], **kwargs):
+        if axes == None:
+            axes = plt.gca()
         axargs, kwargs, bsargs = self._process_kwargs(**kwargs)
         spectrum = bsargs["spectrum"]
 
@@ -515,16 +516,16 @@ class MullikenBandStructure(BandStructureBaseClass):
         )
 
         handles = []
-        with AxesContext(ax=axes, main=main, **axargs) as axes:
-            # axes = bs.draw()
-            # x, y = bs.xy
+        with AxesContext(ax=axes, **axargs) as axes:
             for i, (s, c, m) in enumerate(scm):
                 cmap = self._color_to_alpha_cmap(c)
                 con = spectrum.get_species_contribution(s, l=l)
                 norm = Normalize(vmin=0, vmax=1.0)
-                mlk = MullikenBandStructurePlot(con=con, cmap=cmap, norm=norm, **bsargs)
-                axes = mlk.draw()
                 handles.append(Line2D([0], [0], color=c, label=s, lw=1.5))
+                mlk = MullikenBandStructurePlot(
+                    ax=axes, con=con, cmap=cmap, norm=norm, **axargs, **bsargs, **kwargs
+                )
+                mlk.draw()
             axes.legend(
                 handles=handles,
                 frameon=True,
@@ -555,7 +556,6 @@ class MullikenBandStructure(BandStructureBaseClass):
             mlk = MullikenBandStructurePlot(
                 x=x, y=y, con=con, cmap=cmap, norm=norm, **mlkargs
             )
-            axes = mlk.draw()
             clb = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=axes)
             clb.set_ticks([-1, 1])
             clb.set_alpha(1)  # alpha leads to weird stripes in color bars
@@ -634,10 +634,9 @@ class MullikenBandStructure(BandStructureBaseClass):
             bs = BandStructurePlot(main=main, **bsargs)
             axes = bs.draw()
             x, y = bs.xy
-            mlk = MullikenBandStructurePlot(
+            MullikenBandStructurePlot(
                 x=x, y=y, con=con, cmap=cmap, norm=norm, **mlkargs
             )
-            mlk.draw()
 
         return axes
 
