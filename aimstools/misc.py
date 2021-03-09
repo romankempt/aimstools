@@ -1,5 +1,6 @@
 import logging
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import pretty_errors
 
 from rich.logging import RichHandler
@@ -89,7 +90,6 @@ class AxesContext:
 
     Args:
         main (bool): Helper value to identify execution orders in nested contexts to save/show the figure only in the main context.
-
     """
 
     def __init__(
@@ -97,35 +97,60 @@ class AxesContext:
         ax: "matplotlib.axes.Axes" = None,
         filename: str = None,
         figsize: tuple = (5, 4),
-        title: str = None,
+        main: bool = True,
+        nrows: int = 1,
+        ncols: int = 1,
+        width_ratios: list = [1],
+        height_ratios: list = [1],
+        hspace: float = 0.05,
+        wspace: float = 0.05,
+        **kwargs
     ) -> None:
         self.ax = ax
         self.filename = filename
-        self.figure = None
         self.figsize = figsize
-        self.title = title
+        self.nrows = nrows
+        self.ncols = ncols
+        self.main = main
+        self.width_ratios = width_ratios
+        self.height_ratios = height_ratios
+        self.hspace = hspace
+        self.wspace = wspace
 
-    def __enter__(self):
-        # calling set function to get a token object
-        order = axes_order.get()
-        self.main = not bool(order)
-        logger.debug("Is main context: {}".format(self.main))
+    def __enter__(self) -> "matplotlib.axes.Axes":
         if self.ax is None:
-            self.figure, self.ax = plt.subplots(figsize=self.figsize)
+            self.figure = plt.figure(constrained_layout=True)
+            self.spec = gridspec.GridSpec(
+                ncols=self.ncols,
+                nrows=self.nrows,
+                figure=self.figure,
+                width_ratios=self.width_ratios,
+                height_ratios=self.height_ratios,
+                hspace=self.hspace,
+                wspace=self.wspace,
+            )
+            for i in range(self.nrows):
+                for j in range(self.ncols):
+                    self.figure.add_subplot(self.spec[i, j])
+            self.ax = self.figure.axes
+            if self.ncols == self.nrows and self.ncols == 1:
+                self.ax = self.ax[0]
             self.show = True
         else:
             self.figure = plt.gcf()
             plt.sca(self.ax)
             self.show = False
-        if self.title != None:
-            self.ax.set_title(str(self.title), loc="center")
-        return self
+
+        logger.debug("Is main context: {}".format(self.main))
+        return self.ax
 
     def __exit__(self, exc_type, exc_value, exc_traceback) -> None:
         if (exc_type is None) and (self.main):
             # If there was no exception, display/write the plot as appropriate
             if self.figure is None:
                 raise Exception("Something went wrong initializing matplotlib figure.")
+            if self.show:
+                plt.show()
             if self.filename is not None:
                 self.figure.savefig(
                     self.filename,

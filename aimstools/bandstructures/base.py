@@ -1,7 +1,7 @@
 from aimstools.misc import *
 from aimstools.postprocessing import FHIAimsOutputReader
 
-from ase.dft.kpoints import parse_path_string, BandPath
+from ase.dft.kpoints import bandpath, parse_path_string, BandPath
 
 from collections import namedtuple
 import re
@@ -21,8 +21,8 @@ class BandStructureBaseClass(FHIAimsOutputReader):
         self.tasks = tasks
         self.task = None
         self._energy_reference = "not specified"
-        self.band_sections = self.__set_sections()
         self._bandpath = None
+        self.__set_sections()
 
     @property
     def energy_reference(self):
@@ -112,13 +112,13 @@ class BandStructureBaseClass(FHIAimsOutputReader):
                 for k in sections
             ]
             s.append(sections)
-        return secs(*s)
+        self.band_sections = secs(*s)
 
     @property
     def bandpath(self):
         return self._bandpath
 
-    def set_bandpath(self):
+    def _set_bandpath_from_sections(self):
         sections = self.band_sections
         special_points = {k.symbol1: k.k1 for k in sections}
         special_points.update({k.symbol2: k.k2 for k in sections})
@@ -139,9 +139,9 @@ class BandStructureBaseClass(FHIAimsOutputReader):
         bp = BandPath(
             path=pathstring, cell=self.structure.cell, special_points=special_points
         )
-        return bp
+        self._bandpath = bp
 
-    def get_bandpath(self, bandpathstring):
+    def set_bandpath(self, bandpathstring):
         new_bandpath = parse_path_string(bandpathstring)
         old_path = self.bandpath
         special_points = old_path.special_points
@@ -159,7 +159,7 @@ class BandStructureBaseClass(FHIAimsOutputReader):
                 cell=self.structure.cell,
                 special_points=special_points,
             )
-        return new_path
+        self._bandpath = new_path
 
     def get_bandfiles(self, spin="none", soc=False):
         nbf = namedtuple("bandfiles", ["regular", "mulliken"])
@@ -274,66 +274,6 @@ class BandStructureBaseClass(FHIAimsOutputReader):
             )
             bandfiles.append(f[0])
         return bandfiles
-
-    def get_data_from_bandstructure(self, spectrum=None, spin=None):
-        from itertools import combinations_with_replacement
-
-        dbg = namedtuple("direct", ["value", "k", "axis_coord", "e1", "e2"])
-        ibg = namedtuple(
-            "indirect", ["value", "k1", "axis_coord1", "e1", "k2", "axis_coord2", "e2"]
-        )
-
-        spin = self.spin2index(spin)
-
-        if spectrum == None:
-            spectrum = self.spectrum
-        else:
-            spectrum = spectrum
-        evs = spectrum.eigenvalues[:, spin, :].copy()
-        occs = spectrum.occupations[:, spin, :].copy()
-        kpts = spectrum.kpoints.copy()
-        kcoords = spectrum.kpoint_axis.copy()
-        l = range(len(spectrum.kpoints))
-        gaps = []
-        for i, j in combinations_with_replacement(l, 2):
-            vbs = evs[i, :][occs[i, :] >= 1e-4]
-            cbs = evs[j, :][occs[j, :] < 1e-4]
-            cb = np.min(cbs)
-            vb = np.max(vbs)
-            gap = cb - vb
-            gaps.append((i, j, gap, vb, cb))
-        gaps = np.array(gaps)
-        index = np.argmin(gaps[:, 2])
-        vbm, cbm = np.max(gaps[:, 3]), np.min(gaps[:, 4])
-        if gaps[index, 2] > 0.1:
-            if gaps[index, 0] != gaps[index, 1]:
-                i, j = map(int, gaps[index, [0, 1]])
-                kp1 = np.dot(kpts[i], self.structure.cell.T) / (2 * np.pi)
-                kp2 = np.dot(kpts[j], self.structure.cell.T) / (2 * np.pi)
-                kc1 = kcoords[i]
-                kc2 = kcoords[j]
-                val = gaps[index, 2]
-                indirect = ibg(val, kp1, kc1, vbm, kp2, kc2, cbm)
-                dgaps = gaps[gaps[:, 0] == gaps[:, 1]]
-                dgaps = dgaps.reshape((-1, 5))
-                index = np.argmin(dgaps[:, 2])
-                val = dgaps[index, 2]
-                i = int(dgaps[index, 0])
-                kp = np.dot(kpts[i], self.structure.cell.T) / (2 * np.pi)
-                kc = kcoords[i]
-                e1, e2 = dgaps[index, 3], dgaps[index, 4]
-                direct = dbg(val, kp, kc, e1, e2)
-            else:
-                i = int(gaps[index, 0])
-                val = gaps[index, 2]
-                kp = np.dot(kpts[i], self.structure.cell.T) / (2 * np.pi)
-                kc = kcoords[i]
-                indirect = None
-                e1, e2 = gaps[index, 3], gaps[index, 4]
-                direct = dbg(val, kp, kc, e1, e2)
-        else:
-            direct = indirect = None
-        return (vbm, cbm, indirect, direct)
 
     def spin2index(self, spin):
         if spin in [None, "none", "down", "dn", 0]:

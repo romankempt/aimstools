@@ -1,5 +1,6 @@
 from aimstools.misc import *
 from aimstools.bandstructures.utilities import (
+    BandSpectrum,
     BandStructurePlot,
     MullikenBandStructurePlot,
 )
@@ -9,6 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.colors import ListedColormap, BoundaryNorm, LinearSegmentedColormap
 from matplotlib.colors import Normalize
+from matplotlib.colors import is_color_like
 
 from ase.dft.kpoints import parse_path_string
 from ase.symbols import string2symbols, symbols2numbers
@@ -21,43 +23,49 @@ import numpy as np
 import time
 
 
-class MullikenSpectrum:
+class MullikenSpectrum(BandSpectrum):
     """Container class for eigenvalue spectrum and mulliken contributions.
 
     Attributes:
-        atoms (ase.atoms.Atoms): ASE atoms object.
-        kpoints (ndarray): (nkpoints, 3) array with k-points.
-        kpoint_axis (ndarray): (nkpoints, 1) linear plotting axis.
-        eigenvalues (ndarray): (nkpoints, nbands) array with eigenvalues in eV.
-        occupations (ndarray): (nkpoints, nbands) array with occupations.
         contributions (MullikenContribution): `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution`.
-        label_coords (list): List of k-point label coordinates on the plotting axis.
-        kpoint_labels (list): List of k-point labels.
-        jumps (list): List of jumps from unconnected Brillouin zone sections on the plotting axis.
 
     """
 
     def __init__(
         self,
-        atoms,
-        kpoints,
-        kpoint_axis,
-        eigenvalues,
-        occupations,
-        contributions,
-        label_coords,
-        kpoint_labels,
-        jumps,
+        atoms: "ase.atoms.Atoms" = None,
+        kpoints: "numpy.ndarray" = None,
+        kpoint_axis: "numpy.ndarray" = None,
+        eigenvalues: "numpy.ndarray" = None,
+        occupations: "numpy.ndarray" = None,
+        contributions: "numpy.ndarray" = None,
+        label_coords: list = None,
+        kpoint_labels: list = None,
+        jumps: list = None,
+        fermi_level: float = None,
+        reference: str = None,
+        shift: float = None,
+        bandpath: str = None,
     ) -> None:
-        self.atoms = atoms
-        self.kpoints = kpoints
-        self.kpoint_axis = kpoint_axis
-        self.eigenvalues = eigenvalues
-        self.occupations = occupations
-        self.contributions = contributions
-        self.label_coords = label_coords
-        self.kpoint_labels = kpoint_labels
-        self.jumps = jumps
+        super().__init__(
+            atoms=atoms,
+            kpoints=kpoints,
+            kpoint_axis=kpoint_axis,
+            eigenvalues=eigenvalues,
+            occupations=occupations,
+            label_coords=label_coords,
+            kpoint_labels=kpoint_labels,
+            jumps=jumps,
+            fermi_level=fermi_level,
+            reference=reference,
+            shift=shift,
+            bandpath=bandpath,
+        )
+        self._contributions = contributions
+
+    @property
+    def contributions(self):
+        return self._contributions
 
     def get_atom_contribution(self, index, l="tot"):
         """Returns `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution` of given atom index.
@@ -126,8 +134,12 @@ class MullikenSpectrum:
             raise Exception("Implemented mlk bandstructures only till h-orbitals.")
 
     def __repr__(self):
-        return "{}(atoms, kpoints, kpoint_axis, eigenvalues, occupations, contributions, label_coords, kpoint_labels, jumps)".format(
-            self.__class__.__name__
+        return "{}(bandpath={}, reference={}), band_gap={}, contribution_species={}".format(
+            self.__class__.__name__,
+            self.bandpath,
+            self.reference,
+            self.bandgap,
+            list(set(self.atoms.symbols)),
         )
 
 
@@ -225,7 +237,7 @@ class MullikenBandStructure(BandStructureBaseClass):
         super().__init__(outputfile)
         self.soc = soc
         self.band_sections = self.band_sections.mlk
-        self._bandpath = self.set_bandpath()
+        self._set_bandpath_from_sections()
         self.task = "mulliken-projected band structure"
         self.spin = "none" if self.control["spin"] != "collinear" else "collinear"
         if self.soc == False and self.spin == "collinear":
@@ -311,7 +323,7 @@ class MullikenBandStructure(BandStructureBaseClass):
             )
         return bands
 
-    def get_mlk_spectrum(self, bandpath=None):
+    def get_mlk_spectrum(self, bandpath=None, reference=None):
         """ Returns `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenSpectrum` for a given bandpath.
         
         Bandpath should be ASE-formatted string, e.g., "GMKG,A", where the "," denotes jumps.
@@ -320,9 +332,8 @@ class MullikenBandStructure(BandStructureBaseClass):
         atoms = self.structure.copy()
         start = time.time()
         if bandpath != None:
-            bp = parse_path_string(self.get_bandpath(bandpath).path)
-        else:
-            bp = parse_path_string(self.bandpath.path)
+            self.set_bandpath(bandpath)
+        bp = parse_path_string(self.bandpath.path)
         jumps = []
         kps = []
         occs = []
@@ -377,16 +388,23 @@ class MullikenBandStructure(BandStructureBaseClass):
         kpoint_axis = np.concatenate(kpoint_axis, axis=0)
         occs = np.concatenate(occs, axis=0)
         cons = np.concatenate(contributions, axis=1)
+        fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
+        self.set_energy_reference(reference, self.soc)
+        reference, shift = self.energy_reference
         spec = MullikenSpectrum(
-            atoms,
-            kps,
-            kpoint_axis,
-            spectrum,
-            occs,
-            cons,
-            label_coords,
-            kpoint_labels,
-            jumps,
+            atoms=atoms,
+            kpoints=kps,
+            kpoint_axis=kpoint_axis,
+            eigenvalues=spectrum,
+            occupations=occs,
+            contributions=cons,
+            label_coords=label_coords,
+            kpoint_labels=kpoint_labels,
+            jumps=jumps,
+            fermi_level=fermi_level,
+            reference=reference,
+            shift=shift,
+            bandpath=bp,
         )
         end = time.time()
         logger.info(
@@ -394,257 +412,239 @@ class MullikenBandStructure(BandStructureBaseClass):
         )
         return spec
 
-    def _color_to_alpha_cmap(self, color):
-        cmap = LinearSegmentedColormap.from_list("", ["white", color])
-        my_cmap = cmap(np.arange(cmap.N))
-        my_cmap[:, -1] = np.linspace(0, 1, cmap.N)  # this adds alpha
-        my_cmap = ListedColormap(my_cmap)
-        return my_cmap
-
-    def _process_kwargs(self, **kwargs):
+    def _process_kwargs(self, kwargs):
         kwargs = kwargs.copy()
 
-        axargs = {}
-        axargs["figsize"] = kwargs.pop("figsize", (5, 5))
-        axargs["filename"] = kwargs.pop("filename", None)
-        axargs["title"] = kwargs.pop("title", None)
-        _ = kwargs.pop("main", False)  # deprecated
-
-        d = {}
         bandpath = kwargs.pop("bandpath", None)
         spin = kwargs.pop("spin", None)
-        reference = kwargs.pop("reference", None)
+        kwargs["show_bandstructure"] = kwargs.pop("show_bandstructure", False)
 
-        if spin != None and self.soc:
-            logger.warning(
-                "Spin channels do not exist for SOC calculations. Setting spin to 0."
-            )
-            spin = None
+        deprecated = ["title", "mark_fermi_level", "mark_band_gap"]
+        for dep in deprecated:
+            if dep in kwargs.keys():
+                kwargs.pop(dep)
+                logger.warning(f"Keyword {dep} is deprecated.")
 
-        d["window"] = kwargs.pop("window", 3)
-        d["mark_fermi_level"] = kwargs.pop("mark_fermi_level", fermi_color)
-        d["mark_gap"] = kwargs.pop("mark_gap", True)
-
-        self.set_energy_reference(reference, self.soc)
         if bandpath != None:
-            spectrum = self.get_mlk_spectrum(bandpath)
+            spectrum = self.get_spectrum(bandpath)
         else:
             spectrum = self.spectrum
-        vbm, cbm, indirect_gap, direct_gap = self.get_data_from_bandstructure(
-            spectrum, spin=spin
-        )
 
-        ref, shift = self.energy_reference
-        fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
+        kwargs["spectrum"] = spectrum
+        kwargs["spin"] = self.spin2index(spin)
 
-        d["spectrum"] = spectrum
-        d["spin"] = self.spin2index(spin)
-        d["vbm"] = vbm
-        d["cbm"] = cbm
-        d["indirect_gap"] = indirect_gap
-        d["direct_gap"] = direct_gap
-        d["reference"] = ref
-        d["shift"] = shift
-        d["fermi_level"] = fermi_level
-        d["spin"] = self.spin2index(spin)
-        d["mode"] = kwargs.pop("mode", "lines")
-        d["interpolate"] = kwargs.pop("interpolate", False)
+        return kwargs
 
-        return axargs, kwargs, d
-
-    def plot_contribution_of_one_atom(
-        self, index, l="tot", color="crimson", axes=None, main=True, **kwargs
-    ):
-        axargs, kwargs, bsargs, mlkargs = self._process_kwargs(**kwargs)
-        spectrum = bsargs["spectrum"]
-        con = spectrum.get_atom_contribution(index, l)
-        cmap = self._color_to_alpha_cmap(color)
-        norm = Normalize(vmin=0.0, vmax=1.0)
-
-        with AxesContext(ax=axes, main=main, **axargs) as axes:
-            bs = BandStructurePlot(main=main, **bsargs)
+    def plot(self, axes=None, **kwargs):
+        """ Same as `:func:~aimstools.bandstructures.regular_bandstructure.RegularBandStructure.plot` """
+        kwargs = self._process_kwargs(kwargs)
+        with AxesContext(ax=axes, **kwargs) as axes:
+            bs = BandStructurePlot(ax=axes, **kwargs)
             axes = bs.draw()
-            x, y = bs.xy
-            mlk = MullikenBandStructurePlot(
-                x=x, y=y, con=con, cmap=cmap, norm=norm, **mlkargs
-            )
-            axes = mlk.draw()
-        return axes
-
-    def plot_one_species(
-        self, symbol, l="tot", axes=None, color="crimson", main=True, **kwargs
-    ):
-
-        axargs, kwargs, bsargs, mlkargs = self._process_kwargs(**kwargs)
-        spectrum = bsargs["spectrum"]
-        cmap = self._color_to_alpha_cmap(color)
-        norm = Normalize(vmin=0, vmax=1.0)
-        con = spectrum.get_species_contribution(symbol, l=l)
-
-        with AxesContext(ax=axes, main=main, **axargs) as axes:
-            bs = BandStructurePlot(main=main, **bsargs)
-            axes = bs.draw()
-            x, y = bs.xy
-            mlk = MullikenBandStructurePlot(
-                x=x, y=y, con=con, cmap=cmap, norm=norm, **mlkargs
-            )
-            axes = mlk.draw()
 
         return axes
 
-    def plot_all_species(self, symbols="all", l="tot", axes=None, colors=[], **kwargs):
-        if axes == None:
-            axes = plt.gca()
-        axargs, kwargs, bsargs = self._process_kwargs(**kwargs)
-        spectrum = bsargs["spectrum"]
+    def plot_contributions(
+        self,
+        axes: "matplotlib.axes.Axes" = None,
+        contributions: list = [],
+        colors: list = [],
+        labels: list = [],
+        **kwargs,
+    ):
+        """Main function to handle plotting of Mulliken spectra. Supports all keywords of `:func:~aimstools.bandstructures.regular_bandstructure.RegularBandStructure.plot`.
 
-        if symbols in ["all", "None", None, "All", []]:
-            symbols = set([k.symbol for k in self.structure])
+        Example:
+            >>> from aimstools.bandstructures import MullikenBandStructure as MBS
+            >>> bs = mbs("path/to/dir")
+            >>> con1 = bs.spectrum.get_species_contribution("S")
+            >>> con2 = bs.spectrum.get_species_contribution("F")
+            >>> bs.plot_contributions(contributions=[con1, con2], labels=["foo", "bar"], colors=["green", "blue"], mode="scatter")
+
+        Args:            
+            contributions (list, optional): List of `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution`. Defaults to [].
+            colors (list, optional): List of colors. Defaults to [].
+            labels (list, optional): List of labels. Defaults to [].
+            mode (str, optional):  Plotting mode, can be "lines", "scatter", "majority" or "gradient". Defaults to "lines".
+            capstyle (str, optional): Matplotlib linecollection capstyle. Defaults to "round".
+            interpolate (bool, optional): Interpolate bands and contributions for smoother appearance. Defaults to False.
+            interpolation_step (float, optional): Interpolation step for interpolate. Defaults to 0.01.
+            scale_width (bool, optional): Scale point or line widths by contribution. Defaults to True.
+            scale_width_factor (float, optional): Factor to scale line widths by contribution. Defaults to 2.
+            show_legend (bool, optional): Show legend for labels and colors. Defaults to True.
+            legend_linewidth (float, optional): Legend handle linewidth. Defaults to 1.5.
+            legend_frameon (bool, optional): Show legend frame. Defaults to True.
+            legend_fancybox (bool, optional): Enable bevelled box. Defaults to True.
+            legend_borderpad (float, optional): Pad for legend bordrs. Defaults to 0.4.
+            legend_loc (string, optional): Legend location. Defaults to "upper right".
+            show_colorbar (bool, optional): Show colorbar. Defaults to False.
+       
+        Returns:
+            axes: Axes object.
+        """
+
+        kwargs = self._process_kwargs(kwargs)
+        if isinstance(contributions, (MullikenContribution,)):
+            contributions = [contributions]
+        elif isinstance(contributions, (list, tuple)):
+            assert len(contributions) > 0, "Contributions cannot be empty list."
+            assert all(
+                isinstance(j, MullikenContribution) for j in contributions
+            ), "Contributions must be of type MullikenContribution."
         else:
-            symbols = set(symbols)
+            raise Exception("Contributions not recognized.")
+
+        if isinstance(colors, (list, np.array)):
+            if len(colors) == 0:
+                cmap = plt.cm.get_cmap("tab10")
+                colors = [cmap(c) for c in np.linspace(0, 1, len(contributions))]
+            assert all(is_color_like(j) for j in colors), "Colors must be color-like."
+        elif is_color_like(colors):
+            colors = [colors]
+        else:
+            raise Exception("Colors not recognized.")
+
+        if isinstance(labels, (list, tuple)):
+            if len(labels) == 0:
+                labels = [c.get_latex_symbol() for c in contributions]
+            else:
+                assert all(
+                    isinstance(j, (str,)) for j in labels
+                ), "Labels must be strings."
+        elif isinstance(labels, str):
+            labels = [labels]
+        else:
+            raise Exception("Labels not recognized.")
+
+        assert len(contributions) == len(
+            colors
+        ), "Length of contributions and colors does not match."
+        assert len(contributions) == len(
+            labels
+        ), "Length of contributions and labels does not match."
+
+        with AxesContext(ax=axes, **kwargs) as axes:
+            mbs = MullikenBandStructurePlot(
+                ax=axes,
+                contributions=contributions,
+                labels=labels,
+                colors=colors,
+                **kwargs,
+            )
+            mbs.draw()
+
+        return axes
+
+    def plot_majority_contribution(
+        self,
+        contributions=[],
+        axes=None,
+        colors=[],
+        labels=[],
+        show_colorbar=True,
+        **kwargs,
+    ):
+        """Utility function to show majority contributions of given list of contributions.
+
+        A majority-projection only shows the largest contribution to each k-point and band.
+        """
+        kwargs = self._process_kwargs(kwargs)
+        kwargs["mode"] = "majority"
+
+        if contributions == []:
+            spectrum = kwargs["spectrum"]
+            symbols = set(self.structure.symbols)
+            contributions = [spectrum.get_species_contribution(c) for c in symbols]
+
+        self.plot_contributions(
+            axes=axes,
+            contributions=contributions,
+            colors=colors,
+            labels=labels,
+            show_colorbar=show_colorbar,
+            **kwargs,
+        )
+        return axes
+
+    def plot_all_species(self, axes=None, species="all", l="tot", colors=[], **kwargs):
+        """Utility function to show species contributions of given species or all of them.
+
+        Args:
+            species (str, optional): "All" or list of species symbols. Defaults to "all".
+            l (str, optional): Angular momentum. Defaults to "tot".
+        """
+        kwargs = self._process_kwargs(kwargs)
+        spectrum = kwargs["spectrum"]
+
+        if species in ["all", "None", None, "All", []]:
+            labels = set([k.symbol for k in self.structure])
+        else:
+            labels = set(species)
 
         if len(colors) == 0:
-            colors = [jmol_colors[symbols2numbers(n)][0] for n in symbols]
+            colors = [jmol_colors[symbols2numbers(n)][0] for n in labels]
 
-        assert len(symbols) == len(
+        assert len(labels) == len(
             colors
         ), "Number of symbols does not match number of colors."
 
-        masses = [atomic_masses[symbols2numbers(m)] for m in symbols]
+        masses = [atomic_masses[symbols2numbers(m)] for m in labels]
         scm = tuple(
-            sorted(zip(symbols, colors, masses), key=lambda x: x[2], reverse=True)
+            sorted(zip(labels, colors, masses), key=lambda x: x[2], reverse=True)
         )
+        labels = [j[0] for j in scm]
+        colors = [j[1] for j in scm]
+        contributions = [spectrum.get_species_contribution(s, l=l) for s in labels]
 
-        handles = []
-        with AxesContext(ax=axes, **axargs) as axes:
-            for i, (s, c, m) in enumerate(scm):
-                cmap = self._color_to_alpha_cmap(c)
-                con = spectrum.get_species_contribution(s, l=l)
-                norm = Normalize(vmin=0, vmax=1.0)
-                handles.append(Line2D([0], [0], color=c, label=s, lw=1.5))
-                mlk = MullikenBandStructurePlot(
-                    ax=axes, con=con, cmap=cmap, norm=norm, **axargs, **bsargs, **kwargs
-                )
-                mlk.draw()
-            axes.legend(
-                handles=handles,
-                frameon=True,
-                fancybox=False,
-                borderpad=0.4,
-                loc="upper right",
-            )
-
+        self.plot_contributions(
+            axes=axes,
+            contributions=contributions,
+            colors=colors,
+            labels=labels,
+            **kwargs,
+        )
         return axes
 
-    def plot_gradient_contributions(
-        self, con1, con2, axes=None, colors=["blue", "red"], main=True, **kwargs
-    ):
-        axargs, kwargs, bsargs, mlkargs = self._process_kwargs(**kwargs)
-
-        assert len(colors) == 2, "You can only specify 2 colors."
-
-        con = con2 - con1
-        cmap = LinearSegmentedColormap.from_list("", colors)
-        my_cmap = cmap(np.arange(cmap.N))
-        my_cmap = ListedColormap(my_cmap)
-        norm = Normalize(vmin=-1.0, vmax=1.0)
-
-        with AxesContext(ax=axes, main=main, **axargs) as axes:
-            bs = BandStructurePlot(main=main, **bsargs)
-            axes = bs.draw()
-            x, y = bs.xy
-            mlk = MullikenBandStructurePlot(
-                x=x, y=y, con=con, cmap=cmap, norm=norm, **mlkargs
-            )
-            clb = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=axes)
-            clb.set_ticks([-1, 1])
-            clb.set_alpha(1)  # alpha leads to weird stripes in color bars
-            clb.set_ticklabels([con1.get_latex_symbol(), con2.get_latex_symbol()])
-
-        return axes
-
-    def plot_majority_contributions(
+    def plot_difference_contribution(
         self,
-        list_of_contributions=[],
+        con1,
+        con2,
         axes=None,
-        colors=[],
-        main=True,
+        colors=["blue", "red"],
         show_colorbar=True,
-        **kwargs
+        **kwargs,
     ):
-        axargs, kwargs, bsargs, mlkargs = self._process_kwargs(**kwargs)
-        scale_width = mlkargs.pop("scale_width", 2)
-
-        if list_of_contributions == []:
-            spectrum = bsargs["spectrum"]
-            symbols = set(self.structure.symbols)
-            list_of_contributions = [
-                spectrum.get_species_contribution(c) for c in symbols
-            ]
-
-        assert (
-            type(list_of_contributions) == list
-        ), "You have to specify the contributions as a list."
-
-        if colors == []:
-            cmap = plt.cm.get_cmap("tab10")
-            colors = [cmap(c) for c in np.linspace(0, 1, len(list_of_contributions))]
-        assert len(colors) == len(
-            list_of_contributions
-        ), "Number of colors does not match number of contributions."
-
-        con1 = list_of_contributions[0]
-        con = np.zeros(con1.contribution.shape)
-        for i, s, j in np.ndindex(con.shape):
-            # at each kpoint i, each spin s, each state j, compare which value is largest
-            l = [c.contribution[i, s, j] for c in list_of_contributions]
-            k = l.index(max(l))
-            # the index of the largest value is assigned to this point
-            con[i, s, j] = k + 1
-        con = MullikenContribution("Uh?", con, "eeeh")
-        symbols = [c.get_latex_symbol() for c in list_of_contributions]
-        cmap = ListedColormap(colors)
-        norm = BoundaryNorm(
-            [0.5 + j for j in range(len(colors))] + [len(colors) + 0.5], cmap.N
+        """Utility function to show difference of two contributions with a color gradient."""
+        kwargs = self._process_kwargs(kwargs)
+        kwargs["mode"] = "gradient"
+        contributions = [con1, con2]
+        self.plot_contributions(
+            axes=axes,
+            contributions=contributions,
+            colors=colors,
+            show_colorbar=show_colorbar,
+            **kwargs,
         )
-        with AxesContext(ax=axes, main=main, **axargs) as axes:
-            bs = BandStructurePlot(main=main, **bsargs)
-            axes = bs.draw()
-            x, y = bs.xy
-            mlk = MullikenBandStructurePlot(
-                x=x, y=y, con=con, cmap=cmap, norm=norm, scale_width=False, **mlkargs
-            )
-            axes = mlk.draw()
-            if show_colorbar:
-                clb = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=axes)
-                clb.set_ticks(range(1, len(colors) + 1))
-                clb.set_ticklabels(symbols)
-
-        return axes
-
-    def plot_custom_contribution(
-        self, contribution, axes=None, color="crimson", main=True, **kwargs
-    ):
-        axargs, kwargs, bsargs, mlkargs = self._process_kwargs(**kwargs)
-        con = contribution
-        cmap = self._color_to_alpha_cmap(color)
-        norm = Normalize(vmin=0, vmax=1.0)
-
-        with AxesContext(ax=axes, main=main, **axargs) as axes:
-            bs = BandStructurePlot(main=main, **bsargs)
-            axes = bs.draw()
-            x, y = bs.xy
-            MullikenBandStructurePlot(
-                x=x, y=y, con=con, cmap=cmap, norm=norm, **mlkargs
-            )
 
         return axes
 
     def plot_all_angular_momenta(
-        self, symbols="all", max_l="f", axes=None, colors=[], main=True, **kwargs
+        self,
+        symbols="all",
+        max_l="f",
+        axes=None,
+        colors=[],
+        show_colorbar=True,
+        **kwargs,
     ):
-        axargs, kwargs, bsargs, mlkargs = self._process_kwargs(**kwargs)
-        scale_width = mlkargs.pop("scale_width", 2)
+        """Utility function to show contributions of angular momenta (e.g., "s", "p", "d" orbitals).
+
+        Args:
+            max_l (str, optional): Maximum angular momentum to show. Defaults to "f".
+        """
+        kwargs = self._process_kwargs(kwargs)
+        kwargs["mode"] = "majority"
+        kwargs["scale_linewidth"] = 2
 
         momenta = ("s", "p", "d", "f", "g", "h")
         momenta = dict(zip(momenta, range(len(momenta))))
@@ -660,41 +660,15 @@ class MullikenBandStructure(BandStructureBaseClass):
             colors = [cmap(c) for c in np.linspace(0, 1, 6)]
             colors = colors[: len(momenta)]
 
-        lcons = [
+        contributions = [
             self.spectrum.get_group_contribution(symbols, l) for l in momenta.keys()
         ]
-        con = np.zeros(lcons[0].contribution.shape)
-        for i, s, j in np.ndindex(con.shape):
-            # at each kpoint i, each spin s, each state j, compare which value is largest
-            l = [c.contribution[i, s, j] for c in lcons]
-            k = l.index(max(l))
-            # the index of the largest value is assigned to this point
-            con[i, s, j] = k + 1
-        con = MullikenContribution("Uh?", con, "eeeh")
-
-        cmap = ListedColormap(colors)
-        norm = BoundaryNorm(
-            [0.5 + j for j in range(len(colors))] + [len(colors) + 0.5], cmap.N
+        self.plot_contributions(
+            axes=axes,
+            contributions=contributions,
+            colors=colors,
+            labels=list(momenta.keys()),
+            show_colorbar=show_colorbar,
+            **kwargs,
         )
-        with AxesContext(ax=axes, main=main, **axargs) as axes:
-            bs = BandStructurePlot(main=main, **bsargs)
-            axes = bs.draw()
-            x, y = bs.xy
-            mlk = MullikenBandStructurePlot(
-                x=x, y=y, con=con, cmap=cmap, norm=norm, scale_width=False, **mlkargs
-            )
-            axes = mlk.draw()
-            clb = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=axes)
-            clb.set_ticks(range(1, len(colors) + 1))
-            clb.set_ticklabels(list(momenta.keys()))
-
-        return axes
-
-    def plot(self, axes=None, color=mutedblack, main=True, **kwargs):
-        axargs, kwargs, bsargs, _ = self._process_kwargs(**kwargs)
-        with AxesContext(ax=axes, main=main, **axargs) as axes:
-            bs = BandStructurePlot(main=main, **bsargs)
-            axes = bs.draw()
-            x, y = bs.xy
-            axes.plot(x, y, color=color, **kwargs)
         return axes
