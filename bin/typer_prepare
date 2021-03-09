@@ -9,8 +9,7 @@ from typing import Tuple, List, Optional
 def main(
     geometryfile: str,
     tasks: Optional[List[str]] = typer.Option(
-        None,
-        help="Tasks to perform.",
+        None, "-j", "--task", help="Tasks to perform."
     ),
     xc: str = typer.Option("pbe", "--xc", help="Exchange correlation functional."),
     spin: str = typer.Option(
@@ -43,17 +42,11 @@ def main(
 ):
 
     set_verbosity_level(verbose)
-    vibes_keywords = [
-        "relaxation",
-        "go",
-        "geometry",
-        "phonons",
-        "phonon",
-        "phonopy",
-    ]
+    vibes_keywords = ["relaxation", "go", "geometry", "phonons", "phonon", "phonopy"]
     aims_keywords = ["bs", "dos", "fatbs"]
     k_grid = [] if k_grid == (None, None, None) else k_grid
     tasks = [k.lower() for k in tasks] if tasks != None else []
+    print(tasks)
 
     args = {
         "xc": xc,
