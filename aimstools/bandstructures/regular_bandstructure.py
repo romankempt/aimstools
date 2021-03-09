@@ -1,6 +1,7 @@
+from logging import raiseExceptions
 from aimstools.misc import *
 from aimstools.bandstructures.base import BandStructureBaseClass
-from aimstools.bandstructures.utilities import BandStructurePlot
+from aimstools.bandstructures.utilities import BandStructurePlot, BandSpectrum
 
 from ase.dft.kpoints import parse_path_string
 
@@ -16,7 +17,7 @@ class RegularBandStructure(BandStructureBaseClass):
         self.spin = "none" if self.control["spin"] != "collinear" else "collinear"
         self.task = "band structure"
         self.band_sections = self.band_sections.regular
-        self._bandpath = self.set_bandpath()
+        self._set_bandpath_from_sections()
         if self.spin == "none":
             bandfiles = self.get_bandfiles(spin="none", soc=soc)
             bandfiles = bandfiles.regular
@@ -69,12 +70,11 @@ class RegularBandStructure(BandStructureBaseClass):
             bands[pathsegment_r] = band_backward
         return bands
 
-    def get_spectrum(self, bandpath=None):
+    def get_spectrum(self, bandpath=None, reference=None):
         bands = self.bands
         if bandpath != None:
-            bp = parse_path_string(self.get_bandpath(bandpath).path)
-        else:
-            bp = parse_path_string(self.bandpath.path)
+            self.set_bandpath(bandpath)
+        bp = parse_path_string(self.bandpath.path)
         jumps = []
         kps = []
         occs = []
@@ -106,65 +106,93 @@ class RegularBandStructure(BandStructureBaseClass):
         kps = np.concatenate(kps, axis=0)
         kpoint_axis = np.concatenate(kpoint_axis, axis=0)
         occs = np.concatenate(occs, axis=0)
-        sp = namedtuple(
-            "spectrum",
-            [
-                "kpoints",
-                "kpoint_axis",
-                "eigenvalues",
-                "occupations",
-                "label_coords",
-                "kpoint_labels",
-                "jumps",
-            ],
-        )
-        return sp(kps, kpoint_axis, spectrum, occs, label_coords, kpoint_labels, jumps)
 
-    def _process_kwargs(self, **kwargs):
+        fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
+        self.set_energy_reference(reference, self.soc)
+        reference, shift = self.energy_reference
+        sp = BandSpectrum(
+            atoms=self.structure.atoms,
+            kpoints=kps,
+            kpoint_axis=kpoint_axis,
+            eigenvalues=spectrum,
+            occupations=occs,
+            label_coords=label_coords,
+            kpoint_labels=kpoint_labels,
+            jumps=jumps,
+            fermi_level=fermi_level,
+            reference=reference,
+            shift=shift,
+            bandpath=bandpath,
+        )
+        return sp
+
+    def _process_kwargs(self, kwargs):
         kwargs = kwargs.copy()
 
-        axargs = {}
-        axargs["figsize"] = kwargs.pop("figsize", (5, 5))
-        axargs["filename"] = kwargs.pop("filename", None)
-        axargs["title"] = kwargs.pop("title", None)
-
-        d = {}
         bandpath = kwargs.pop("bandpath", None)
         spin = kwargs.pop("spin", None)
-        reference = kwargs.pop("reference", None)
 
-        d["window"] = kwargs.pop("window", 3)
-        d["mark_fermi_level"] = kwargs.pop("mark_fermi_level", fermi_color)
-        d["mark_gap"] = kwargs.pop("mark_gap", True)
+        deprecated = ["title", "mark_fermi_level", "mark_band_gap"]
+        for dep in deprecated:
+            if dep in kwargs.keys():
+                kwargs.pop(dep)
+                logger.warning(
+                    f"Keyword {dep} is deprecated. Please do not use this anymore."
+                )
 
-        self.set_energy_reference(reference, self.soc)
         if bandpath != None:
             spectrum = self.get_spectrum(bandpath)
         else:
             spectrum = self.spectrum
-        vbm, cbm, indirect_gap, direct_gap = self.get_data_from_bandstructure(
-            spectrum, spin=spin
-        )
-        ref, shift = self.energy_reference
-        fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
 
-        d["spectrum"] = spectrum
-        d["spin"] = self.spin2index(spin)
-        d["vbm"] = vbm
-        d["cbm"] = cbm
-        d["indirect_gap"] = indirect_gap
-        d["direct_gap"] = direct_gap
-        d["ref"] = ref
-        d["shift"] = shift
-        d["fermi_level"] = fermi_level
+        kwargs["spectrum"] = spectrum
+        kwargs["spin"] = self.spin2index(spin)
 
-        return axargs, kwargs, d
+        return kwargs
 
-    def plot(self, axes=None, color=mutedblack, main=True, **kwargs):
-        axargs, kwargs, bsargs = self._process_kwargs(**kwargs)
-        with AxesContext(ax=axes, main=main, **axargs) as axes:
-            bs = BandStructurePlot(main=main, **bsargs)
-            axes = bs.draw()
-            x, y = bs.xy
-            axes.plot(x, y, color=color, **kwargs)
+    def plot(self, axes=None, **kwargs):
+        """Main function to handle plotting of band structures. Supports all keywords of :func:`~aimstools.bandstructures.regular_bandstructure.RegularBandStructure.plot`.
+
+        Example:
+            >>> from aimstools.bandstructures import RegularBandStructure as RBS
+            >>> bs = RBS("path/to/dir")
+            >>> bs.plot()
+
+        Args:            
+            axes (matplotlib.axes.Axes): Axes to draw on, defaults to None.
+            figsize (tuple): Figure size in inches. Defaults to (5,5).
+            filename (str): Saves figure to file. Defaults to None.
+            spin (int): Spin channel, can be "up", "dn", 0 or 1. Defaults to 0.       
+            bandpath (str): Band path for plotting of form "GMK,GA".
+            reference (str): Energy reference for plotting, e.g., "VBM", "middle", "fermi level". Defaults to None.
+            show_fermi_level (bool): Show Fermi level. Defaults to True.
+            fermi_level_color (str): Color of Fermi level line. Defaults to fermi_color.
+            fermi_level_alpha (float): Alpha channel of Fermi level line. Defaults to 1.0.
+            fermi_level_linestyle (str): Line style of Fermi level line. Defaults to "--".
+            fermi_level_linewidth (float): Line width of Fermi level line. Defaults to mpllinewidth.
+            show_grid_lines (bool): Show grid lines for axes ticks. Defaults to True.
+            grid_lines_axes (str): Show grid lines for given axes. Defaults to "x".
+            grid_linestyle (tuple): Grid lines linestyle. Defaults to (0, (1, 1)).
+            grid_linewidth (float): Width of grid lines. Defaults to 1.0.
+            show_jumps (bool): Show jumps between Brillouin zone sections by darker vertical lines. Defaults to True.
+            jumps_linewidth (float): Width of jump lines. Defaults to mpllinewidth.
+            jumps_linestyle (str): Line style of the jump lines. Defaults to "-".
+            jumps_linecolor (str): Color of the jump lines. Defaults to mutedblack.
+            show_bandstructure (bool): Show band structure lines. Defaults to True.
+            bands_color (bool): Color of the band structure lines. Synonymous with color. Defaults to mutedblack.            
+            bands_linewidth (float): Line width of band structure lines. Synonymous with linewidth. Defaults to mpllinewidth.         
+            bands_linestyle (str): Band structure lines linestyle. Synonymous with linestyle. Defaults to "-".           
+            bands_alpha (float): Band structure lines alpha channel. Synonymous with alpha. Defaults to 1.0.
+            show_bandgap_vertices (bool): Show direct and indirect band gap transitions. Defaults to True.
+            window (tuple): Window on energy axis, can be float or tuple of two floats in eV. Defaults to 3 eV.
+            y_tick_locator (float): Places ticks on energy axis on regular intervals. Defaults to 0.5 eV.
+       
+        Returns:
+            axes: Axes object.        
+        """
+        kwargs = self._process_kwargs(kwargs)
+        with AxesContext(ax=axes, **kwargs) as axes:
+            bs = BandStructurePlot(ax=axes, **kwargs)
+            bs.draw()
+
         return axes

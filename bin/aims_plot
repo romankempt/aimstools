@@ -185,7 +185,7 @@ if __name__ == "__main__":
         logger.info("Processing {}".format(mbs))
         ax_mlk = fig.add_subplot(spec[j])
         plt.sca(ax_mlk)
-        mbs.plot_majority_contributions(axes=ax_mlk, **kwargs)
+        mbs.plot_majority_contribution(axes=ax_mlk, **kwargs)
         ax_mlk.set_title("Majority contribution")
         if j > 0:
             ax_mlk.set_ylabel("")
@@ -228,7 +228,7 @@ if __name__ == "__main__":
         else:
             ax_bz = fig.add_subplot(spec[j], projection="3d")
         plt.sca(ax_bz)
-        bp = bzs.set_bandpath() if bp == None else bzs.get_bandpath(bp)
+        bp = bzs.bandpath
         bz = BrillouineZone(bzs.structure, bp.path, special_points=bp.special_points)
         logger.info("Processing {}".format(bz))
         ax_bz = bz.plot(axes=ax_bz)

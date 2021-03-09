@@ -59,8 +59,11 @@ class BandStructure:
             )
 
     def __repr__(self):
-        return "{}(outputfile={}, spin_orbit_coupling={})".format(
-            self.__class__.__name__, repr(self.outputfile), self.soc
+        return "{}(bandstructure_zora={}, bandstructure_soc={}, bandstructure_mulliken={})".format(
+            self.__class__.__name__,
+            self.bandstructure_zora,
+            self.bandstructure_soc,
+            self.bandstructure_mulliken,
         )
 
     @property
@@ -85,6 +88,11 @@ class BandStructure:
         soc_bands_color="crimson",
         **kwargs
     ):
+        """Utility function to quickly visualize band structure without much customization.
+
+        Todo:
+            Rewrite this part.
+        """
         base = self.base
         if kwargs.get("spin") != None:
             raise Exception("Roman did not implement spin plotting in this class yet.")
@@ -149,7 +157,7 @@ class BandStructure:
                 ax_bz = fig.add_subplot(1, ncols, i)
             else:
                 ax_bz = fig.add_subplot(1, ncols, i, projection="3d")
-            bp = bs.set_bandpath() if bp == None else bs.get_bandpath(bp)
+            bp = bs.bandpath
             bz = BrillouineZone(
                 base.structure, bp.path, special_points=bp.special_points
             )
@@ -159,46 +167,18 @@ class BandStructure:
         plt.show()
 
     def get_properties(self, bandstructureclass=None, spin="none"):
+        """Utility function to print out band gap properties for given spin channel."""
         bs = bandstructureclass or (
             (self.bandstructure_soc or self.bandstructure_zora)
             or self.bandstructure_mulliken
         )
-        assert spin == "none", "Spin other than none not wrapped yet."
-        vbm, cbm, igap, dgap = bs.get_data_from_bandstructure(spin=spin)
+
         soc = bs.soc
         bg = bs.bandgap.soc if soc else bs.bandgap.scalar
-        be = bs.band_extrema
-        i = "direct" if igap == None else "indirect"
         logger.info(
             "The band structure has been calculated {} spin-orbit-coupling.".format(
                 "with" if soc else "without"
             )
         )
-        logger.info("The fundamental band gap is {}.".format(i))
-        if i == "indirect":
-            logger.info(
-                "The size of the band gap is {:.4f} eV from the outputfile and {:.4f} eV from the spectrum.".format(
-                    bg, abs(cbm - vbm)
-                )
-            )
-            logger.info(
-                "The valence band maximum is located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
-                    *igap.k1
-                )
-            )
-            logger.info(
-                "The conduction band minimum is located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
-                    *igap.k2
-                )
-            )
-            logger.info(
-                "The smallest direct band gap is {:.4f} eV large and is located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
-                    dgap.value, *dgap.k
-                )
-            )
-        if i == "direct":
-            logger.info(
-                "The band gap is {:.4f} eV large and is located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
-                    dgap.value, *dgap.k
-                )
-            )
+        logger.info("The band gap from the output file is {:.4f} eV large.".format(bg))
+        bs.spectrum.print_bandgap_information(spin=spin)

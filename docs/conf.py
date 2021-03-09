@@ -125,11 +125,13 @@ github_doc_root = "https://github.com/rtfd/recommonmark/tree/master/doc/"
 # dummv variables to avoid errors
 nbsphinx_allow_errors = True
 import os
-os.environ['AIMS_SPECIES_DIR'] = 'fake'
-os.environ['ASE_AIMS_COMMAND'] = 'fake'
-os.environ['AIMS_EXECUTABLE'] = 'fake'
-os.environ['AIMS_SLURM_TEMPLATE'] = 'fake'
-os.environ['VIBES_SLURM_TEMPLATE'] = 'fake'
+
+os.environ["AIMS_SPECIES_DIR"] = "fake"
+os.environ["ASE_AIMS_COMMAND"] = "fake"
+os.environ["AIMS_EXECUTABLE"] = "fake"
+os.environ["AIMS_SLURM_TEMPLATE"] = "fake"
+os.environ["VIBES_SLURM_TEMPLATE"] = "fake"
+
 
 def setup(app):
     app.add_config_value(
