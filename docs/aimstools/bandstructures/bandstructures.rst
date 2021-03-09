@@ -12,4 +12,5 @@ Bandstructures
    aimstools.bandstructures.regular_bandstructure
    aimstools.bandstructures.mulliken_bandstructure
    aimstools.bandstructures.brillouinezone
+   aimstools.bandstructures.utilities
 

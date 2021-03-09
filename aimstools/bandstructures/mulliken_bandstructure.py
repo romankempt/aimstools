@@ -7,9 +7,6 @@ from aimstools.bandstructures.utilities import (
 from aimstools.bandstructures.bandstructure import BandStructureBaseClass
 
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
-from matplotlib.colors import ListedColormap, BoundaryNorm, LinearSegmentedColormap
-from matplotlib.colors import Normalize
 from matplotlib.colors import is_color_like
 
 from ase.dft.kpoints import parse_path_string
@@ -27,7 +24,7 @@ class MullikenSpectrum(BandSpectrum):
     """Container class for eigenvalue spectrum and mulliken contributions.
 
     Attributes:
-        contributions (MullikenContribution): `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution`.
+        contributions (MullikenContribution): :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution`.
 
     """
 
@@ -68,7 +65,7 @@ class MullikenSpectrum(BandSpectrum):
         return self._contributions
 
     def get_atom_contribution(self, index, l="tot"):
-        """Returns `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution` of given atom index.
+        """Returns :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution` of given atom index.
 
         Args:
             index (int): Index of atom.
@@ -93,7 +90,7 @@ class MullikenSpectrum(BandSpectrum):
         return s
 
     def get_species_contribution(self, symbol, l="tot"):
-        """Returns `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution` of given species symbol.
+        """Returns :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution` of given species symbol.
 
         Args:
             symbol (str): Species symbol, e.g., "C".
@@ -110,7 +107,7 @@ class MullikenSpectrum(BandSpectrum):
         return MullikenContribution(symbol, cons, l)
 
     def get_group_contribution(self, symbols, l="tot"):
-        """Returns sum of `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution` of given list of species."""
+        """Returns sum of :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution` of given list of species."""
         symbols = [self.get_symbol(s) for s in symbols]
         cons = sum([self.get_species_contribution(s, l) for s in symbols])
         return cons
@@ -230,7 +227,7 @@ class MullikenBandStructure(BandStructureBaseClass):
     A mulliken-projected band structure shows the momentum-resolved Mulliken contribution of each atom to the energy.
 
     Attributes:
-        spectrum: `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenSpectrum`.        
+        spectrum: :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenSpectrum`.        
     """
 
     def __init__(self, outputfile, soc=False) -> None:
@@ -324,7 +321,7 @@ class MullikenBandStructure(BandStructureBaseClass):
         return bands
 
     def get_mlk_spectrum(self, bandpath=None, reference=None):
-        """ Returns `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenSpectrum` for a given bandpath.
+        """ Returns :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenSpectrum` for a given bandpath.
         
         Bandpath should be ASE-formatted string, e.g., "GMKG,A", where the "," denotes jumps.
         """
@@ -436,11 +433,12 @@ class MullikenBandStructure(BandStructureBaseClass):
         return kwargs
 
     def plot(self, axes=None, **kwargs):
-        """ Same as `:func:~aimstools.bandstructures.regular_bandstructure.RegularBandStructure.plot` """
+        """ Same as :func:`~aimstools.bandstructures.regular_bandstructure.RegularBandStructure.plot` """
         kwargs = self._process_kwargs(kwargs)
+        kwargs["show_bandstructure"] = True
         with AxesContext(ax=axes, **kwargs) as axes:
             bs = BandStructurePlot(ax=axes, **kwargs)
-            axes = bs.draw()
+            bs.draw()
 
         return axes
 
@@ -452,17 +450,17 @@ class MullikenBandStructure(BandStructureBaseClass):
         labels: list = [],
         **kwargs,
     ):
-        """Main function to handle plotting of Mulliken spectra. Supports all keywords of `:func:~aimstools.bandstructures.regular_bandstructure.RegularBandStructure.plot`.
+        """Main function to handle plotting of Mulliken spectra. Supports all keywords of :func:`~aimstools.bandstructures.regular_bandstructure.RegularBandStructure.plot`.
 
         Example:
             >>> from aimstools.bandstructures import MullikenBandStructure as MBS
-            >>> bs = mbs("path/to/dir")
+            >>> bs = MBS("path/to/dir")
             >>> con1 = bs.spectrum.get_species_contribution("S")
             >>> con2 = bs.spectrum.get_species_contribution("F")
             >>> bs.plot_contributions(contributions=[con1, con2], labels=["foo", "bar"], colors=["green", "blue"], mode="scatter")
 
         Args:            
-            contributions (list, optional): List of `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution`. Defaults to [].
+            contributions (list, optional): List of :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution`. Defaults to [].
             colors (list, optional): List of colors. Defaults to [].
             labels (list, optional): List of labels. Defaults to [].
             mode (str, optional):  Plotting mode, can be "lines", "scatter", "majority" or "gradient". Defaults to "lines".

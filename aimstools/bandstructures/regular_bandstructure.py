@@ -151,9 +151,48 @@ class RegularBandStructure(BandStructureBaseClass):
         return kwargs
 
     def plot(self, axes=None, **kwargs):
+        """Main function to handle plotting of band structures. Supports all keywords of :func:`~aimstools.bandstructures.regular_bandstructure.RegularBandStructure.plot`.
+
+        Example:
+            >>> from aimstools.bandstructures import RegularBandStructure as RBS
+            >>> bs = RBS("path/to/dir")
+            >>> bs.plot()
+
+        Args:            
+            axes (matplotlib.axes.Axes): Axes to draw on, defaults to None.
+            figsize (tuple): Figure size in inches. Defaults to (5,5).
+            filename (str): Saves figure to file. Defaults to None.
+            spin (int): Spin channel, can be "up", "dn", 0 or 1. Defaults to 0.       
+            bandpath (str): Band path for plotting of form "GMK,GA".
+            reference (str): Energy reference for plotting, e.g., "VBM", "middle", "fermi level". Defaults to None.
+            show_fermi_level (bool): Show Fermi level. Defaults to True.
+            fermi_level_color (str): Color of Fermi level line. Defaults to fermi_color.
+            fermi_level_alpha (float): Alpha channel of Fermi level line. Defaults to 1.0.
+            fermi_level_linestyle (str): Line style of Fermi level line. Defaults to "--".
+            fermi_level_linewidth (float): Line width of Fermi level line. Defaults to mpllinewidth.
+            show_grid_lines (bool): Show grid lines for axes ticks. Defaults to True.
+            grid_lines_axes (str): Show grid lines for given axes. Defaults to "x".
+            grid_linestyle (tuple): Grid lines linestyle. Defaults to (0, (1, 1)).
+            grid_linewidth (float): Width of grid lines. Defaults to 1.0.
+            show_jumps (bool): Show jumps between Brillouin zone sections by darker vertical lines. Defaults to True.
+            jumps_linewidth (float): Width of jump lines. Defaults to mpllinewidth.
+            jumps_linestyle (str): Line style of the jump lines. Defaults to "-".
+            jumps_linecolor (str): Color of the jump lines. Defaults to mutedblack.
+            show_bandstructure (bool): Show band structure lines. Defaults to True.
+            bands_color (bool): Color of the band structure lines. Synonymous with color. Defaults to mutedblack.            
+            bands_linewidth (float): Line width of band structure lines. Synonymous with linewidth. Defaults to mpllinewidth.         
+            bands_linestyle (str): Band structure lines linestyle. Synonymous with linestyle. Defaults to "-".           
+            bands_alpha (float): Band structure lines alpha channel. Synonymous with alpha. Defaults to 1.0.
+            show_bandgap_vertices (bool): Show direct and indirect band gap transitions. Defaults to True.
+            window (tuple): Window on energy axis, can be float or tuple of two floats in eV. Defaults to 3 eV.
+            y_tick_locator (float): Places ticks on energy axis on regular intervals. Defaults to 0.5 eV.
+       
+        Returns:
+            axes: Axes object.        
+        """
         kwargs = self._process_kwargs(kwargs)
         with AxesContext(ax=axes, **kwargs) as axes:
             bs = BandStructurePlot(ax=axes, **kwargs)
-            axes = bs.draw()
+            bs.draw()
 
         return axes

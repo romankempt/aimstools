@@ -2,7 +2,6 @@ import logging
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import pretty_errors
-
 from rich.logging import RichHandler
 
 import contextvars
@@ -69,8 +68,6 @@ def set_global_plotsettings():
     rcParams["font.size"] = 12
     rcParams["legend.fontsize"] = 12
     rcParams["legend.handlelength"] = 1
-    # rcParams["font.sans-serif"] = "Arial"
-    rcParams["font.family"] = "sans-serif"
     rcParams["text.usetex"] = False
     rcParams["mathtext.fontset"] = "stixsans"
 

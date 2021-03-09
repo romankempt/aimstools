@@ -118,7 +118,7 @@ class BandSpectrum:
         kpoint_axis (ndarray): (nkpoints, 1) linear plotting axis.
         eigenvalues (ndarray): (nkpoints, nbands) array with eigenvalues in eV.
         occupations (ndarray): (nkpoints, nbands) array with occupations.
-        contributions (MullikenContribution): `:class:~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution`.
+        contributions (MullikenContribution): :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution`.
         label_coords (list): List of k-point label coordinates on the plotting axis.
         kpoint_labels (list): List of k-point labels.
         jumps (list): List of jumps from unconnected Brillouin zone sections on the plotting axis.
@@ -334,6 +334,50 @@ class BandSpectrum:
     def bandpath(self):
         return self._bandpath
 
+    def print_bandgap_information(self, spin="none"):
+        spin = self._spin2index(spin)
+        if self.bandgap == 0.0:
+            logger.info("The system appears metallic.")
+        else:
+            try:
+                dgap = self.get_direct_gap(spin)
+            except:
+                raise Exception("Could not determine direct band gap.")
+            try:
+                igap = self.get_indirect_gap(spin)
+            except:
+                raise Exception("Could not determine indirect band gap.")
+        if dgap.value <= igap.value:
+            # fundamental = "direct"
+            logger.info(
+                f"From the spectrum, the fundamental band gap is {dgap.value} eV large and direct."
+            )
+            logger.info(
+                "The VBM and CBM are located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
+                    *dgap.kpoint
+                )
+            )
+        else:
+            # fundamental = "indirect"
+            logger.info(
+                f"From the spectrum, the fundamental band gap is {igap.value} eV large and indirect."
+            )
+            logger.info(
+                "The VBM is located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
+                    *igap.kpoint1
+                )
+            )
+            logger.info(
+                "The CBM is located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
+                    *igap.kpoint2
+                )
+            )
+            logger.info(
+                "The smallest direct band gap is {:.4f} eV large and is located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
+                    dgap.value, *dgap.kpoint
+                )
+            )
+
 
 class BandStructurePlot:
     """Context to draw band structure plot. Handles the correct shifting, labeling and axes limits."""
@@ -458,10 +502,7 @@ class BandStructurePlot:
         elif len(window) == 2:
             lower_ylimit, upper_ylimit = window[0], window[1]
             if self.reference in ["work function", "user-specified"]:
-                lower_ylimit, upper_ylimit = (
-                    window[0],
-                    window[1],
-                )
+                lower_ylimit, upper_ylimit = (window[0], window[1])
         else:
             logger.error("Energy window not recognized.")
             lower_ylimit, upper_ylimit = self.ax.get_ylim()
@@ -548,6 +589,8 @@ class BandStructurePlot:
 
 
 class MullikenBandStructurePlot(BandStructurePlot):
+    """Context to draw mulliken band structures. Handles legends, color maps, etc."""
+
     def __init__(self, contributions=None, **kwargs) -> None:
         super().__init__(**kwargs)
         self.contributions = contributions
@@ -625,8 +668,6 @@ class MullikenBandStructurePlot(BandStructurePlot):
                 con = self._get_majority_contribution()
                 band_width = con.contribution[:, self.spin, band].copy()
                 self.plot_linecollection(band_x, band_y, band_width, self.cmaps)
-                if self.show_colorbar:
-                    self._show_colorbar()
             elif self.mode == "lines":
                 for i, con in enumerate(self.contributions):
                     band_width = con.contribution[:, self.spin, band].copy()
@@ -639,8 +680,6 @@ class MullikenBandStructurePlot(BandStructurePlot):
                 con = self._get_difference_contribution()
                 band_width = con.contribution[:, self.spin, band].copy()
                 self.plot_linecollection(band_x, band_y, band_width, self.cmaps)
-                if self.show_colorbar:
-                    self._show_colorbar()
             else:
                 raise Exception(f"Mode {self.mode} not implemented.")
 
@@ -686,9 +725,7 @@ class MullikenBandStructurePlot(BandStructurePlot):
             swidths = band_width.copy() * self.scale_width_factor
         else:
             swidths = 1.5
-        self.ax.scatter(
-            band_x, band_y, c=swidths, cmap=cmap, norm=self.norm, s=swidths,
-        )
+        self.ax.scatter(band_x, band_y, c=swidths, cmap=cmap, norm=self.norm, s=swidths)
 
     def interpolate_bands_1d(self, band_x, band_y, band_width, interpolation_step):
         f1 = interpolate.interp1d(band_x, band_y)
