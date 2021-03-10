@@ -685,6 +685,8 @@ class MullikenBandStructurePlot(BandStructurePlot):
 
         if self.show_colorbar:
             self._show_colorbar()
+        if self.show_legend:
+            self._show_legend()
 
     def plot_linecollection(self, band_x, band_y, band_width, cmap):
         band_x = band_x.copy()
@@ -746,7 +748,10 @@ class MullikenBandStructurePlot(BandStructurePlot):
         clb = plt.colorbar(
             plt.cm.ScalarMappable(norm=self.norm, cmap=self.cmaps), ax=self.ax
         )
-        clb.set_ticks(range(1, len(self.bands_color) + 1))
+        if self.mode == "majority":
+            clb.set_ticks(range(1, len(self.labels) + 1))
+        elif self.mode == "gradient":
+            clb.set_ticks([-1, 1])
         clb.set_ticklabels(self.labels)
 
     def _get_majority_contribution(self):
@@ -774,7 +779,7 @@ class MullikenBandStructurePlot(BandStructurePlot):
         handles = []
         for c, l in zip(self.colors, self.labels):
             handles.append(Line2D([0], [0], color=c, label=l, lw=self.legend_linewidth))
-        self.axes.legend(
+        self.ax.legend(
             handles=handles,
             frameon=self.legend_frameon,
             fancybox=self.legend_fancybox,
@@ -787,7 +792,7 @@ class MullikenBandStructurePlot(BandStructurePlot):
         assert (
             len(self.contributions) == 2
         ), "Difference contribution is only possible for exactly two contributions."
-        con = self.contributions[1] - self.contributions[0]
+        con = self.contributions[0] - self.contributions[1]
         cmap = LinearSegmentedColormap.from_list("", self.colors)
         my_cmap = cmap(np.arange(cmap.N))
         my_cmap = ListedColormap(my_cmap)
