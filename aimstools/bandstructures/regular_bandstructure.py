@@ -128,8 +128,6 @@ class RegularBandStructure(BandStructureBaseClass):
 
     def _process_kwargs(self, kwargs):
         kwargs = kwargs.copy()
-
-        bandpath = kwargs.pop("bandpath", None)
         spin = kwargs.pop("spin", None)
 
         deprecated = ["title", "mark_fermi_level", "mark_band_gap"]
@@ -140,12 +138,6 @@ class RegularBandStructure(BandStructureBaseClass):
                     f"Keyword {dep} is deprecated. Please do not use this anymore."
                 )
 
-        if bandpath != None:
-            spectrum = self.get_spectrum(bandpath)
-        else:
-            spectrum = self.spectrum
-
-        kwargs["spectrum"] = spectrum
         kwargs["spin"] = self.spin2index(spin)
 
         return kwargs
@@ -191,8 +183,13 @@ class RegularBandStructure(BandStructureBaseClass):
             axes: Axes object.        
         """
         kwargs = self._process_kwargs(kwargs)
+        bandpath = kwargs.pop("bandpath", None)
+        reference = kwargs.pop("reference", None)
+        if bandpath != None or reference != None:
+            self.spectrum = self.get_spectrum(bandpath=bandpath, reference=reference)
+
         with AxesContext(ax=axes, **kwargs) as axes:
-            bs = BandStructurePlot(ax=axes, **kwargs)
+            bs = BandStructurePlot(ax=axes, spectrum=self.spectrum, **kwargs)
             bs.draw()
 
         return axes

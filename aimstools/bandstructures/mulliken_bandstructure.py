@@ -1,3 +1,4 @@
+from aimstools.structuretools import structure
 from aimstools.misc import *
 from aimstools.bandstructures.utilities import (
     BandSpectrum,
@@ -108,7 +109,8 @@ class MullikenSpectrum(BandSpectrum):
 
     def get_group_contribution(self, symbols, l="tot"):
         """Returns sum of :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution` of given list of species."""
-        symbols = [self.get_symbol(s) for s in symbols]
+        symbols = [string2symbols(s) for s in symbols]
+        symbols = set([item for sublist in symbols for item in sublist])
         cons = sum([self.get_species_contribution(s, l) for s in symbols])
         return cons
 
@@ -412,7 +414,6 @@ class MullikenBandStructure(BandStructureBaseClass):
     def _process_kwargs(self, kwargs):
         kwargs = kwargs.copy()
 
-        bandpath = kwargs.pop("bandpath", None)
         spin = kwargs.pop("spin", None)
         kwargs["show_bandstructure"] = kwargs.pop("show_bandstructure", False)
 
@@ -422,12 +423,6 @@ class MullikenBandStructure(BandStructureBaseClass):
                 kwargs.pop(dep)
                 logger.warning(f"Keyword {dep} is deprecated.")
 
-        if bandpath != None:
-            spectrum = self.get_spectrum(bandpath)
-        else:
-            spectrum = self.spectrum
-
-        kwargs["spectrum"] = spectrum
         kwargs["spin"] = self.spin2index(spin)
 
         return kwargs
@@ -436,11 +431,79 @@ class MullikenBandStructure(BandStructureBaseClass):
         """ Same as :func:`~aimstools.bandstructures.regular_bandstructure.RegularBandStructure.plot` """
         kwargs = self._process_kwargs(kwargs)
         kwargs["show_bandstructure"] = True
+        bandpath = kwargs.pop("bandpath", None)
+        reference = kwargs.pop("reference", None)
+        if bandpath != None or reference != None:
+            self.spectrum = self.get_spectrum(bandpath=bandpath, reference=reference)
+
         with AxesContext(ax=axes, **kwargs) as axes:
-            bs = BandStructurePlot(ax=axes, **kwargs)
+            bs = BandStructurePlot(ax=axes, spectrum=self.spectrum, **kwargs)
             bs.draw()
 
         return axes
+
+    def _process_contributions(self, contributions):
+        """Helper function to format list of contributions."""
+
+        momenta = ["tot", "s", "p", "d", "f", "g", "h"]
+        if isinstance(contributions, (str, int)):
+            contributions = [contributions]
+        elif isinstance(contributions, (list, tuple)):
+            assert len(contributions) > 0, "Contributions cannot be empty list."
+            if isinstance(contributions, (list, tuple)) and len(contributions) == 2:
+                if isinstance(contributions[0], (str, int)) and isinstance(
+                    contributions[1], (str)
+                ):
+                    # corner case if only (symbol, l) is specified
+                    if contributions[1] in momenta:
+                        contributions = [contributions]
+
+        if isinstance(contributions, (list, tuple)):
+            for i, j in enumerate(contributions):
+                if isinstance(j, (list, tuple)):
+                    assert len(j) == 2, f"Too many entries specified for component {j}."
+                    assert isinstance(
+                        j[0], (str, int, tuple)
+                    ), f"Contribution identifier of {j} must be string, tuple or integer index."
+                    assert isinstance(
+                        j[1], (str,)
+                    ), f"Angular momentum of {j} identifier must be string."
+                elif isinstance(j, (str, int)):
+                    assert (
+                        j not in momenta
+                    ), f"Angular momentum specified at position {i} without contribution identifier."
+                    contributions[i] = (j, "tot")
+        else:
+            raise Exception("Contributions not recognized.")
+
+        new_cons = []
+        for con in contributions:
+            i, l = con
+            if isinstance(i, (int,)):
+                assert i in range(
+                    len(self.structure)
+                ), f"Index {i} is out of bounds for length of atoms."
+                new_cons.append(self.spectrum.get_atom_contribution(i, l))
+            if isinstance(i, (tuple,)):
+                indices = [j for j in i]
+                for j in indices:
+                    assert j in range(
+                        len(self.structure)
+                    ), f"Index {i} is out of bounds for length of atoms."
+                new_cons.append(
+                    sum([self.spectrum.get_atom_contribution(k, l) for k in indices])
+                )
+            if isinstance(i, (str,)):
+                if i == "all":
+                    i = self.structure.get_chemical_formula()
+                try:
+                    s = string2symbols(i)
+                except Exception as expt:
+                    raise Exception(
+                        "String could not be interpreted as atomic symbols."
+                    )
+                new_cons.append(self.spectrum.get_group_contribution(s, l=l))
+        return new_cons
 
     def plot_contributions(
         self,
@@ -452,15 +515,23 @@ class MullikenBandStructure(BandStructureBaseClass):
     ):
         """Main function to handle plotting of Mulliken spectra. Supports all keywords of :func:`~aimstools.bandstructures.regular_bandstructure.RegularBandStructure.plot`.
 
+        Contributions should be a list of identifiers that can be interpreted by :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenSpectrum`.
+        They are converted to a list of :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution`.
+        
+        The following combinations of contribution formats are accepted:
+            - integers containing atom indices (e.g., [0,1,2,3])
+            - species symbols (e.g., ["Mo", "S"])
+            - symbol groups (e.g., ["MoS", "CH"])
+            - tuples specifying an identifier and an angular momentum (e.g., [("all", "s")])
+            - tuples containing a tuple of atom indices and an angular momentum (e.g., [((0,1,2), "tot")])
+
         Example:
             >>> from aimstools.bandstructures import MullikenBandStructure as MBS
             >>> bs = MBS("path/to/dir")
-            >>> con1 = bs.spectrum.get_species_contribution("S")
-            >>> con2 = bs.spectrum.get_species_contribution("F")
-            >>> bs.plot_contributions(contributions=[con1, con2], labels=["foo", "bar"], colors=["green", "blue"], mode="scatter")
+            >>> bs.plot_contributions(contributions=["F", "CH"], labels=["foo", "bar"], colors=["green", "blue"], mode="scatter")
 
         Args:            
-            contributions (list, optional): List of :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution`. Defaults to [].
+            contributions (list, optional): List of contribution identifiers. Defaults to [].
             colors (list, optional): List of colors. Defaults to [].
             labels (list, optional): List of labels. Defaults to [].
             mode (str, optional):  Plotting mode, can be "lines", "scatter", "majority" or "gradient". Defaults to "lines".
@@ -482,16 +553,14 @@ class MullikenBandStructure(BandStructureBaseClass):
         """
 
         kwargs = self._process_kwargs(kwargs)
-        if isinstance(contributions, (MullikenContribution,)):
-            contributions = [contributions]
-        elif isinstance(contributions, (list, tuple)):
-            assert len(contributions) > 0, "Contributions cannot be empty list."
-            assert all(
-                isinstance(j, MullikenContribution) for j in contributions
-            ), "Contributions must be of type MullikenContribution."
-        else:
-            raise Exception("Contributions not recognized.")
+        bandpath = kwargs.pop("bandpath", None)
+        reference = kwargs.pop("reference", None)
+        if bandpath != None or reference != None:
+            self.spectrum = self.get_mlk_spectrum(
+                bandpath=bandpath, reference=reference
+            )
 
+        contributions = self._process_contributions(contributions)
         if isinstance(colors, (list, np.array)):
             if len(colors) == 0:
                 cmap = plt.cm.get_cmap("tab10")
@@ -524,6 +593,7 @@ class MullikenBandStructure(BandStructureBaseClass):
         with AxesContext(ax=axes, **kwargs) as axes:
             mbs = MullikenBandStructurePlot(
                 ax=axes,
+                spectrum=self.spectrum,
                 contributions=contributions,
                 labels=labels,
                 colors=colors,
@@ -550,9 +620,8 @@ class MullikenBandStructure(BandStructureBaseClass):
         kwargs["mode"] = "majority"
 
         if contributions == []:
-            spectrum = kwargs["spectrum"]
-            symbols = set(self.structure.symbols)
-            contributions = [spectrum.get_species_contribution(c) for c in symbols]
+            contributions = list(set(self.structure.symbols))
+            labels = list(set(self.structure.symbols))
 
         self.plot_contributions(
             axes=axes,
@@ -564,20 +633,17 @@ class MullikenBandStructure(BandStructureBaseClass):
         )
         return axes
 
-    def plot_all_species(self, axes=None, species="all", l="tot", colors=[], **kwargs):
-        """Utility function to show species contributions of given species or all of them.
+    def plot_all_species(
+        self, axes=None, l="tot", colors=[], show_legend=True, **kwargs
+    ):
+        """Utility function to all show species contributions.
 
         Args:
-            species (str, optional): "All" or list of species symbols. Defaults to "all".
             l (str, optional): Angular momentum. Defaults to "tot".
         """
         kwargs = self._process_kwargs(kwargs)
-        spectrum = kwargs["spectrum"]
-
-        if species in ["all", "None", None, "All", []]:
-            labels = set([k.symbol for k in self.structure])
-        else:
-            labels = set(species)
+        contributions = [(j, l) for j in set(self.structure.symbols)]
+        labels = set(self.structure.symbols)
 
         if len(colors) == 0:
             colors = [jmol_colors[symbols2numbers(n)][0] for n in labels]
@@ -592,13 +658,13 @@ class MullikenBandStructure(BandStructureBaseClass):
         )
         labels = [j[0] for j in scm]
         colors = [j[1] for j in scm]
-        contributions = [spectrum.get_species_contribution(s, l=l) for s in labels]
 
         self.plot_contributions(
             axes=axes,
             contributions=contributions,
             colors=colors,
             labels=labels,
+            show_legend=show_legend,
             **kwargs,
         )
         return axes
@@ -627,13 +693,7 @@ class MullikenBandStructure(BandStructureBaseClass):
         return axes
 
     def plot_all_angular_momenta(
-        self,
-        symbols="all",
-        max_l="f",
-        axes=None,
-        colors=[],
-        show_colorbar=True,
-        **kwargs,
+        self, max_l="f", axes=None, colors=[], show_colorbar=True, **kwargs
     ):
         """Utility function to show contributions of angular momenta (e.g., "s", "p", "d" orbitals).
 
@@ -648,19 +708,13 @@ class MullikenBandStructure(BandStructureBaseClass):
         momenta = dict(zip(momenta, range(len(momenta))))
         momenta = {k: v for k, v in momenta.items() if v <= momenta[max_l]}
 
-        if symbols in ["all", "None", None, "All", []]:
-            symbols = set([k.symbol for k in self.structure])
-        else:
-            symbols = set(symbols)
+        contributions = [("all", l) for l in momenta.keys()]
 
         if colors == []:
             cmap = plt.cm.get_cmap("tab10")
             colors = [cmap(c) for c in np.linspace(0, 1, 6)]
             colors = colors[: len(momenta)]
 
-        contributions = [
-            self.spectrum.get_group_contribution(symbols, l) for l in momenta.keys()
-        ]
         self.plot_contributions(
             axes=axes,
             contributions=contributions,
