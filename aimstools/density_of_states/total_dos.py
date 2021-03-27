@@ -44,7 +44,7 @@ class TotalDOS(DOSBaseClass):
         con = DOSContribution(symbol, total_dos)
         fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
         reference, shift = self.energy_reference
-        return DOSSpectrum(
+        self._spectrum = DOSSpectrum(
             energies,
             [con],
             type="total",
@@ -99,7 +99,7 @@ class TotalDOS(DOSBaseClass):
         spectrum = self.get_spectrum(reference=reference)
 
         with AxesContext(ax=axes, **kwargs) as axes:
-            dosplot = DOSPlot(ax=axes, spectrum=self.spectrum, **kwargs)
+            dosplot = DOSPlot(ax=axes, spectrum=spectrum, **kwargs)
             dosplot.draw()
 
         return axes
