@@ -347,36 +347,36 @@ class BandSpectrum:
                 igap = self.get_indirect_gap(spin)
             except:
                 raise Exception("Could not determine indirect band gap.")
-        if dgap.value <= igap.value:
-            # fundamental = "direct"
-            logger.info(
-                f"From the spectrum, the fundamental band gap is {dgap.value} eV large and direct."
-            )
-            logger.info(
-                "The VBM and CBM are located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
-                    *dgap.kpoint
+            if dgap.value <= igap.value:
+                # fundamental = "direct"
+                logger.info(
+                    f"From the spectrum, the fundamental band gap is {dgap.value} eV large and direct."
                 )
-            )
-        else:
-            # fundamental = "indirect"
-            logger.info(
-                f"From the spectrum, the fundamental band gap is {igap.value} eV large and indirect."
-            )
-            logger.info(
-                "The VBM is located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
-                    *igap.kpoint1
+                logger.info(
+                    "The VBM and CBM are located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
+                        *dgap.kpoint
+                    )
                 )
-            )
-            logger.info(
-                "The CBM is located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
-                    *igap.kpoint2
+            else:
+                # fundamental = "indirect"
+                logger.info(
+                    f"From the spectrum, the fundamental band gap is {igap.value} eV large and indirect."
                 )
-            )
-            logger.info(
-                "The smallest direct band gap is {:.4f} eV large and is located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
-                    dgap.value, *dgap.kpoint
+                logger.info(
+                    "The VBM is located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
+                        *igap.kpoint1
+                    )
                 )
-            )
+                logger.info(
+                    "The CBM is located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
+                        *igap.kpoint2
+                    )
+                )
+                logger.info(
+                    "The smallest direct band gap is {:.4f} eV large and is located at k = ( {:.4f} {:.4f} {:.4f} ) in units of the reciprocal lattice.".format(
+                        dgap.value, *dgap.kpoint
+                    )
+                )
 
 
 class BandStructurePlot:
@@ -404,7 +404,7 @@ class BandStructurePlot:
         self.grid_linewidth = kwargs.get("grid_linewidth", 1.0)
 
         self.show_jumps = kwargs.get("show_jumps", True)
-        self.jumps_linewidth = kwargs.get("jumps_linewdith", mpllinewidth)
+        self.jumps_linewidth = kwargs.get("jumps_linewidth", mpllinewidth)
         self.jumps_linestyle = kwargs.get("jumps_linestyle", "-")
         self.jumps_linecolor = kwargs.get("jumps_linecolor", mutedblack)
 

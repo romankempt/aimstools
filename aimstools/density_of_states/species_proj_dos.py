@@ -118,7 +118,11 @@ class SpeciesProjectedDOSMethods:
                 axes.plot(x, y, color=c, **kwargs)
                 handles += dosplot.handles
             axes.legend(
-                handles=handles, frameon=True, loc="center right", fancybox=False
+                handles=handles,
+                frameon=True,
+                loc="center right",
+                fancybox=True,
+                handlelength=0.4,
             )
         return axes
 
