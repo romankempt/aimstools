@@ -29,9 +29,14 @@ class BandStructureBaseClass(FHIAimsOutputReader):
         return self._energy_reference
 
     def set_energy_reference(self, reference, soc=False):
-        fermi_level = self.fermi_level
-        band_extrema = self.band_extrema
-        bandgap = self.bandgap
+        if not soc:
+            vbm, cbm = self.band_extrema[:2]
+            bandgap = abs(cbm - vbm)
+            fermi_level = self.fermi_level.scalar
+        else:
+            vbm, cbm = self.band_extrema[2:]
+            bandgap = abs(cbm - vbm)
+            fermi_level = self.fermi_level.soc
 
         if type(reference) == str:
             if "mid" in reference.lower():
@@ -46,10 +51,7 @@ class BandStructureBaseClass(FHIAimsOutputReader):
             reference = None
 
         if reference == None:
-            if soc:
-                metallic = bandgap.soc < 0.1
-            else:
-                metallic = bandgap.scalar < 0.1
+            metallic = bandgap < 0.1
             if metallic:
                 # Default for metals is Fermi level.
                 reference = "fermi level"
@@ -61,38 +63,34 @@ class BandStructureBaseClass(FHIAimsOutputReader):
 
         if reference == "middle":
             logger.debug("Reference energy set to band gap middle.")
-            if soc:
-                value = (band_extrema.cbm_soc + band_extrema.vbm_soc) / 2
-                value -= fermi_level.soc
-            else:
-                value = (band_extrema.cbm_scalar + band_extrema.vbm_scalar) / 2
-                value -= fermi_level.scalar
+            shift = (cbm + vbm) / 2 - fermi_level
         elif reference == "VBM":
             logger.debug("Reference energy set to valence band maximum.")
-            if soc:
-                value = band_extrema.vbm_soc - fermi_level.soc
-            else:
-                value = band_extrema.vbm_scalar - fermi_level.scalar
+            shift = vbm - fermi_level
         elif reference == "work function":
-            assert self.work_function != None, "Work function was not calculated."
+            assert self.work_function != None, "Work function has not been calculated."
             logger.debug("Reference energy set to vacuum level.")
-            if soc:
-                value = -(-self.work_function.upper_vacuum_level + fermi_level.soc)
-            else:
-                value = -(-self.work_function.upper_vacuum_level + fermi_level.scalar)
+            logger.warning(
+                r"I am not a 100 % sure the work function referencing is done correctly. Please check the relevant equations."
+            )
+            work_function = self.work_function.upper_work_function
+            vacuum_level_upper = work_function + fermi_level
+            shift = (
+                -(vacuum_level_upper) - fermi_level
+            )  # referencing to absolute vacuum
         elif reference == "fermi level":
             logger.debug("Reference energy set to Fermi level.")
             # AIMS output is already shifted w.r.t to fermi-level.
-            value = 0.0
-        elif type(reference) == float:
-            value = reference
+            shift = 0.0
+        elif isinstance(reference, (float, tuple)):
+            shift = reference
             reference = "user-specified"
-            logger.debug("Reference energy set to {:.4f} eV.".format(value))
+            logger.info("Reference energy set to {:.4f} eV.".format(shift))
         else:
-            value = 0.0
+            shift = 0.0
 
-        rf = namedtuple("energy_reference", ["reference", "value"])
-        self._energy_reference = rf(reference, value)
+        rf = namedtuple("energy_reference", ["reference", "shift"])
+        self._energy_reference = rf(reference, shift)
 
     def __set_sections(self):
         secs = namedtuple("band_sections", ["regular", "mlk"])
