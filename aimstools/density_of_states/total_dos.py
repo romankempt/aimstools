@@ -18,7 +18,7 @@ class TotalDOS(DOSBaseClass):
         self.soc = soc
         self.dosfiles = dosfiles.total_dos
         self.dos = self.read_dosfiles()
-        self.spectrum = self.get_spectrum()
+        self._spectrum = None
 
     def __repr__(self):
         return "{}(outputfile={}, spin_orbit_coupling={})".format(
@@ -37,7 +37,7 @@ class TotalDOS(DOSBaseClass):
         total_dos = total_dos[:, :, np.newaxis]
         return (energies, total_dos)
 
-    def get_spectrum(self, reference=None):
+    def set_spectrum(self, reference=None):
         energies, total_dos = self.dos
         self.set_energy_reference(reference, self.soc)
         symbol = self.structure.get_chemical_formula()
@@ -52,6 +52,16 @@ class TotalDOS(DOSBaseClass):
             reference=reference,
             shift=shift,
         )
+
+    @property
+    def spectrum(self):
+        if self._spectrum == None:
+            self.set_spectrum(reference=None)
+        return self._spectrum
+
+    def get_spectrum(self, reference=None):
+        self.set_spectrum(reference=reference)
+        return self.spectrum
 
     def _process_kwargs(self, **kwargs):
         kwargs = kwargs.copy()
@@ -84,6 +94,9 @@ class TotalDOS(DOSBaseClass):
         kwargs["total_dos_linestyle"] = linestyle
         kwargs["colors"] = [color]
         kwargs["show_legend"] = False
+
+        reference = kwargs.pop("reference", None)
+        spectrum = self.get_spectrum(reference=reference)
 
         with AxesContext(ax=axes, **kwargs) as axes:
             dosplot = DOSPlot(ax=axes, spectrum=self.spectrum, **kwargs)

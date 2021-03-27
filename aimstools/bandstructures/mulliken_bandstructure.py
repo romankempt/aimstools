@@ -239,6 +239,7 @@ class MullikenBandStructure(BandStructureBaseClass):
         self._set_bandpath_from_sections()
         self.task = "mulliken-projected band structure"
         self.spin = "none" if self.control["spin"] != "collinear" else "collinear"
+        self._spectrum = None
         if self.soc == False and self.spin == "collinear":
             raise Exception(
                 "Spin files without SOC have yet another structure, which I have not implemented yet..."
@@ -250,7 +251,6 @@ class MullikenBandStructure(BandStructureBaseClass):
         bandfiles = self.get_bandfiles(spin=self.spin, soc=soc)
         self.bandfiles = bandfiles.mulliken
         self.bands = self._read_mlk_bandfiles(spin=self.spin)
-        self.spectrum = self.get_mlk_spectrum()
 
     def __repr__(self):
         return "{}(outputfile={}, spin_orbit_coupling={})".format(
@@ -322,8 +322,8 @@ class MullikenBandStructure(BandStructureBaseClass):
             )
         return bands
 
-    def get_mlk_spectrum(self, bandpath=None, reference=None):
-        """ Returns :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenSpectrum` for a given bandpath.
+    def set_spectrum(self, bandpath=None, reference=None):
+        """ Sets :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenSpectrum` for a given bandpath.
         
         Bandpath should be ASE-formatted string, e.g., "GMKG,A", where the "," denotes jumps.
         """
@@ -409,7 +409,17 @@ class MullikenBandStructure(BandStructureBaseClass):
         logger.info(
             "Creating spectrum from bands took {:.2f} seconds.".format(end - start)
         )
-        return spec
+        self._spectrum = spec
+
+    @property
+    def spectrum(self):
+        if self._spectrum == None:
+            self._spectrum = self.set_spectrum(bandpath=None, reference=None)
+        return self._spectrum
+
+    def get_spectrum(self, bandpath=None, reference=None):
+        self.set_spectrum(bandpath=bandpath, reference=reference)
+        return self.spectrum
 
     def _process_kwargs(self, kwargs):
         kwargs = kwargs.copy()
@@ -434,10 +444,10 @@ class MullikenBandStructure(BandStructureBaseClass):
         bandpath = kwargs.pop("bandpath", None)
         reference = kwargs.pop("reference", None)
         if bandpath != None or reference != None:
-            self.spectrum = self.get_spectrum(bandpath=bandpath, reference=reference)
+            spectrum = self.get_spectrum(bandpath=bandpath, reference=reference)
 
         with AxesContext(ax=axes, **kwargs) as axes:
-            bs = BandStructurePlot(ax=axes, spectrum=self.spectrum, **kwargs)
+            bs = BandStructurePlot(ax=axes, spectrum=spectrum, **kwargs)
             bs.draw()
 
         return axes
@@ -555,10 +565,7 @@ class MullikenBandStructure(BandStructureBaseClass):
         kwargs = self._process_kwargs(kwargs)
         bandpath = kwargs.pop("bandpath", None)
         reference = kwargs.pop("reference", None)
-        if bandpath != None or reference != None:
-            self.spectrum = self.get_mlk_spectrum(
-                bandpath=bandpath, reference=reference
-            )
+        spectrum = self.get_spectrum(bandpath=bandpath, reference=reference)
 
         contributions = self._process_contributions(contributions)
         if isinstance(colors, (list, np.array)):
@@ -593,7 +600,7 @@ class MullikenBandStructure(BandStructureBaseClass):
         with AxesContext(ax=axes, **kwargs) as axes:
             mbs = MullikenBandStructurePlot(
                 ax=axes,
-                spectrum=self.spectrum,
+                spectrum=spectrum,
                 contributions=contributions,
                 labels=labels,
                 colors=colors,

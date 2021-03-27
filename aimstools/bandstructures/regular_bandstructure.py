@@ -18,11 +18,11 @@ class RegularBandStructure(BandStructureBaseClass):
         self.task = "band structure"
         self.band_sections = self.band_sections.regular
         self._set_bandpath_from_sections()
+        self._spectrum = None
         if self.spin == "none":
             bandfiles = self.get_bandfiles(spin="none", soc=soc)
             bandfiles = bandfiles.regular
             self.bands = self.read_bandfiles(zip(bandfiles, bandfiles))
-            self.spectrum = self.get_spectrum()
         else:
             if soc:
                 logger.warning(
@@ -31,7 +31,6 @@ class RegularBandStructure(BandStructureBaseClass):
             bandfiles_dn = self.get_bandfiles(spin="dn", soc=soc).regular
             bandfiles_up = self.get_bandfiles(spin="up", soc=soc).regular
             self.bands = self.read_bandfiles(zip(bandfiles_dn, bandfiles_up))
-            self.spectrum = self.get_spectrum()
 
     def __repr__(self):
         return "{}(outputfile={}, spin_orbit_coupling={})".format(
@@ -70,7 +69,7 @@ class RegularBandStructure(BandStructureBaseClass):
             bands[pathsegment_r] = band_backward
         return bands
 
-    def get_spectrum(self, bandpath=None, reference=None):
+    def set_spectrum(self, bandpath=None, reference=None):
         bands = self.bands
         if bandpath != None:
             self.set_bandpath(bandpath)
@@ -124,7 +123,17 @@ class RegularBandStructure(BandStructureBaseClass):
             shift=shift,
             bandpath=bandpath,
         )
-        return sp
+        self._spectrum = sp
+
+    @property
+    def spectrum(self):
+        if self._spectrum == None:
+            self.set_spectrum(bandpath=None, reference=None)
+        return self._spectrum
+
+    def get_spectrum(self, bandpath=None, reference=None):
+        self.set_spectrum(reference=reference, bandpath=bandpath)
+        return self.spectrum
 
     def _process_kwargs(self, kwargs):
         kwargs = kwargs.copy()
@@ -185,11 +194,10 @@ class RegularBandStructure(BandStructureBaseClass):
         kwargs = self._process_kwargs(kwargs)
         bandpath = kwargs.pop("bandpath", None)
         reference = kwargs.pop("reference", None)
-        if bandpath != None or reference != None:
-            self.spectrum = self.get_spectrum(bandpath=bandpath, reference=reference)
+        spectrum = self.get_spectrum(bandpath=bandpath, reference=reference)
 
         with AxesContext(ax=axes, **kwargs) as axes:
-            bs = BandStructurePlot(ax=axes, spectrum=self.spectrum, **kwargs)
+            bs = BandStructurePlot(ax=axes, spectrum=spectrum, **kwargs)
             bs.draw()
 
         return axes
