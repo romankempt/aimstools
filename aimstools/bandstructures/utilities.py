@@ -390,7 +390,7 @@ class BandStructurePlot:
 
         self.spectrum = kwargs.get("spectrum", None)
         self.spin = kwargs.get("spin", 0)
-        self._get_data_from_spectrum()
+        self.set_data_from_spectrum()
 
         self.show_fermi_level = kwargs.get("show_fermi_level", True)
         self.fermi_level_color = kwargs.get("fermi_level_color", fermi_color)
@@ -422,13 +422,13 @@ class BandStructurePlot:
 
         self.window = kwargs.get("window", 3)
         self.y_tick_locator = kwargs.get("y_tick_locator", 0.5)
-        self.set_xy_labels()
+        self.set_xy_axes_labels()
         self.set_xy_limits()
-        self.set_x_labels()
+        self.set_kpoint_labels()
 
         self.main = main
 
-    def _get_data_from_spectrum(self):
+    def set_data_from_spectrum(self):
         spectrum = self.spectrum
         self.labels = spectrum.kpoint_labels.copy()
         self.labelcoords = spectrum.label_coords.copy()
@@ -481,7 +481,7 @@ class BandStructurePlot:
                 linestyle=self.bands_linestyle,
             )
 
-    def set_xy_labels(self):
+    def set_xy_axes_labels(self):
         if self.reference in ["fermi level", "VBM", "middle"]:
             ylabel = r"E - E$_{\mathrm{F}}$ [eV]"
         elif self.reference == "work function":
@@ -495,7 +495,7 @@ class BandStructurePlot:
     def set_xy_limits(self):
         window = self.window
         x, y = self.x, self.y
-        if (type(window) == float) or (type(window) == int):
+        if isinstance(window, (float, int)):
             lower_ylimit, upper_ylimit = (-window, window)
             if self.reference in ["work function", "user-specified"]:
                 lower_ylimit, upper_ylimit = (-window - self.shift, window - self.shift)
@@ -511,7 +511,7 @@ class BandStructurePlot:
         self.xlimits = (lower_xlimit, upper_xlimit)
         self.ylimits = (lower_ylimit, upper_ylimit)
 
-    def set_x_labels(self):
+    def set_kpoint_labels(self):
         def pretty(kpt):
             if kpt == "G":
                 kpt = r"$\Gamma$"

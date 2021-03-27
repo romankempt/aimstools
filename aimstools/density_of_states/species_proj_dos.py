@@ -1,6 +1,6 @@
 from aimstools.misc import *
 from aimstools.density_of_states.base import DOSBaseClass
-from aimstools.density_of_states.utilities import DOSPlot, Contribution, DOSSpectrum
+from aimstools.density_of_states.utilities import DOSPlot, DOSContribution, DOSSpectrum
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
@@ -287,7 +287,7 @@ class SpeciesProjectedDOS(DOSBaseClass, SpeciesProjectedDOSMethods):
                 contributions.append(array)
             energies = np.stack(energies, axis=1)
             contributions = np.stack(contributions, axis=1)
-            con = Contribution(symbol, contributions)
+            con = DOSContribution(symbol, contributions)
             dos_per_species.append(con)
         spectrum = DOSSpectrum(energies, dos_per_species, "species")
         return spectrum

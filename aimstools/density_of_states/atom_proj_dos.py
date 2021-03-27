@@ -1,11 +1,7 @@
 from aimstools.misc import *
 from aimstools.density_of_states.base import DOSBaseClass
 from aimstools.density_of_states.species_proj_dos import SpeciesProjectedDOSMethods
-from aimstools.density_of_states.utilities import (
-    DOSSpectrum,
-    Contribution,
-    DOSPlot,
-)
+from aimstools.density_of_states.utilities import DOSSpectrum, DOSContribution, DOSPlot
 
 import numpy as np
 import re
@@ -72,15 +68,7 @@ class AtomProjectedDOS(DOSBaseClass, SpeciesProjectedDOSMethods):
         spectrum = DOSSpectrum(energies, dos_per_atom, "atom")
         return spectrum
 
-    def plot_one_atom(
-        self,
-        index,
-        l="tot",
-        axes=None,
-        color=None,
-        main=True,
-        **kwargs,
-    ):
+    def plot_one_atom(self, index, l="tot", axes=None, color=None, main=True, **kwargs):
         axargs, kwargs, dosargs = self._process_kwargs(**kwargs)
         assert index in range(
             len(self.structure)

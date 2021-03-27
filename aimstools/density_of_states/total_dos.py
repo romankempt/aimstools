@@ -1,6 +1,6 @@
 from aimstools.misc import *
 from aimstools.density_of_states.base import DOSBaseClass
-from aimstools.density_of_states.utilities import DOSPlot, DOSSpectrum, Contribution
+from aimstools.density_of_states.utilities import DOSPlot, DOSSpectrum, DOSContribution
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,7 +17,8 @@ class TotalDOS(DOSBaseClass):
         dosfiles = self.get_dos_files(soc=soc)
         self.soc = soc
         self.dosfiles = dosfiles.total_dos
-        self.spectrum = self.read_dosfiles()
+        self.dos = self.read_dosfiles()
+        self.spectrum = self.get_spectrum()
 
     def __repr__(self):
         return "{}(outputfile={}, spin_orbit_coupling={})".format(
@@ -34,61 +35,58 @@ class TotalDOS(DOSBaseClass):
         # This formatting might be complicated, but is consistent with the other DOS functions
         energies = np.stack([energies, energies], axis=1)
         total_dos = total_dos[:, :, np.newaxis]
+        return (energies, total_dos)
+
+    def get_spectrum(self, reference=None):
+        energies, total_dos = self.dos
+        self.set_energy_reference(reference, self.soc)
         symbol = self.structure.get_chemical_formula()
-        con = Contribution(symbol, total_dos)
-        return DOSSpectrum(energies, [con], type="total")
+        con = DOSContribution(symbol, total_dos)
+        fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
+        reference, shift = self.energy_reference
+        return DOSSpectrum(
+            energies,
+            [con],
+            type="total",
+            fermi_level=fermi_level,
+            reference=reference,
+            shift=shift,
+        )
 
     def _process_kwargs(self, **kwargs):
         kwargs = kwargs.copy()
-
-        axargs = {}
-        axargs["figsize"] = kwargs.pop("figsize", (3, 6))
-        axargs["filename"] = kwargs.pop("filename", None)
-        axargs["title"] = kwargs.pop("title", None)
-
-        d = {}
         spin = kwargs.pop("spin", None)
-        reference = kwargs.pop("reference", None)
 
-        d["flip"] = kwargs.pop("flip", True)
-        d["window"] = kwargs.pop("window", 3)
-        d["mark_fermi_level"] = kwargs.pop("mark_fermi_level", fermi_color)
-        d["broadening"] = kwargs.pop("broadening", 0.0)
-        d["fill"] = kwargs.pop("fill", "gradient")
-        _ = kwargs.pop("show_total", None)
-        d["show_total"] = False
+        deprecated = ["title", "mark_fermi_level", "mark_band_gap"]
+        for dep in deprecated:
+            if dep in kwargs.keys():
+                kwargs.pop(dep)
+                logger.warning(
+                    f"Keyword {dep} is deprecated. Please do not use this anymore."
+                )
 
-        self.set_energy_reference(reference, self.soc)
-        ref, shift = self.energy_reference
-        fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
-        be = self.band_extrema
-        vbm = be.vbm_soc if self.soc else be.vbm_scalar
-        cbm = be.cbm_soc if self.soc else be.cbm_scalar
+        kwargs["spin"] = self.spin2index(spin)
 
-        spin = self.spin2index(spin)
-        if self.soc and spin == 1:
-            raise Exception(
-                "Spin channels are ill-defined for SOC calculations. A second spin channel does not exist."
-            )
+        return kwargs
 
-        d["spin"] = spin
-        d["vbm"] = vbm
-        d["cbm"] = cbm
-        d["ref"] = ref
-        d["shift"] = shift
-        d["fermi_level"] = fermi_level
-        d["total_dos"] = self.spectrum.get_total_dos()
-        return axargs, kwargs, d
+    def plot(
+        self,
+        axes=None,
+        color=mutedblack,
+        linewidth=mpllinewidth,
+        linestyle="-",
+        **kwargs,
+    ):
+        kwargs = self._process_kwargs(**kwargs)
+        kwargs["show_total_dos"] = True
+        kwargs["total_dos_color"] = color
+        kwargs["total_dos_linewidth"] = linewidth
+        kwargs["total_dos_linestyle"] = linestyle
+        kwargs["colors"] = [color]
+        kwargs["show_legend"] = False
 
-    def plot(self, axes=None, color=mutedblack, main=True, **kwargs):
-        axargs, kwargs, dosargs = self._process_kwargs(**kwargs)
-        x = self.spectrum.energies
-        con = self.spectrum.get_total_dos()
-
-        with AxesContext(ax=axes, main=main, **axargs) as axes:
-            dosplot = DOSPlot(x=x, con=con, l="tot", color=color, main=main, **dosargs)
-            axes = dosplot.draw()
-            x, y = dosplot.xy
-            axes.plot(x, y, color=color, **kwargs)
+        with AxesContext(ax=axes, **kwargs) as axes:
+            dosplot = DOSPlot(ax=axes, spectrum=self.spectrum, **kwargs)
+            dosplot.draw()
 
         return axes
