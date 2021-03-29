@@ -6,6 +6,8 @@ from rich.logging import RichHandler
 
 import contextvars
 
+from aimstools.plotting_defaults import *
+
 # declaring the variable
 axes_order = contextvars.ContextVar("axes_order", default=0)
 
@@ -58,30 +60,6 @@ def set_verbosity_level(verbosity):
     logger.setLevel(level)
 
 
-def set_global_plotsettings():
-    from matplotlib import rcParams
-    import matplotlib.font_manager
-
-    plt.style.use("seaborn-ticks")
-    rcParams["legend.handlelength"] = 0.8
-    rcParams["legend.framealpha"] = 0.8
-    rcParams["font.size"] = 12
-    rcParams["legend.fontsize"] = 12
-    rcParams["legend.handlelength"] = 1
-    rcParams["text.usetex"] = False
-    rcParams["mathtext.fontset"] = "stixsans"
-
-
-set_global_plotsettings()
-
-# color_definitions
-mutedblack = "#1a1a1a"
-fermi_color = "#D62728"
-fermi_alpha = 1
-darkgray = "#636363"
-mpllinewidth = 2.0
-
-
 class AxesContext:
     """Base axes context.
 
@@ -93,7 +71,6 @@ class AxesContext:
         self,
         ax: "matplotlib.axes.Axes" = None,
         filename: str = None,
-        figsize: tuple = (5, 4),
         main: bool = True,
         nrows: int = 1,
         ncols: int = 1,
@@ -105,7 +82,8 @@ class AxesContext:
     ) -> None:
         self.ax = ax
         self.filename = filename
-        self.figsize = figsize
+        self.figsize = kwargs.get("figsize", plt.rcParams["figure.figsize"])
+        self.dpi = kwargs.get("dpi", plt.rcParams["figure.dpi"])
         self.nrows = nrows
         self.ncols = ncols
         self.main = main
@@ -113,10 +91,11 @@ class AxesContext:
         self.height_ratios = height_ratios
         self.hspace = hspace
         self.wspace = wspace
+        self.show = kwargs.get("show", True)
 
     def __enter__(self) -> "matplotlib.axes.Axes":
         if self.ax is None:
-            self.figure = plt.figure(constrained_layout=True)
+            self.figure = plt.figure(constrained_layout=True, figsize=self.figsize)
             self.spec = gridspec.GridSpec(
                 ncols=self.ncols,
                 nrows=self.nrows,
@@ -132,7 +111,7 @@ class AxesContext:
             self.ax = self.figure.axes
             if self.ncols == self.nrows and self.ncols == 1:
                 self.ax = self.ax[0]
-            self.show = True
+            self.show = self.show if self.filename is None else False
         else:
             self.figure = plt.gcf()
             plt.sca(self.ax)
@@ -151,7 +130,7 @@ class AxesContext:
             if self.filename is not None:
                 self.figure.savefig(
                     self.filename,
-                    dpi=300,
+                    dpi=self.dpi,
                     facecolor="white",
                     transparent=False,
                     bbox_inches="tight",

@@ -1,94 +1,105 @@
 from aimstools.misc import *
 from aimstools.density_of_states.base import DOSBaseClass
-from aimstools.density_of_states.utilities import DOSPlot, DOSSpectrum, Contribution
+from aimstools.density_of_states.utilities import DOSPlot, DOSSpectrum
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 
 class TotalDOS(DOSBaseClass):
     def __init__(self, outputfile, soc=False) -> None:
         super().__init__(outputfile)
-
-        assert any(
-            x in ["total dos", "total dos tetrahedron"] for x in self.tasks
-        ), "Total DOS was not specified as task in control.in ."
-
-        dosfiles = self.get_dos_files(soc=soc)
         self.soc = soc
-        self.dosfiles = dosfiles.total_dos
-        self.spectrum = self.read_dosfiles()
+        self._dos = None
+        self._spectrum = None
 
     def __repr__(self):
         return "{}(outputfile={}, spin_orbit_coupling={})".format(
             self.__class__.__name__, repr(self.outputfile), self.soc
         )
 
-    def read_dosfiles(self):
+    def _read_dosfiles(self):
+        dosfiles = self.get_dos_files(soc=self.soc)
+        dosfiles = dosfiles.total_dos
         assert (
-            len(self.dosfiles) == 1
+            len(dosfiles) == 1
         ), "Too many DOS files found, something must have gone wrong."
-        dosfile = self.dosfiles[0]
-        d = np.loadtxt(dosfile, dtype=float, comments="#")
+        d = np.loadtxt(dosfiles[0], dtype=float, comments="#")
         energies, total_dos = d[:, 0], d[:, 1:]
         # This formatting might be complicated, but is consistent with the other DOS functions
-        energies = np.stack([energies, energies], axis=1)
+        energies = energies[:, np.newaxis]
         total_dos = total_dos[:, :, np.newaxis]
-        symbol = self.structure.get_chemical_formula()
-        con = Contribution(symbol, total_dos)
-        return DOSSpectrum(energies, [con], type="total")
+        self._dos = (energies, (0, total_dos))
 
-    def _process_kwargs(self, **kwargs):
-        kwargs = kwargs.copy()
-
-        axargs = {}
-        axargs["figsize"] = kwargs.pop("figsize", (3, 6))
-        axargs["filename"] = kwargs.pop("filename", None)
-        axargs["title"] = kwargs.pop("title", None)
-
-        d = {}
-        spin = kwargs.pop("spin", None)
-        reference = kwargs.pop("reference", None)
-
-        d["flip"] = kwargs.pop("flip", True)
-        d["window"] = kwargs.pop("window", 3)
-        d["mark_fermi_level"] = kwargs.pop("mark_fermi_level", fermi_color)
-        d["broadening"] = kwargs.pop("broadening", 0.0)
-        d["fill"] = kwargs.pop("fill", "gradient")
-        _ = kwargs.pop("show_total", None)
-        d["show_total"] = False
-
+    def set_spectrum(self, reference=None):
+        if self.dos == None:
+            self._read_dosfiles()
+        energies, total_dos = self.dos
         self.set_energy_reference(reference, self.soc)
-        ref, shift = self.energy_reference
+        atoms = self.structure.copy()
         fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
-        be = self.band_extrema
-        vbm = be.vbm_soc if self.soc else be.vbm_scalar
-        cbm = be.cbm_soc if self.soc else be.cbm_scalar
+        reference, shift = self.energy_reference
+        self._spectrum = DOSSpectrum(
+            atoms=atoms,
+            energies=energies,
+            contributions=[total_dos],
+            type="total",
+            fermi_level=fermi_level,
+            reference=reference,
+            shift=shift,
+        )
 
-        spin = self.spin2index(spin)
-        if self.soc and spin == 1:
-            raise Exception(
-                "Spin channels are ill-defined for SOC calculations. A second spin channel does not exist."
+    @property
+    def dos(self):
+        if self._dos == None:
+            self._dos = self._read_dosfiles()
+        return self._dos
+
+    @property
+    def spectrum(self):
+        ":class:`aimstools.density_of_states.utilities.DOSSpectrum`."
+        if self._spectrum == None:
+            self.set_spectrum(None)
+        return self._spectrum
+
+    def get_spectrum(self, reference=None):
+        "Returns :class:`aimstools.density_of_states.utilities.DOSSpectrum`."
+        self.set_spectrum(reference=reference)
+        return self.spectrum
+
+    def _process_kwargs(self, kwargs):
+        kwargs = kwargs.copy()
+        spin = kwargs.pop("spin", None)
+
+        deprecated = ["title", "mark_fermi_level", "mark_band_gap"]
+        for dep in deprecated:
+            if dep in kwargs.keys():
+                kwargs.pop(dep)
+                logger.warning(
+                    f"Keyword {dep} is deprecated. Please do not use this anymore."
+                )
+
+        kwargs["spin"] = self.spin2index(spin)
+
+        return kwargs
+
+    def plot(self, axes=None, color=mutedblack, **kwargs):
+        """Plots total density of states."""
+        kwargs = self._process_kwargs(kwargs)
+        kwargs["show_total_dos"] = False
+        kwargs["show_legend"] = False
+
+        reference = kwargs.pop("reference", None)
+        spectrum = self.get_spectrum(reference=reference)
+        contributions = self.spectrum.get_total_dos()
+
+        with AxesContext(ax=axes, **kwargs) as axes:
+            dosplot = DOSPlot(
+                ax=axes,
+                contributions=[contributions],
+                colors=[color],
+                spectrum=spectrum,
+                **kwargs,
             )
-
-        d["spin"] = spin
-        d["vbm"] = vbm
-        d["cbm"] = cbm
-        d["ref"] = ref
-        d["shift"] = shift
-        d["fermi_level"] = fermi_level
-        d["total_dos"] = self.spectrum.get_total_dos()
-        return axargs, kwargs, d
-
-    def plot(self, axes=None, color=mutedblack, main=True, **kwargs):
-        axargs, kwargs, dosargs = self._process_kwargs(**kwargs)
-        x = self.spectrum.energies
-        con = self.spectrum.get_total_dos()
-
-        with AxesContext(ax=axes, main=main, **axargs) as axes:
-            dosplot = DOSPlot(x=x, con=con, l="tot", color=color, main=main, **dosargs)
-            axes = dosplot.draw()
-            x, y = dosplot.xy
-            axes.plot(x, y, color=color, **kwargs)
+            dosplot.draw()
 
         return axes
