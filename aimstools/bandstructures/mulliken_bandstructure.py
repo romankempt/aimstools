@@ -157,7 +157,7 @@ class MullikenContribution:
         self._l = self._index2l(l)
 
     def _index2l(self, l):
-        if type(l) == int:
+        if isinstance(l, (int,)):
             if l == 0:
                 return "total"
             if l == 1:
@@ -172,7 +172,7 @@ class MullikenContribution:
                 return "g"
             if l == 6:
                 return "h"
-        elif type(l) == str:
+        elif isinstance(l, (str,)):
             return l
         else:
             raise Exception("Angular momentum not recognized.")
@@ -239,7 +239,6 @@ class MullikenBandStructure(BandStructureBaseClass):
         self._set_bandpath_from_sections()
         self.task = "mulliken-projected band structure"
         self.spin = "none" if self.control["spin"] != "collinear" else "collinear"
-        self._spectrum = None
         if self.soc == False and self.spin == "collinear":
             raise Exception(
                 "Spin files without SOC have yet another structure, which I have not implemented yet..."
@@ -251,6 +250,7 @@ class MullikenBandStructure(BandStructureBaseClass):
         bandfiles = self.get_bandfiles(spin=self.spin, soc=soc)
         self.bandfiles = bandfiles.mulliken
         self.bands = self._read_mlk_bandfiles(spin=self.spin)
+        self._spectrum = self.set_spectrum(None, None)
 
     def __repr__(self):
         return "{}(outputfile={}, spin_orbit_coupling={})".format(

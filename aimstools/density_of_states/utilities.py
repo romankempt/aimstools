@@ -9,8 +9,8 @@ from matplotlib.patches import PathPatch
 import matplotlib.colors
 import matplotlib.ticker as ticker
 
-from ase.symbols import Symbols, string2symbols, symbols2numbers
-from ase.data import chemical_symbols, atomic_masses
+from ase.symbols import string2symbols
+from ase.data import chemical_symbols
 from ase.formula import Formula
 from matplotlib.lines import Line2D
 
@@ -75,16 +75,16 @@ def gradient_fill(x, y, axes, color, flip=True):
 class DOSPlot:
     """Context to draw DOS plot. Handles labelling, shifting and broadening."""
 
-    def __init__(self, main=True, **kwargs) -> None:
+    def __init__(self, main: bool = True, contributions: list = None, **kwargs) -> None:
         self.ax = kwargs.get("ax", None)
         assert (
             type(self.ax) != list
         ), "Axes object must be a single matplotlib.axes.Axes, not list."
 
         self.spectrum = kwargs.get("spectrum", None)
+        self.contributions = contributions
         self.spin = kwargs.get("spin", 0)
         self.spin_factor = 1 if self.spin == 0 else -1
-        self.angular_momentum = self.l2index(kwargs.get("l", "tot"))
         self.flip_axes = kwargs.get("flip_axes", True)
         self.set_data_from_spectrum()
         self.main = main
@@ -136,7 +136,6 @@ class DOSPlot:
         self.fermi_level = spectrum.fermi_level
         self.shift = spectrum.shift
         self.energies = (spectrum.energies[:, self.spin].copy()) - self.shift
-        self.contributions = spectrum.contributions
         self.fermi_level = spectrum.fermi_level
 
     def draw(self):
@@ -165,7 +164,7 @@ class DOSPlot:
 
         handles = []
         for i, con in enumerate(self.contributions):
-            values = con.values[:, self.spin, self.angular_momentum] * self.spin_factor
+            values = con.values[:, self.spin] * self.spin_factor
             latex_symbol = con.get_latex_symbol()
             handles.append(
                 Line2D(
@@ -241,24 +240,27 @@ class DOSPlot:
         # I'm always setting the limits relative to the total dos
         lower_elimit, upper_elimit = self.lower_energy_limit, self.upper_energy_limit
         energies = self.energies.copy()
-        tdos = self.total_dos.copy()
+        tdos = self.total_dos
+        values = tdos.values[:, self.spin].copy() * self.spin_factor
         # assert that DOS either starts at 0 or a negative peak for spin
         lower_dos_limit = np.min(
-            tdos[(energies >= lower_elimit) & (energies <= upper_elimit)]
+            values[(energies >= lower_elimit) & (energies <= upper_elimit)]
         )
-        self.lower_dos_limit = min([0, lower_dos_limit]) * 1.05
+        if tdos.values.shape[1] == 2:  # check if there is a second spin channel
+            self.lower_dos_limit = -min([-lower_dos_limit, lower_dos_limit]) * 1.05
+        else:
+            self.lower_dos_limit = min([0, lower_dos_limit]) * 1.05
         upper_dos_limit = np.max(
-            tdos[(energies >= lower_elimit) & (energies <= upper_elimit)]
+            values[(energies >= lower_elimit) & (energies <= upper_elimit)]
         )
-        self.upper_dos_limit = max([0, upper_dos_limit]) * 1.05
+        if tdos.values.shape[1] == 2:  # check if there is a second spin channel
+            self.upper_dos_limit = max([-upper_dos_limit, upper_dos_limit]) * 1.05
+        else:
+            self.upper_dos_limit = max([0, upper_dos_limit]) * 1.05
 
     def set_total_dos(self):
         tdos = self.spectrum.get_total_dos()
-        values = tdos.values[:, self.spin, 0] * self.spin_factor
-        energies = self.energies.copy()
-        if self.broadening > 0.0:
-            values = smear_dos(energies, values, self.broadening)
-        self.total_dos = values
+        self.total_dos = tdos
 
     def _show_fermi_level(self):
         reference = self.reference
@@ -286,13 +288,16 @@ class DOSPlot:
 
     def _show_total_dos(self):
         tdos = self.total_dos
+        values = tdos.values[:, self.spin].copy() * self.spin_factor
         energies = self.energies.copy()
+        if self.broadening > 0.0:
+            values = smear_dos(energies, values, self.broadening)
         if self.flip_axes:
-            x = tdos
+            x = values
             y = energies
         else:
             x = energies
-            y = tdos
+            y = values
         self.ax.plot(
             x,
             y,
@@ -310,34 +315,13 @@ class DOSPlot:
             loc=self.legend_loc,
         )
 
-    def l2index(self, l):
-        if l in [None, "none", "None", "total", "tot"]:
-            return 0
-        elif l in ["s", 0]:
-            return 1
-        elif l in ["p", 1]:
-            return 2
-        elif l in ["d", 2]:
-            return 3
-        elif l in ["f", 3]:
-            return 4
-        elif l in ["g", 4]:
-            return 5
-        elif l in ["h", 5]:
-            return 6
-        else:
-            raise Exception("Angular momentum l cannot be higher than 5.")
-
-    @property
-    def handles(self):
-        return self._handles
-
 
 class DOSSpectrum:
     """Container class for density of states and associated data."""
 
     def __init__(
         self,
+        atoms: "ase.atoms.Atoms" = None,
         energies: "numpy.ndarray" = None,
         contributions: "aimstools.density_of_states.utilities.DOSContribution" = None,
         type: str = None,
@@ -345,12 +329,17 @@ class DOSSpectrum:
         reference: str = None,
         shift: float = None,
     ):
+        self._atoms = atoms
         self._energies = energies
         self._contributions = contributions
         self._type = type
         self._fermi_level = fermi_level
         self._reference = reference
         self._shift = shift
+
+    @property
+    def atoms(self):
+        return self._atoms
 
     @property
     def type(self):
@@ -387,28 +376,62 @@ class DOSSpectrum:
 
     def get_total_dos(self):
         "Returns total sum of contributions."
-        tdos = sum([k for k in self.contributions])
-        return tdos
+        con = sum([k for i, k in self.contributions])
+        symbol = self.atoms.get_chemical_formula()
+        values = con[:, :, 0]
+        return DOSContribution(symbol, values, l=0)
 
-    def get_species_contribution(self, symbol):
-        """Returns sum of contributions for given species symbol."""
-        if self.type == "species":
-            con = [k for k in self.contributions if k.symbol == symbol][0]
-        elif self.type == "atom":
-            con = sum([k for k in self.contributions if k.symbol == symbol])
+    def get_atom_contribution(self, index, l="tot"):
+        "Returns :class:~`aimstools.density_of_states.utilities.DOSContribution` of given atom index and angular momentum l."
+        assert (
+            self.type == "atom"
+        ), "This spectrum type does not support atom contributions."
+        l = self._l2index(l)
+        symbol = self.atoms[index].symbol
+        con = [k for i, k in self.contributions if i == index][0]
+        con = con[:, :, l]
+        return DOSContribution(symbol, con, l)
+
+    def get_species_contribution(self, symbol, l="tot"):
+        """Returns sum of contributions for given species symbol and angular momentum l."""
+        l = self._l2index(l)
+        if self.type == "atom":
+            indices = [i for i, s in enumerate(self.atoms) if s.symbol == symbol]
+            con = sum([k for i, k in self.contributions if i in indices])
+            con = con[:, :, l]
+        elif self.type == "species":
+            con = [k for i, k in self.contributions if i == symbol][0]
+            con = con[:, :, l]
         else:
             raise Exception(
                 "This spectrum type does not support species contributions."
             )
-        return con
+        return DOSContribution(symbol, con, l)
 
-    def get_atom_contribution(self, index):
-        "Returns :class:~`aimstools.density_of_states.utilities.DOSContribution` of given atom index."
-        assert (
-            self.type == "atom"
-        ), "This spectrum type does not support atom contributions."
-        con = self.contributions[index]
-        return con
+    def get_group_contribution(self, symbols, l="tot"):
+        """Returns sum of :class:`~aimstools.bandstructures.mulliken_bandstructure.MullikenContribution` of given list of species."""
+        symbols = [string2symbols(s) for s in symbols]
+        symbols = set([item for sublist in symbols for item in sublist])
+        cons = sum([self.get_species_contribution(s, l) for s in symbols])
+        return cons
+
+    def _l2index(self, l):
+        if l in [None, "none", "None", "total", "tot"]:
+            return 0
+        elif l in ["s", 0]:
+            return 1
+        elif l in ["p", 1]:
+            return 2
+        elif l in ["d", 2]:
+            return 3
+        elif l in ["f", 3]:
+            return 4
+        elif l in ["g", 4]:
+            return 5
+        elif l in ["h", 5]:
+            return 6
+        else:
+            raise Exception("Implemented DOS contributions only till h-orbitals.")
 
 
 class DOSContribution:
@@ -416,19 +439,24 @@ class DOSContribution:
 
     Supports addition."""
 
-    def __init__(self, symbol, values) -> None:
+    def __init__(self, symbol, values, l="total") -> None:
         self._symbol = symbol
         self._values = values
+        self._l = l
 
     def __repr__(self) -> str:
         return "{}({})".format(self.__class__.__name__, self.symbol)
 
     def __add__(self, other) -> "DOSContribution":
+        assert (
+            self.values.shape == other.values.shape
+        ), "DOS contributions shape does not match for addition."
         d = self.values + other.values
+        l = "".join(set([self.l, other.l]))
         s1 = string2symbols(self.symbol)
         s2 = string2symbols(other.symbol)
         s = Formula.from_list(s1 + s2).format("reduce").format("metal")
-        return DOSContribution(s, d)
+        return DOSContribution(s, d, l)
 
     def __radd__(self, other):
         if other == 0:
@@ -462,3 +490,30 @@ class DOSContribution:
         s = self.symbol
         s = Formula(s)
         return s.format("latex")
+
+    @property
+    def l(self):
+        """Angular momentum."""
+        self._l = self._index2l(self._l)
+        return self._l
+
+    def _index2l(self, l):
+        if isinstance(l, (int,)):
+            if l == 0:
+                return "total"
+            if l == 1:
+                return "s"
+            if l == 2:
+                return "p"
+            if l == 3:
+                return "d"
+            if l == 4:
+                return "f"
+            if l == 5:
+                return "g"
+            if l == 6:
+                return "h"
+        elif isinstance(l, (str,)):
+            return l
+        else:
+            raise Exception("Angular momentum not recognized.")

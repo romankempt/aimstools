@@ -18,7 +18,6 @@ class RegularBandStructure(BandStructureBaseClass):
         self.task = "band structure"
         self.band_sections = self.band_sections.regular
         self._set_bandpath_from_sections()
-        self._spectrum = None
         if self.spin == "none":
             bandfiles = self.get_bandfiles(spin="none", soc=soc)
             bandfiles = bandfiles.regular
@@ -31,6 +30,7 @@ class RegularBandStructure(BandStructureBaseClass):
             bandfiles_dn = self.get_bandfiles(spin="dn", soc=soc).regular
             bandfiles_up = self.get_bandfiles(spin="up", soc=soc).regular
             self.bands = self.read_bandfiles(zip(bandfiles_dn, bandfiles_up))
+        self._spectrum = self.set_spectrum(None, None)
 
     def __repr__(self):
         return "{}(outputfile={}, spin_orbit_coupling={})".format(
