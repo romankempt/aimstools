@@ -16,46 +16,104 @@ from collections import namedtuple
 
 
 class PhononPlot:
-    def __init__(
-        self, spectrum=None, window=None, accoustic_color=None, main=False
-    ) -> None:
-        self.ax = plt.gca()
-        self.spectrum = spectrum
-        self.x = spectrum.qpoint_axis.copy()
-        self.y = spectrum.frequencies.copy()
-        self.window = window
+    """Context to draw phonon plot."""
+
+    def __init__(self, main=True, **kwargs) -> None:
+        self.ax = kwargs.get("ax", None)
+        assert (
+            type(self.ax) != list
+        ), "Axes object must be a single matplotlib.axes.Axes, not list."
+
+        self.spectrum = kwargs.get("spectrum", None)
+        self.set_data_from_spectrum()
+
+        self.show_grid_lines = kwargs.get("show_grid_lines", True)
+        self.grid_lines_axes = kwargs.get("show_grid_lines_axes", "x")
+        self.grid_linestyle = kwargs.get("grid_linestyle", (0, (1, 1)))
+        self.grid_linewidth = kwargs.get("grid_linewidth", 1.0)
+        self.grid_linecolor = kwargs.get("grid_linecolor", mutedblack)
+
+        self.show_jumps = kwargs.get("show_jumps", True)
+        self.jumps_linewidth = kwargs.get(
+            "jumps_linewidth", plt.rcParams["lines.linewidth"]
+        )
+        self.jumps_linestyle = kwargs.get("jumps_linestyle", "-")
+        self.jumps_linecolor = kwargs.get("jumps_linecolor", mutedblack)
+
+        self.show_bandstructure = kwargs.get("show_bandstructure", True)
+        self.bands_color = kwargs.get("bands_color", mutedblack)
+        self.bands_color = kwargs.get("color", mutedblack)
+        self.bands_linewidth = kwargs.get(
+            "bands_linewidth", plt.rcParams["lines.linewidth"]
+        )
+        self.bands_linewidth = kwargs.get("linewidth", plt.rcParams["lines.linewidth"])
+        self.bands_linestyle = kwargs.get("bands_linestyle", "-")
+        self.bands_linestyle = kwargs.get("linestyle", "-")
+        self.bands_alpha = kwargs.get("bands_alpha", 1.0)
+        self.bands_alpha = kwargs.get("alpha", 1.0)
+
+        self.show_accoustic = kwargs.get("show_accoustic", True)
+        self.accoustic_bands_color = kwargs.get("accoustic_bands_color", "royalblue")
+
+        self.window = kwargs.get("window", 3)
+        self.y_tick_locator = kwargs.get("y_tick_locator", 0.5)
+        self.set_xy_axes_labels()
+        self.set_qpoint_labels()
+        self.main = main
+
+    def set_data_from_spectrum(self):
+        spectrum = self.spectrum
         self.labels = spectrum.qpoint_labels.copy()
         self.labelcoords = spectrum.label_coords.copy()
         self.jumps = spectrum.jumps.copy()
+        self.x = spectrum.qpoint_axis.copy()
+        self.y = spectrum.frequencies.copy()
         self.unit = spectrum.unit
-        self.accoustic_color = accoustic_color
-        self.main = main
 
     def draw(self):
-        # ylocs = ticker.MultipleLocator(base=0.5)
-        # self.ax.yaxis.set_major_locator(ylocs)
-        self.ax.set_xlabel("")
-        self.ax.set_ylabel("frequency [{}]".format(self.unit))
-        labels, coords = self.set_x_labels()
-        self.ax.set_xticks(coords)
-        self.ax.set_xticklabels(labels)
-        self.ax.grid(which="major", axis="x", linestyle=(0, (1, 1)), linewidth=1.0)
-        self.ax.tick_params(axis=u"x", which=u"both", length=0)
-        if self.main:
+        ylocs = ticker.MultipleLocator(base=self.y_tick_locator)
+        self.ax.yaxis.set_major_locator(ylocs)
+        self.ax.set_xlabel(self.xlabel, fontsize=plt.rcParams["axes.labelsize"])
+        self.ax.set_ylabel(self.ylabel, fontsize=plt.rcParams["axes.labelsize"])
+        # self.ax.set_xlim(self.xlimits)
+        # self.ax.set_ylim(self.ylimits)
+        self.ax.set_xticks(self.xlabelcoords)
+        self.ax.set_xticklabels(self.xlabels, fontsize=plt.rcParams["axes.labelsize"])
+        self.ax.tick_params(axis="x", which="both", length=0)
+        if self.show_grid_lines and self.main:
+            self.ax.grid(
+                b=self.show_grid_lines,
+                which="major",
+                axis=self.grid_lines_axes,
+                linestyle=self.grid_linestyle,
+                linewidth=self.grid_linewidth,
+                color=self.grid_linecolor,
+            )
+        if self.show_jumps and self.main:
             for j in self.jumps:
                 self.ax.axvline(
                     x=j,
-                    linestyle="-",
-                    color=darkgray,
-                    linewidth=mpllinewidth,
+                    linestyle=self.jumps_linestyle,
+                    color=self.jumps_linecolor,
+                    linewidth=self.jumps_linewidth,
                 )
-        self.ax.set_xlim(np.min(self.x), np.max(self.x))
-        self.ax.axhline(0, color=mutedblack, alpha=0.8)
-        if self.accoustic_color != [None, "none", "None"]:
-            self.mark_accoustic()
-        return self.ax
+        if self.show_bandstructure and self.main:
+            self.ax.plot(
+                self.x,
+                self.y,
+                color=self.bands_color,
+                alpha=self.bands_alpha,
+                linewidth=self.bands_linewidth,
+                linestyle=self.bands_linestyle,
+            )
+        if self.show_accoustic and self.main:
+            self._show_accoustic()
 
-    def set_x_labels(self):
+    def set_xy_axes_labels(self):
+        self.xlabel = ""
+        self.ylabel = "frequency [{}]".format(self.unit)
+
+    def set_qpoint_labels(self):
         def pretty(kpt):
             if kpt == "G":
                 kpt = r"$\Gamma$"
@@ -75,13 +133,20 @@ class PhononPlot:
             else:
                 i += 1
 
-        return labels, coords
+        self.xlabels = labels
+        self.xlabelcoords = coords
 
-    def mark_accoustic(self):
+    def _show_accoustic(self):
         y = self.y.copy()
         acc = y[:, :3]
-        self.y = y[:, 3:]
-        self.ax.plot(self.x, acc, color=self.accoustic_color)
+        self.ax.plot(
+            self.x,
+            acc,
+            color=self.accoustic_color,
+            linewidth=self.bands_linewidth,
+            linestyle=self.bands_linestyle,
+            alpha=self.bands_alpha,
+        )
 
 
 class FHIVibesPhonons(FHIVibesParser):
@@ -237,36 +302,26 @@ class FHIVibesPhonons(FHIVibesParser):
         )
         return sp(qps, qpoint_axis, spectrum, label_coords, qpoint_labels, jumps, unit)
 
-    def _process_kwargs(self, **kwargs):
+    def _process_kwargs(self, kwargs):
         kwargs = kwargs.copy()
 
-        axargs = {}
-        axargs["figsize"] = kwargs.pop("figsize", (5, 5))
-        axargs["filename"] = kwargs.pop("filename", None)
-        axargs["title"] = kwargs.pop("title", None)
+        deprecated = ["title", "mark_accoustic"]
+        for dep in deprecated:
+            if dep in kwargs.keys():
+                kwargs.pop(dep)
+                logger.warning(
+                    f"Keyword {dep} is deprecated. Please do not use this anymore."
+                )
 
-        d = {}
-        bandpath = kwargs.pop("bandpath", None)
-
-        d["window"] = kwargs.pop("window", 3)
-        d["accoustic_color"] = kwargs.pop("mark_accoustic", "royalblue")
-
-        if bandpath != None:
-            spectrum = self.get_spectrum(bandpath)
-        else:
-            spectrum = self.spectrum
-
-        d["spectrum"] = spectrum
-
-        return axargs, kwargs, d
+        return kwargs
 
     def plot(self, axes=None, color=mutedblack, main=True, **kwargs):
-        axargs, kwargs, bsargs = self._process_kwargs(**kwargs)
-        with AxesContext(ax=axes, main=main, **axargs) as axes:
-            pbs = PhononPlot(main=main, **bsargs)
-            axes = pbs.draw()
-            x, y = pbs.x, pbs.y
-            axes.plot(x, y, color=color, **kwargs)
+        kwargs = self._process_kwargs(kwargs)
+        bandpath = kwargs.pop("bandpath", None)
+        spectrum = self.get_spectrum(bandpath=bandpath)
+        with AxesContext(ax=axes, main=main, **kwargs) as axes:
+            pbs = PhononPlot(main=main, spectrum=spectrum, **bsargs)
+            pbs.draw()
         return axes
 
     def read_thermal_properties(self, unit="per mol"):
