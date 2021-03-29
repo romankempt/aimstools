@@ -91,7 +91,7 @@ class AxesContext:
         self.height_ratios = height_ratios
         self.hspace = hspace
         self.wspace = wspace
-        self.show = kwargs.get("show", False)
+        self.show = kwargs.get("show", True)
 
     def __enter__(self) -> "matplotlib.axes.Axes":
         if self.ax is None:

@@ -14,5 +14,5 @@ set_global_plotsettings(target="paper")
 #spd.plot_all_species()
 
 #fig, axes = plt.subplots(dpi=600)
-spd.plot_all_angular_momenta(filename="test.png")
+spd.plot_all_angular_momenta()
 
