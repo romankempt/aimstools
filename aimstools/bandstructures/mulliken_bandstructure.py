@@ -556,6 +556,7 @@ class MullikenBandStructure(BandStructureBaseClass):
             legend_fancybox (bool, optional): Enable bevelled box. Defaults to True.
             legend_borderpad (float, optional): Pad for legend bordrs. Defaults to 0.4.
             legend_loc (string, optional): Legend location. Defaults to "upper right".
+            legend_handlelength (float): Legend handlelength, defaults to 0.4.
             show_colorbar (bool, optional): Show colorbar. Defaults to False.
        
         Returns:

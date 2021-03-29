@@ -1,8 +1,7 @@
 from aimstools.misc import *
 from aimstools.density_of_states.base import DOSBaseClass
-from aimstools.density_of_states.utilities import DOSPlot, DOSSpectrum, DOSContribution
+from aimstools.density_of_states.utilities import DOSPlot, DOSSpectrum
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 

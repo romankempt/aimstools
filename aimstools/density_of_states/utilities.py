@@ -89,39 +89,58 @@ class DOSPlot:
         self.set_data_from_spectrum()
         self.main = main
 
-        self.dos_linewidth = kwargs.get("dos_linewidth", mpllinewidth)
+        self.dos_linewidth = kwargs.get(
+            "dos_linewidth", plt.rcParams["lines.linewidth"]
+        )
         self.dos_linestyle = kwargs.get("dos_linestyle", "-")
 
         self.show_fermi_level = kwargs.get("show_fermi_level", True)
         self.fermi_level_color = kwargs.get("fermi_level_color", fermi_color)
         self.fermi_level_alpha = kwargs.get("fermi_level_alpha", 1.0)
         self.fermi_level_linestyle = kwargs.get("fermi_level_linestyle", "--")
-        self.fermi_level_linewidth = kwargs.get("fermi_level_linewidth", mpllinewidth)
+        self.fermi_level_linewidth = kwargs.get(
+            "fermi_level_linewidth", plt.rcParams["lines.linewidth"]
+        )
 
-        self.show_grid_lines = kwargs.get("show_grid_lines", True)
+        self.show_grid_lines = kwargs.get("show_grid_lines", False)
         self.grid_lines_axes = kwargs.get("show_grid_lines_axes", "x")
         self.grid_linestyle = kwargs.get("grid_linestyle", (0, (1, 1)))
         self.grid_linewidth = kwargs.get("grid_linewidth", 1.0)
+        self.grid_linecolor = kwargs.get("grid_linecolor", mutedblack)
 
         self.colors = kwargs.get("colors", ["red", "blue", "green"])
         self.labels = kwargs.get("labels", [1, 2, 3])
 
         self.show_legend = kwargs.get("show_legend", True)
-        self.legend_linewidth = kwargs.get("legend_linewidth", 1.5)
-        self.legend_frameon = kwargs.get("legend_frameon", True)
-        self.legend_fancybox = kwargs.get("legend_fancybox", True)
-        self.legend_borderpad = kwargs.get("legend_borderpad", 0.4)
+        self.legend_linewidth = kwargs.get(
+            "legend_linewidth", plt.rcParams["lines.linewidth"]
+        )
+        self.legend_frameon = kwargs.get(
+            "legend_frameon", plt.rcParams["legend.frameon"]
+        )
+        self.legend_fancybox = kwargs.get(
+            "legend_fancybox", plt.rcParams["legend.fancybox"]
+        )
+        self.legend_borderpad = kwargs.get(
+            "legend_borderpad", plt.rcParams["legend.borderpad"]
+        )
         self.legend_loc = kwargs.get("legend_loc", "upper right")
+        self.legend_handlelength = kwargs.get(
+            "legend_handlelength", plt.rcParams["legend.handlelength"]
+        )
 
         self.window = kwargs.get("window", 3)
         self.energy_tick_locator = kwargs.get("energy_tick_locator", 0.5)
+        self.dos_tick_locator = kwargs.get("dos_tick_locator", 1)
 
         self.broadening = kwargs.get("broadening", 0.0)
         self.fill = kwargs.get("fill", "gradient")
 
         self.show_total_dos = kwargs.get("show_total_dos", True)
         self.total_dos_linestyle = kwargs.get("total_dos_linestyle", (0, (1, 1)))
-        self.total_dos_linewidth = kwargs.get("total_dos_linewidth", mpllinewidth)
+        self.total_dos_linewidth = kwargs.get(
+            "total_dos_linewidth", plt.rcParams["lines.linewidth"]
+        )
         self.total_dos_color = kwargs.get("color", mutedblack)
         self.total_dos_color = kwargs.get("total_dos_color", mutedblack)
 
@@ -145,7 +164,7 @@ class DOSPlot:
             ylabel = self.energy_label
             xlimits = (self.lower_dos_limit, self.upper_dos_limit)
             ylimits = (self.lower_energy_limit, self.upper_energy_limit)
-            xlocs = ticker.MultipleLocator(base=1.0)
+            xlocs = ticker.MultipleLocator(base=self.dos_tick_locator)
             ylocs = ticker.MultipleLocator(base=self.energy_tick_locator)
         else:
             xlabel = self.energy_label
@@ -153,12 +172,12 @@ class DOSPlot:
             xlimits = (self.lower_energy_limit, self.upper_energy_limit)
             ylimits = (self.lower_dos_limit, self.upper_dos_limit)
             xlocs = ticker.MultipleLocator(base=self.energy_tick_locator)
-            ylocs = ticker.MultipleLocator(base=1.0)
+            ylocs = ticker.MultipleLocator(base=self.dos_tick_locator)
 
         self.ax.xaxis.set_major_locator(xlocs)
         self.ax.yaxis.set_major_locator(ylocs)
-        self.ax.set_xlabel(xlabel)
-        self.ax.set_ylabel(ylabel)
+        self.ax.set_xlabel(xlabel, fontsize=plt.rcParams["axes.labelsize"])
+        self.ax.set_ylabel(ylabel, fontsize=plt.rcParams["axes.labelsize"])
         self.ax.set_xlim(xlimits)
         self.ax.set_ylim(ylimits)
 
@@ -198,6 +217,15 @@ class DOSPlot:
                 )
         if self.show_fermi_level and self.main:
             self._show_fermi_level()
+        if self.show_grid_lines and self.main:
+            self.ax.grid(
+                b=self.show_grid_lines,
+                which="major",
+                axis=self.grid_lines_axes,
+                linestyle=self.grid_linestyle,
+                linewidth=self.grid_linewidth,
+                color=self.grid_linecolor,
+            )
         if self.show_total_dos and self.main:
             self._show_total_dos()
             handles.append(
@@ -207,7 +235,7 @@ class DOSPlot:
                     color=self.total_dos_color,
                     label="total",
                     linestyle=self.total_dos_linestyle,
-                    lw=self.total_dos_linewidth,
+                    lw=self.legend_linewidth,
                 )
             )
         if self.show_legend and self.main:
@@ -313,6 +341,8 @@ class DOSPlot:
             fancybox=self.legend_fancybox,
             borderpad=self.legend_borderpad,
             loc=self.legend_loc,
+            handlelength=self.legend_handlelength,
+            fontsize=plt.rcParams["legend.fontsize"],
         )
 
 
@@ -488,8 +518,10 @@ class DOSContribution:
 
     def get_latex_symbol(self):
         s = self.symbol
-        s = Formula(s)
-        return s.format("latex")
+        s = Formula(s).format("latex")
+        if self.l != "total":
+            s += f"$_{self.l}$"
+        return s
 
     @property
     def l(self):

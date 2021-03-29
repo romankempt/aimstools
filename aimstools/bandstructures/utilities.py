@@ -396,23 +396,30 @@ class BandStructurePlot:
         self.fermi_level_color = kwargs.get("fermi_level_color", fermi_color)
         self.fermi_level_alpha = kwargs.get("fermi_level_alpha", 1.0)
         self.fermi_level_linestyle = kwargs.get("fermi_level_linestyle", "--")
-        self.fermi_level_linewidth = kwargs.get("fermi_level_linewidth", mpllinewidth)
+        self.fermi_level_linewidth = kwargs.get(
+            "fermi_level_linewidth", plt.rcParams["lines.linewidth"]
+        )
 
         self.show_grid_lines = kwargs.get("show_grid_lines", True)
         self.grid_lines_axes = kwargs.get("show_grid_lines_axes", "x")
         self.grid_linestyle = kwargs.get("grid_linestyle", (0, (1, 1)))
         self.grid_linewidth = kwargs.get("grid_linewidth", 1.0)
+        self.grid_linecolor = kwargs.get("grid_linecolor", mutedblack)
 
         self.show_jumps = kwargs.get("show_jumps", True)
-        self.jumps_linewidth = kwargs.get("jumps_linewidth", mpllinewidth)
+        self.jumps_linewidth = kwargs.get(
+            "jumps_linewidth", plt.rcParams["lines.linewidth"]
+        )
         self.jumps_linestyle = kwargs.get("jumps_linestyle", "-")
         self.jumps_linecolor = kwargs.get("jumps_linecolor", mutedblack)
 
         self.show_bandstructure = kwargs.get("show_bandstructure", True)
         self.bands_color = kwargs.get("bands_color", mutedblack)
         self.bands_color = kwargs.get("color", mutedblack)
-        self.bands_linewidth = kwargs.get("bands_linewidth", mpllinewidth)
-        self.bands_linewidth = kwargs.get("linewidth", mpllinewidth)
+        self.bands_linewidth = kwargs.get(
+            "bands_linewidth", plt.rcParams["lines.linewidth"]
+        )
+        self.bands_linewidth = kwargs.get("linewidth", plt.rcParams["lines.linewidth"])
         self.bands_linestyle = kwargs.get("bands_linestyle", "-")
         self.bands_linestyle = kwargs.get("linestyle", "-")
         self.bands_alpha = kwargs.get("bands_alpha", 1.0)
@@ -443,12 +450,12 @@ class BandStructurePlot:
     def draw(self):
         ylocs = ticker.MultipleLocator(base=self.y_tick_locator)
         self.ax.yaxis.set_major_locator(ylocs)
-        self.ax.set_xlabel(self.xlabel)
-        self.ax.set_ylabel(self.ylabel)
+        self.ax.set_xlabel(self.xlabel, fontsize=plt.rcParams["axes.labelsize"])
+        self.ax.set_ylabel(self.ylabel, fontsize=plt.rcParams["axes.labelsize"])
         self.ax.set_xlim(self.xlimits)
         self.ax.set_ylim(self.ylimits)
         self.ax.set_xticks(self.xlabelcoords)
-        self.ax.set_xticklabels(self.xlabels)
+        self.ax.set_xticklabels(self.xlabels, fontsize=plt.rcParams["axes.labelsize"])
         self.ax.tick_params(axis="x", which="both", length=0)
         if self.show_grid_lines and self.main:
             self.ax.grid(
@@ -457,7 +464,7 @@ class BandStructurePlot:
                 axis=self.grid_lines_axes,
                 linestyle=self.grid_linestyle,
                 linewidth=self.grid_linewidth,
-                color=mutedblack,
+                color=self.grid_linecolor,
             )
         if self.show_jumps and self.main:
             for j in self.jumps:
@@ -612,23 +619,34 @@ class MullikenBandStructurePlot(BandStructurePlot):
         self.labels = kwargs.get("labels", [1, 2, 3])
 
         self.show_legend = kwargs.get("show_legend", True)
-        self.legend_linewidth = kwargs.get("legend_linewidth", 1.5)
-        self.legend_frameon = kwargs.get("legend_frameon", True)
-        self.legend_fancybox = kwargs.get("legend_fancybox", True)
-        self.legend_borderpad = kwargs.get("legend_borderpad", 0.4)
+        self.legend_linewidth = kwargs.get(
+            "legend_linewidth", plt.rcParams["lines.linewidth"]
+        )
+        self.legend_frameon = kwargs.get(
+            "legend_frameon", plt.rcParams["legend.frameon"]
+        )
+        self.legend_fancybox = kwargs.get(
+            "legend_fancybox", plt.rcParams["legend.fancybox"]
+        )
+        self.legend_borderpad = kwargs.get(
+            "legend_borderpad", plt.rcParams["legend.borderpad"]
+        )
         self.legend_loc = kwargs.get("legend_loc", "upper right")
+        self.legend_handlelength = kwargs.get(
+            "legend_handlelength", plt.rcParams["legend.handlelength"]
+        )
 
         self.show_colorbar = kwargs.get("show_colorbar", False)
 
     def draw(self):
         ylocs = ticker.MultipleLocator(base=self.y_tick_locator)
         self.ax.yaxis.set_major_locator(ylocs)
-        self.ax.set_xlabel(self.xlabel)
-        self.ax.set_ylabel(self.ylabel)
+        self.ax.set_xlabel(self.xlabel, fontsize=plt.rcParams["axes.labelsize"])
+        self.ax.set_ylabel(self.ylabel, fontsize=plt.rcParams["axes.labelsize"])
         self.ax.set_xlim(self.xlimits)
         self.ax.set_ylim(self.ylimits)
         self.ax.set_xticks(self.xlabelcoords)
-        self.ax.set_xticklabels(self.xlabels)
+        self.ax.set_xticklabels(self.xlabels, fontsize=plt.rcParams["axes.labelsize"])
         self.ax.tick_params(axis="x", which="both", length=0)
         if self.show_grid_lines and self.main:
             self.ax.grid(
@@ -785,6 +803,8 @@ class MullikenBandStructurePlot(BandStructurePlot):
             fancybox=self.legend_fancybox,
             borderpad=self.legend_borderpad,
             loc=self.legend_loc,
+            handlelength=self.legend_handlelength,
+            fontsize=plt.rcParams["legend.fontsize"],
         )
 
     def _get_difference_contribution(self):

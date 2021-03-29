@@ -2,7 +2,7 @@ from aimstools.density_of_states.total_dos import TotalDOS
 from aimstools.misc import *
 from aimstools.density_of_states.base import DOSBaseClass
 from aimstools.density_of_states.atom_proj_dos import AtomProjectedDOS
-from aimstools.density_of_states.utilities import DOSPlot, DOSContribution, DOSSpectrum
+from aimstools.density_of_states.utilities import DOSSpectrum
 
 import numpy as np
 

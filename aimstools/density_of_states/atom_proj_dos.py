@@ -1,7 +1,7 @@
 from aimstools.misc import *
 from aimstools.density_of_states.base import DOSBaseClass
 from aimstools.density_of_states.total_dos import TotalDOS
-from aimstools.density_of_states.utilities import DOSSpectrum, DOSContribution, DOSPlot
+from aimstools.density_of_states.utilities import DOSSpectrum, DOSPlot
 
 import numpy as np
 import re
@@ -174,7 +174,7 @@ class AtomProjectedDOS(TotalDOS, DOSBaseClass):
         Example:
             >>> from aimstools.density_of_states import AtomProjectedDOS as APD
             >>> dos = APD("path/to/dir")
-            >>> bs.plot_contributions(contributions=["F", "CH"], labels=["foo", "bar"], colors=["green", "blue"], mode="scatter")
+            >>> dos.plot_contributions(contributions=["F", "CH"], labels=["foo", "bar"], colors=["green", "blue"], mode="scatter")
 
         Args:            
             contributions (list, optional): List of contribution identifiers. Defaults to [].
@@ -184,8 +184,27 @@ class AtomProjectedDOS(TotalDOS, DOSBaseClass):
             legend_linewidth (float, optional): Legend handle linewidth. Defaults to 1.5.
             legend_frameon (bool, optional): Show legend frame. Defaults to True.
             legend_fancybox (bool, optional): Enable bevelled box. Defaults to True.
-            legend_borderpad (float, optional): Pad for legend bordrs. Defaults to 0.4.
+            legend_borderpad (float, optional): Pad for legend borders. Defaults to 0.4.
             legend_loc (string, optional): Legend location. Defaults to "upper right".
+            legend_handlelength (float): Legend handlelength, defaults to 0.4.
+            axes (matplotlib.axes.Axes): Axes to draw on, defaults to None.
+            figsize (tuple): Figure size in inches. Defaults to (5,5).
+            filename (str): Saves figure to file. Defaults to None.
+            spin (int): Spin channel, can be "up", "dn", 0 or 1. Defaults to 0.       
+            reference (str): Energy reference for plotting, e.g., "VBM", "middle", "fermi level". Defaults to None.
+            show_fermi_level (bool): Show Fermi level. Defaults to True.
+            fermi_level_color (str): Color of Fermi level line. Defaults to fermi_color.
+            fermi_level_alpha (float): Alpha channel of Fermi level line. Defaults to 1.0.
+            fermi_level_linestyle (str): Line style of Fermi level line. Defaults to "--".
+            fermi_level_linewidth (float): Line width of Fermi level line. Defaults to mpllinewidth.
+            show_grid_lines (bool): Show grid lines for axes ticks. Defaults to False.
+            grid_lines_axes (str): Show grid lines for given axes. Defaults to "x".
+            grid_linestyle (tuple): Grid lines linestyle. Defaults to (0, (1, 1)).
+            grid_linewidth (float): Width of grid lines. Defaults to 1.0.
+            grid_linecolor (str): Grid lines color. Defaults to mutedblack.
+            window (tuple): Window on energy axis, can be float or tuple of two floats in eV. Defaults to 3 eV.
+            energy_tick_locator (float): Places ticks on energy axis on regular intervals. Defaults to 0.5 eV.     
+            dos_tick_locator (float): Places ticks on dos axis on regular intervals. Defaults to 1 state / eV.       
        
         Returns:
             axes: Axes object.

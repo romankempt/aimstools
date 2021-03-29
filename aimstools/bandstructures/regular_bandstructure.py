@@ -175,6 +175,7 @@ class RegularBandStructure(BandStructureBaseClass):
             grid_lines_axes (str): Show grid lines for given axes. Defaults to "x".
             grid_linestyle (tuple): Grid lines linestyle. Defaults to (0, (1, 1)).
             grid_linewidth (float): Width of grid lines. Defaults to 1.0.
+            grid_linecolor (str): Grid lines color. Defaults to mutedblack.
             show_jumps (bool): Show jumps between Brillouin zone sections by darker vertical lines. Defaults to True.
             jumps_linewidth (float): Width of jump lines. Defaults to mpllinewidth.
             jumps_linestyle (str): Line style of the jump lines. Defaults to "-".
