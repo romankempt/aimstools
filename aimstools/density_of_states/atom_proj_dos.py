@@ -205,6 +205,7 @@ class AtomProjectedDOS(TotalDOS, DOSBaseClass):
             window (tuple): Window on energy axis, can be float or tuple of two floats in eV. Defaults to 3 eV.
             energy_tick_locator (float): Places ticks on energy axis on regular intervals. Defaults to 0.5 eV.     
             dos_tick_locator (float): Places ticks on dos axis on regular intervals. Defaults to 1 state / eV.       
+            broadening (float): Smears DOS by finite Lorentzian width. Defaults to 0.00 eV.
        
         Returns:
             axes: Axes object.

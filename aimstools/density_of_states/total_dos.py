@@ -56,11 +56,13 @@ class TotalDOS(DOSBaseClass):
 
     @property
     def spectrum(self):
+        ":class:`aimstools.density_of_states.utilities.DOSSpectrum`."
         if self._spectrum == None:
             self.set_spectrum(None)
         return self._spectrum
 
     def get_spectrum(self, reference=None):
+        "Returns :class:`aimstools.density_of_states.utilities.DOSSpectrum`."
         self.set_spectrum(reference=reference)
         return self.spectrum
 
@@ -81,6 +83,7 @@ class TotalDOS(DOSBaseClass):
         return kwargs
 
     def plot(self, axes=None, color=mutedblack, **kwargs):
+        """Plots total density of states."""
         kwargs = self._process_kwargs(kwargs)
         kwargs["show_total_dos"] = False
         kwargs["show_legend"] = False

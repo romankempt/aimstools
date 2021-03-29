@@ -567,7 +567,7 @@ class BandStructurePlot:
                 v[1],
                 color=colors[i],
                 linestyle=(0, (1, 1)),
-                linewidth=mpllinewidth,
+                linewidth=plt.rcParams["lines.linewidth"],
                 alpha=0.8,
             )
             self.ax.scatter(v[0], v[1], c=colors[i], alpha=0.8)

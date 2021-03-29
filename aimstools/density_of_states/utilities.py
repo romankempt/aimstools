@@ -131,7 +131,7 @@ class DOSPlot:
 
         self.window = kwargs.get("window", 3)
         self.energy_tick_locator = kwargs.get("energy_tick_locator", 0.5)
-        self.dos_tick_locator = kwargs.get("dos_tick_locator", 1)
+        self.dos_tick_locator = kwargs.get("dos_tick_locator", "auto")
 
         self.broadening = kwargs.get("broadening", 0.0)
         self.fill = kwargs.get("fill", "gradient")
@@ -148,6 +148,17 @@ class DOSPlot:
         self.set_energy_window()
         self.set_dos_window()
         self.set_xy_axes_labels()
+        self.set_dos_tick_locator()
+
+    def set_dos_tick_locator(self):
+        if self.dos_tick_locator == "auto":
+            a, b = self.lower_dos_limit, self.upper_dos_limit
+            d = round(abs(b - a) / 3, 1)
+            self.dos_tick_locator = d
+        else:
+            assert isinstance(
+                self.dos_tick_locator, (int, float)
+            ), "DOS tick locator must be int or float."
 
     def set_data_from_spectrum(self):
         spectrum = self.spectrum
@@ -184,13 +195,13 @@ class DOSPlot:
         handles = []
         for i, con in enumerate(self.contributions):
             values = con.values[:, self.spin] * self.spin_factor
-            latex_symbol = con.get_latex_symbol()
+            label = self.labels[i]
             handles.append(
                 Line2D(
                     [0],
                     [0],
                     color=self.colors[i],
-                    label=latex_symbol,
+                    label=label,
                     lw=self.legend_linewidth,
                 )
             )
@@ -383,7 +394,7 @@ class DOSSpectrum:
 
     @property
     def contributions(self):
-        "List of :class:~`aimstools.density_of_states.utilities.DOSContribution`."
+        "List of :class:`~aimstools.density_of_states.utilities.DOSContribution`."
         return self._contributions
 
     @property
@@ -412,7 +423,7 @@ class DOSSpectrum:
         return DOSContribution(symbol, values, l=0)
 
     def get_atom_contribution(self, index, l="tot"):
-        "Returns :class:~`aimstools.density_of_states.utilities.DOSContribution` of given atom index and angular momentum l."
+        "Returns :class:`~aimstools.density_of_states.utilities.DOSContribution` of given atom index and angular momentum l."
         assert (
             self.type == "atom"
         ), "This spectrum type does not support atom contributions."

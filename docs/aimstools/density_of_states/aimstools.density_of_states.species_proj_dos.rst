@@ -5,7 +5,3 @@ Species-projected Density of States
    :members:
    :undoc-members:
    :show-inheritance:
-
-.. autoclass:: aimstools.density_of_states.species_proj_dos.SpeciesProjectedDOSMethods
-   :members:
-   :undoc-members:
