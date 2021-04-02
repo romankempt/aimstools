@@ -9,7 +9,7 @@ apd = APD(".")
 spd = SPD(".")
 
 
-set_global_plotsettings(target="paper")
+set_global_plotsettings(target="presentation")
 #spd.plot_contributions(contributions=("Si", "tot"), labels=["Si_tot"], colors=["green"])
 #spd.plot_all_species()
 

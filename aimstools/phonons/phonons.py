@@ -15,6 +15,85 @@ from ase.formula import Formula
 from collections import namedtuple
 
 
+class PhononSpectrum:
+    """Container class for eigenvalue spectrum and associated data.
+
+    Attributes:
+        atoms (ase.atoms.Atoms): ASE atoms object.
+        qpoints (ndarray): (nqpoints, 3) array with k-points.
+        qpoint_axis (ndarray): (nqpoints, 1) linear plotting axis.
+        frequencies (ndarray): (nqpoints, nbands) array with frequencies.
+        label_coords (list): List of k-point label coordinates on the plotting axis.
+        qpoint_labels (list): List of k-point labels.
+        jumps (list): List of jumps from unconnected Brillouin zone sections on the plotting axis.
+        unit (str): Energy unit.
+
+    """
+
+    def __init__(
+        self,
+        atoms: "ase.atoms.Atoms" = None,
+        qpoints: "numpy.ndarray" = None,
+        qpoint_axis: "numpy.ndarray" = None,
+        frequencies: "numpy.ndarray" = None,
+        label_coords: list = None,
+        qpoint_labels: list = None,
+        jumps: list = None,
+        unit: str = None,
+        bandpath: str = None,
+    ) -> None:
+        self._atoms = atoms
+        self._qpoints = qpoints
+        self._qpoint_axis = qpoint_axis
+        self._frequencies = frequencies
+        self._label_coords = label_coords
+        self._qpoint_labels = qpoint_labels
+        self._jumps = jumps
+        self._unit = unit
+        self._bandpath = bandpath
+
+    def __repr__(self):
+        return "{}(bandpath={}, unit={})".format(
+            self.__class__.__name__, self.bandpath, self.unit
+        )
+
+    @property
+    def atoms(self):
+        return self._atoms
+
+    @property
+    def qpoints(self):
+        return self._qpoints
+
+    @property
+    def qpoint_axis(self):
+        return self._qpoint_axis
+
+    @property
+    def frequencies(self):
+        return self._frequencies
+
+    @property
+    def label_coords(self):
+        return self._label_coords
+
+    @property
+    def qpoint_labels(self):
+        return self._qpoint_labels
+
+    @property
+    def jumps(self):
+        return self._jumps
+
+    @property
+    def unit(self):
+        return self._unit
+
+    @property
+    def bandpath(self):
+        return self._bandpath
+
+
 class PhononPlot:
     """Context to draw phonon plot."""
 
@@ -55,10 +134,10 @@ class PhononPlot:
         self.show_accoustic = kwargs.get("show_accoustic", True)
         self.accoustic_bands_color = kwargs.get("accoustic_bands_color", "royalblue")
 
-        self.window = kwargs.get("window", 3)
-        self.y_tick_locator = kwargs.get("y_tick_locator", 0.5)
+        self.y_tick_locator = kwargs.get("y_tick_locator", 100)
         self.set_xy_axes_labels()
         self.set_qpoint_labels()
+        self.set_x_limits()
         self.main = main
 
     def set_data_from_spectrum(self):
@@ -75,8 +154,7 @@ class PhononPlot:
         self.ax.yaxis.set_major_locator(ylocs)
         self.ax.set_xlabel(self.xlabel, fontsize=plt.rcParams["axes.labelsize"])
         self.ax.set_ylabel(self.ylabel, fontsize=plt.rcParams["axes.labelsize"])
-        # self.ax.set_xlim(self.xlimits)
-        # self.ax.set_ylim(self.ylimits)
+        self.ax.set_xlim(self.xlimits)
         self.ax.set_xticks(self.xlabelcoords)
         self.ax.set_xticklabels(self.xlabels, fontsize=plt.rcParams["axes.labelsize"])
         self.ax.tick_params(axis="x", which="both", length=0)
@@ -136,13 +214,19 @@ class PhononPlot:
         self.xlabels = labels
         self.xlabelcoords = coords
 
+    def set_x_limits(self):
+        x = self.x
+        lower_xlimit = 0.0
+        upper_xlimit = np.max(x)
+        self.xlimits = (lower_xlimit, upper_xlimit)
+
     def _show_accoustic(self):
         y = self.y.copy()
         acc = y[:, :3]
         self.ax.plot(
             self.x,
             acc,
-            color=self.accoustic_color,
+            color=self.accoustic_bands_color,
             linewidth=self.bands_linewidth,
             linestyle=self.bands_linestyle,
             alpha=self.bands_alpha,
@@ -162,7 +246,7 @@ class FHIVibesPhonons(FHIVibesParser):
         self._get_phonopyfiles()
         self._bandpath = None
         self.bands = self.read_bands()
-        self.spectrum = self.get_spectrum()
+        self._spectrum = self.set_spectrum(bandpath=None, unit=r"cm$^{-1}$")
         # need to think about adding dos
 
     def __repr__(self):
@@ -171,7 +255,7 @@ class FHIVibesPhonons(FHIVibesParser):
         )
 
     def read_bands(self):
-        outputyaml = self.outpudir.joinpath("band.yaml")
+        outputyaml = self.outputdir.joinpath("band.yaml")
         assert outputyaml.exists(), "File band.yaml not found."
         with open(outputyaml, "r") as stream:
             try:
@@ -225,7 +309,7 @@ class FHIVibesPhonons(FHIVibesParser):
                 i += 1
         return bands
 
-    def get_bandpath(self, bandpathstring):
+    def set_bandpath(self, bandpathstring):
         new_bandpath = parse_path_string(bandpathstring)
         old_path = self.bandpath
         special_points = old_path.special_points
@@ -243,19 +327,18 @@ class FHIVibesPhonons(FHIVibesParser):
                 cell=self.structure.cell,
                 special_points=special_points,
             )
-        return new_path
+        self._bandpath = new_path
 
     @property
     def bandpath(self):
         return self._bandpath
 
-    def get_spectrum(self, bandpath=None, unit=r"cm$^{-1}$"):
+    def set_spectrum(self, bandpath=None, unit=r"cm$^{-1}$"):
         assert unit in [r"cm$^{-1}$", "Thz"], "Unit not recognized."
         bands = self.bands
         if bandpath != None:
-            bp = parse_path_string(self.get_bandpath(bandpath).path)
-        else:
-            bp = parse_path_string(self.bandpath.path)
+            self.set_bandpath(bandpath)
+        bp = parse_path_string(self.bandpath.path)
         jumps = []
         qps = []
         qpoint_axis = []
@@ -284,23 +367,42 @@ class FHIVibesPhonons(FHIVibesParser):
         # 1 Thz = 33.356 cm^-1
         if unit == r"cm$^{-1}$":
             spectrum *= 33.356
-        else:
-            unit = "Thz"
         qps = np.concatenate(qps, axis=0)
         qpoint_axis = np.concatenate(qpoint_axis, axis=0)
-        sp = namedtuple(
-            "spectrum",
-            [
-                "qpoints",
-                "qpoint_axis",
-                "frequencies",
-                "label_coords",
-                "qpoint_labels",
-                "jumps",
-                "unit",
-            ],
+        atoms = self.structure.copy()
+        sp = PhononSpectrum(
+            qpoint_axis=qpoint_axis,
+            frequencies=spectrum,
+            atoms=atoms,
+            label_coords=label_coords,
+            qpoint_labels=qpoint_labels,
+            jumps=jumps,
+            unit=unit,
+            bandpath=bp,
         )
-        return sp(qps, qpoint_axis, spectrum, label_coords, qpoint_labels, jumps, unit)
+        self._spectrum = sp
+
+    def read_dos(self):
+        tdos = self.outputdir.joinpath("total_dos.dat")
+        assert tdos.exists(), "File total_dos.dat not found."
+        tdos = np.loadtxt(tdos)  # frequencies vs. dos
+        return tdos
+
+    def set_dos_spectrum(self, unit=r"cm$^{-1}$"):
+        assert unit in [r"cm$^{-1}$", "Thz"], "Unit not recognized."
+        dos = self.read_dos()
+        if unit == r"cm$^{-1}$":
+            dos[:, 0] *= 33.356
+
+    @property
+    def spectrum(self):
+        if self._spectrum == None:
+            self.set_spectrum(bandpath=None, unit=r"cm$^{-1}$")
+        return self._spectrum
+
+    def get_spectrum(self, bandpath=None, unit=r"cm$^{-1}$"):
+        self.set_spectrum(bandpath=bandpath, unit=unit)
+        return self.spectrum
 
     def _process_kwargs(self, kwargs):
         kwargs = kwargs.copy()
@@ -315,12 +417,48 @@ class FHIVibesPhonons(FHIVibesParser):
 
         return kwargs
 
-    def plot(self, axes=None, color=mutedblack, main=True, **kwargs):
+    def plot(self, axes=None, color=mutedblack, main=True, unit=r"cm$^{-1}$", **kwargs):
+        """Plots phonon band structure. Similar syntax as :func:`~aimstools.bandstructures.regular_bandstructure.RegularBandStructure.plot`.
+
+        Example:
+            >>> from aimstools.phonons import FHIVibesPhonons as FVP
+            >>> phon = FVP("path/to/dir")
+            >>> phon.plot()
+
+        Args:            
+            axes (matplotlib.axes.Axes): Axes to draw on, defaults to None.
+            figsize (tuple): Figure size in inches. Defaults to (5,5).
+            filename (str): Saves figure to file. Defaults to None.
+            spin (int): Spin channel, can be "up", "dn", 0 or 1. Defaults to 0.       
+            bandpath (str): Band path for plotting of form "GMK,GA".
+            unit (str): Energy unit, can be "cm$^{-1}$" or "Thz". Defaults to "cm$^{-1}$".
+            show_grid_lines (bool): Show grid lines for axes ticks. Defaults to True.
+            grid_lines_axes (str): Show grid lines for given axes. Defaults to "x".
+            grid_linestyle (tuple): Grid lines linestyle. Defaults to (0, (1, 1)).
+            grid_linewidth (float): Width of grid lines. Defaults to 1.0.
+            grid_linecolor (str): Grid lines color. Defaults to mutedblack.
+            show_jumps (bool): Show jumps between Brillouin zone sections by darker vertical lines. Defaults to True.
+            jumps_linewidth (float): Width of jump lines. Defaults to mpllinewidth.
+            jumps_linestyle (str): Line style of the jump lines. Defaults to "-".
+            jumps_linecolor (str): Color of the jump lines. Defaults to mutedblack.
+            show_bandstructure (bool): Show band structure lines. Defaults to True.
+            bands_color (bool): Color of the band structure lines. Synonymous with color. Defaults to mutedblack.            
+            bands_linewidth (float): Line width of band structure lines. Synonymous with linewidth. Defaults to mpllinewidth.         
+            bands_linestyle (str): Band structure lines linestyle. Synonymous with linestyle. Defaults to "-".           
+            bands_alpha (float): Band structure lines alpha channel. Synonymous with alpha. Defaults to 1.0.
+            y_tick_locator (float): Places ticks on energy axis on regular intervals. Defaults to 100 cm^(-1).
+            show_accoustic_bands (bool): Highlighs accoustic bands. Defaults to True.
+            accoustic_bands_color (str): Color of the accoustic bands.
+       
+        Returns:
+            axes: Axes object.        
+        """
         kwargs = self._process_kwargs(kwargs)
         bandpath = kwargs.pop("bandpath", None)
-        spectrum = self.get_spectrum(bandpath=bandpath)
+
+        spectrum = self.get_spectrum(bandpath=bandpath, unit=unit)
         with AxesContext(ax=axes, main=main, **kwargs) as axes:
-            pbs = PhononPlot(main=main, spectrum=spectrum, **bsargs)
+            pbs = PhononPlot(ax=axes, spectrum=spectrum, main=main, **kwargs)
             pbs.draw()
         return axes
 
@@ -345,7 +483,7 @@ class FHIVibesPhonons(FHIVibesParser):
 
         assert unit in ["per atom", "per mol"], "Unit not recognized."
 
-        outputyaml = self.outpudir.joinpath("thermal_properties.yaml")
+        outputyaml = self.outputdir.joinpath("thermal_properties.yaml")
         assert outputyaml.exists(), "File thermal_properties.yaml not found."
         with open(outputyaml, "r") as stream:
             try:
@@ -394,23 +532,4 @@ class FHIVibesPhonons(FHIVibesParser):
                 heat_capacity,
                 self.structure.get_chemical_formula(),
             )
-        # elif unit == "per cell":
-        #     if self.structure.is_2d():
-        #         ref = "area"
-        #         value = self.structure.cell.copy()[:2, :2]
-        #         value = np.abs(np.linalg.det(value))  # per Angström^2
-        #         ref = "{:.6f}".format(value) + r" $\AA^{-2}$"
-        #     else:
-        #         ref = "volume"
-        #         value = self.structure.cell.volume  # per Angström^3
-        #         ref = "{:.6f}".format(value) + r" $\AA^{-3}$"
 
-        #     from ase.units import mol, kJ
-
-        #     logger.info("Returning units in eV / reference unit.")
-        #     fu = kJ / (mol * len(self.structure))
-        #     ZPE *= fu / value
-        #     free_energy *= fu / value
-        #     entropy *= fu / value
-        #     heat_capacity *= fu / value
-        #     return d(temperature, ZPE, free_energy, entropy, heat_capacity, ref)

@@ -20,7 +20,7 @@ class FHIVibesParser:
         self._check_output()
 
     def _find_main_directory(self, directory):
-        d = Path(directory)
+        d = Path(directory).absolute()
         assert d.exists(), "Path {} does not exist.".format(str(d))
         if str(d.parts[-1]) in ["relaxation", "phonopy"]:
             maindir = d.parent
@@ -77,4 +77,4 @@ class FHIVibesParser:
             outputdir.exists()
         ), "FHI-vibes phonopy/output directory does not exist. You have to run `vibes output phonopy phonopy/trajectory.son --full`."
         self.vibes_traj = vibes_traj
-        self.outpudir = outputdir
+        self.outputdir = outputdir
