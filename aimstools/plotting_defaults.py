@@ -2,8 +2,9 @@
 
 import matplotlib.pyplot as plt
 import os
+from pathlib import Path
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = Path(__file__).absolute().parent
 
 
 def set_global_plotsettings(target="presentation"):
@@ -11,9 +12,9 @@ def set_global_plotsettings(target="presentation"):
     import matplotlib.font_manager
 
     if target == "presentation":
-        CONFIG_PATH = os.path.join(ROOT_DIR, "presentation.mplstyle")
+        CONFIG_PATH = ROOT_DIR.joinpath("presentation.mplstyle")
     elif target == "paper":
-        CONFIG_PATH = os.path.join(ROOT_DIR, "paper.mplstyle")
+        CONFIG_PATH = ROOT_DIR.joinpath("paper.mplstyle")
     plt.style.use(CONFIG_PATH)
 
 

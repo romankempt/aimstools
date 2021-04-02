@@ -125,6 +125,7 @@ class BandSpectrum:
         fermi_level (float): Fermi level in eV.
         reference (str): Reference energy description.
         shift (float): Value to shift energies for reference.
+        bandpath (str): Bandpath string in ASE format.
 
 
     """
