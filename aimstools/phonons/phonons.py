@@ -131,7 +131,7 @@ class PhononPlot:
         self.bands_alpha = kwargs.get("bands_alpha", 1.0)
         self.bands_alpha = kwargs.get("alpha", 1.0)
 
-        self.show_accoustic = kwargs.get("show_accoustic", True)
+        self.show_accoustic_bands = kwargs.get("show_accoustic_bands", True)
         self.accoustic_bands_color = kwargs.get("accoustic_bands_color", "royalblue")
 
         self.y_tick_locator = kwargs.get("y_tick_locator", 100)
@@ -184,7 +184,7 @@ class PhononPlot:
                 linewidth=self.bands_linewidth,
                 linestyle=self.bands_linestyle,
             )
-        if self.show_accoustic and self.main:
+        if self.show_accoustic_bands and self.main:
             self._show_accoustic()
 
     def set_xy_axes_labels(self):
