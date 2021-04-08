@@ -359,3 +359,38 @@ class FHIVibesPhonons(FHIVibesParser):
                 self.structure.get_chemical_formula(),
             )
 
+    def get_gamma_point_frequencies(self, unit=r"cm$^{-1}$"):
+        """Returns Gamma-point frequencies as ndarray."""
+        s = self.get_spectrum(bandpath=None, unit=r"cm$^{-1}$")
+        index = np.where(
+            (s.qpoints[:, 0] == 0.00)
+            & (s.qpoints[:, 1] == 0.00)
+            & (s.qpoints[:, 2] == 0.00)
+        )[0][0]
+
+        gamma_freqs = s.frequencies[index, :]
+        return gamma_freqs
+
+    def get_irreducible_representations(self, symprec=1e-5, degeneracy_tolenace=1e-5):
+        """ Determines irreducible representations at Gamma.
+
+        Returns:
+            tuple: (space group, [band indicies, representation])
+
+        """
+        import phonopy
+
+        assert self.outputdir.joinpath(
+            "phonopy.yaml"
+        ).exists(), "File phonopy.yaml not found."
+        p = phonopy.load(
+            self.outputdir.joinpath("phonopy.yaml"),
+            symprec=symprec,
+            primitive_matrix="auto",
+        )
+        symm = p.get_symmetry().get_international_table()
+        p.set_irreps(q=[0, 0, 0], degeneracy_tolerance=degeneracy_tolenace)
+        irreps = p.get_irreps()
+        data = list(zip(irreps.get_band_indices(), irreps._ir_labels))
+        return (symm, data)
+
