@@ -6,231 +6,17 @@ from pathlib import Path
 import numpy as np
 import re
 
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-
 from ase.dft.kpoints import parse_path_string, BandPath
 from ase.formula import Formula
 
 from collections import namedtuple
 
-
-class PhononSpectrum:
-    """Container class for eigenvalue spectrum and associated data.
-
-    Attributes:
-        atoms (ase.atoms.Atoms): ASE atoms object.
-        qpoints (ndarray): (nqpoints, 3) array with k-points.
-        qpoint_axis (ndarray): (nqpoints, 1) linear plotting axis.
-        frequencies (ndarray): (nqpoints, nbands) array with frequencies.
-        label_coords (list): List of k-point label coordinates on the plotting axis.
-        qpoint_labels (list): List of k-point labels.
-        jumps (list): List of jumps from unconnected Brillouin zone sections on the plotting axis.
-        unit (str): Energy unit.
-
-    """
-
-    def __init__(
-        self,
-        atoms: "ase.atoms.Atoms" = None,
-        qpoints: "numpy.ndarray" = None,
-        qpoint_axis: "numpy.ndarray" = None,
-        frequencies: "numpy.ndarray" = None,
-        label_coords: list = None,
-        qpoint_labels: list = None,
-        jumps: list = None,
-        unit: str = None,
-        bandpath: str = None,
-    ) -> None:
-        self._atoms = atoms
-        self._qpoints = qpoints
-        self._qpoint_axis = qpoint_axis
-        self._frequencies = frequencies
-        self._label_coords = label_coords
-        self._qpoint_labels = qpoint_labels
-        self._jumps = jumps
-        self._unit = unit
-        self._bandpath = bandpath
-
-    def __repr__(self):
-        return "{}(bandpath={}, unit={})".format(
-            self.__class__.__name__, self.bandpath, self.unit
-        )
-
-    @property
-    def atoms(self):
-        return self._atoms
-
-    @property
-    def qpoints(self):
-        return self._qpoints
-
-    @property
-    def qpoint_axis(self):
-        return self._qpoint_axis
-
-    @property
-    def frequencies(self):
-        return self._frequencies
-
-    @property
-    def label_coords(self):
-        return self._label_coords
-
-    @property
-    def qpoint_labels(self):
-        return self._qpoint_labels
-
-    @property
-    def jumps(self):
-        return self._jumps
-
-    @property
-    def unit(self):
-        return self._unit
-
-    @property
-    def bandpath(self):
-        return self._bandpath
-
-
-class PhononPlot:
-    """Context to draw phonon plot."""
-
-    def __init__(self, main=True, **kwargs) -> None:
-        self.ax = kwargs.get("ax", None)
-        assert (
-            type(self.ax) != list
-        ), "Axes object must be a single matplotlib.axes.Axes, not list."
-
-        self.spectrum = kwargs.get("spectrum", None)
-        self.set_data_from_spectrum()
-
-        self.show_grid_lines = kwargs.get("show_grid_lines", True)
-        self.grid_lines_axes = kwargs.get("show_grid_lines_axes", "x")
-        self.grid_linestyle = kwargs.get("grid_linestyle", (0, (1, 1)))
-        self.grid_linewidth = kwargs.get("grid_linewidth", 1.0)
-        self.grid_linecolor = kwargs.get("grid_linecolor", mutedblack)
-
-        self.show_jumps = kwargs.get("show_jumps", True)
-        self.jumps_linewidth = kwargs.get(
-            "jumps_linewidth", plt.rcParams["lines.linewidth"]
-        )
-        self.jumps_linestyle = kwargs.get("jumps_linestyle", "-")
-        self.jumps_linecolor = kwargs.get("jumps_linecolor", mutedblack)
-
-        self.show_bandstructure = kwargs.get("show_bandstructure", True)
-        self.bands_color = kwargs.get("bands_color", mutedblack)
-        self.bands_color = kwargs.get("color", mutedblack)
-        self.bands_linewidth = kwargs.get(
-            "bands_linewidth", plt.rcParams["lines.linewidth"]
-        )
-        self.bands_linewidth = kwargs.get("linewidth", plt.rcParams["lines.linewidth"])
-        self.bands_linestyle = kwargs.get("bands_linestyle", "-")
-        self.bands_linestyle = kwargs.get("linestyle", "-")
-        self.bands_alpha = kwargs.get("bands_alpha", 1.0)
-        self.bands_alpha = kwargs.get("alpha", 1.0)
-
-        self.show_accoustic_bands = kwargs.get("show_accoustic_bands", True)
-        self.accoustic_bands_color = kwargs.get("accoustic_bands_color", "royalblue")
-
-        self.y_tick_locator = kwargs.get("y_tick_locator", 100)
-        self.set_xy_axes_labels()
-        self.set_qpoint_labels()
-        self.set_x_limits()
-        self.main = main
-
-    def set_data_from_spectrum(self):
-        spectrum = self.spectrum
-        self.labels = spectrum.qpoint_labels.copy()
-        self.labelcoords = spectrum.label_coords.copy()
-        self.jumps = spectrum.jumps.copy()
-        self.x = spectrum.qpoint_axis.copy()
-        self.y = spectrum.frequencies.copy()
-        self.unit = spectrum.unit
-
-    def draw(self):
-        ylocs = ticker.MultipleLocator(base=self.y_tick_locator)
-        self.ax.yaxis.set_major_locator(ylocs)
-        self.ax.set_xlabel(self.xlabel, fontsize=plt.rcParams["axes.labelsize"])
-        self.ax.set_ylabel(self.ylabel, fontsize=plt.rcParams["axes.labelsize"])
-        self.ax.set_xlim(self.xlimits)
-        self.ax.set_xticks(self.xlabelcoords)
-        self.ax.set_xticklabels(self.xlabels, fontsize=plt.rcParams["axes.labelsize"])
-        self.ax.tick_params(axis="x", which="both", length=0)
-        if self.show_grid_lines and self.main:
-            self.ax.grid(
-                b=self.show_grid_lines,
-                which="major",
-                axis=self.grid_lines_axes,
-                linestyle=self.grid_linestyle,
-                linewidth=self.grid_linewidth,
-                color=self.grid_linecolor,
-            )
-        if self.show_jumps and self.main:
-            for j in self.jumps:
-                self.ax.axvline(
-                    x=j,
-                    linestyle=self.jumps_linestyle,
-                    color=self.jumps_linecolor,
-                    linewidth=self.jumps_linewidth,
-                )
-        if self.show_bandstructure and self.main:
-            self.ax.plot(
-                self.x,
-                self.y,
-                color=self.bands_color,
-                alpha=self.bands_alpha,
-                linewidth=self.bands_linewidth,
-                linestyle=self.bands_linestyle,
-            )
-        if self.show_accoustic_bands and self.main:
-            self._show_accoustic()
-
-    def set_xy_axes_labels(self):
-        self.xlabel = ""
-        self.ylabel = "frequency [{}]".format(self.unit)
-
-    def set_qpoint_labels(self):
-        def pretty(kpt):
-            if kpt == "G":
-                kpt = r"$\Gamma$"
-            elif len(kpt) == 2:
-                kpt = kpt[0] + "$_" + kpt[1] + "$"
-            return kpt
-
-        labels = self.labels
-        labels = [pretty(j) for j in labels]
-        coords = self.labelcoords
-        i = 1
-        while i < len(labels):
-            if coords[i - 1] == coords[i]:
-                labels[i - 1] = labels[i - 1] + "|" + labels[i]
-                labels.pop(i)
-                coords.pop(i)
-            else:
-                i += 1
-
-        self.xlabels = labels
-        self.xlabelcoords = coords
-
-    def set_x_limits(self):
-        x = self.x
-        lower_xlimit = 0.0
-        upper_xlimit = np.max(x)
-        self.xlimits = (lower_xlimit, upper_xlimit)
-
-    def _show_accoustic(self):
-        y = self.y.copy()
-        acc = y[:, :3]
-        self.ax.plot(
-            self.x,
-            acc,
-            color=self.accoustic_bands_color,
-            linewidth=self.bands_linewidth,
-            linestyle=self.bands_linestyle,
-            alpha=self.bands_alpha,
-        )
+from aimstools.phonons.utilities import (
+    PhononSpectrum,
+    PhononDOS,
+    PhononPlot,
+    PhononDOSPlot,
+)
 
 
 class FHIVibesPhonons(FHIVibesParser):
@@ -247,7 +33,7 @@ class FHIVibesPhonons(FHIVibesParser):
         self._bandpath = None
         self.bands = self.read_bands()
         self._spectrum = self.set_spectrum(bandpath=None, unit=r"cm$^{-1}$")
-        # need to think about adding dos
+        self._dos = None
 
     def __repr__(self):
         return "{}(output directory={})".format(
@@ -382,6 +168,18 @@ class FHIVibesPhonons(FHIVibesParser):
         )
         self._spectrum = sp
 
+    @property
+    def spectrum(self):
+        """Phonon spectrum :class:`~aimstools.phonons.PhononSpectrum`"""
+
+        if self._spectrum == None:
+            self.set_spectrum(bandpath=None, unit=r"cm$^{-1}$")
+        return self._spectrum
+
+    def get_spectrum(self, bandpath=None, unit=r"cm$^{-1}$"):
+        self.set_spectrum(bandpath=bandpath, unit=unit)
+        return self.spectrum
+
     def read_dos(self):
         tdos = self.outputdir.joinpath("total_dos.dat")
         assert tdos.exists(), "File total_dos.dat not found."
@@ -393,16 +191,24 @@ class FHIVibesPhonons(FHIVibesParser):
         dos = self.read_dos()
         if unit == r"cm$^{-1}$":
             dos[:, 0] *= 33.356
+        dos = PhononDOS(
+            atoms=self.structure.copy(),
+            frequencies=dos[:, 0],
+            contributions=dos[:, 1],
+            unit=unit,
+        )
+        self._dos = dos
 
     @property
-    def spectrum(self):
-        if self._spectrum == None:
-            self.set_spectrum(bandpath=None, unit=r"cm$^{-1}$")
-        return self._spectrum
+    def dos(self):
+        """Phonon density of states :class:`~aimstools.phonons.PhononDOS`"""
+        if self._dos == None:
+            self.set_dos_spectrum()
+        return self._dos
 
-    def get_spectrum(self, bandpath=None, unit=r"cm$^{-1}$"):
-        self.set_spectrum(bandpath=bandpath, unit=unit)
-        return self.spectrum
+    def get_dos(self, unit=r"cm$^{-1}$"):
+        self.set_dos_spectrum(unit=unit)
+        return self.dos
 
     def _process_kwargs(self, kwargs):
         kwargs = kwargs.copy()
@@ -447,8 +253,8 @@ class FHIVibesPhonons(FHIVibesParser):
             bands_linestyle (str): Band structure lines linestyle. Synonymous with linestyle. Defaults to "-".           
             bands_alpha (float): Band structure lines alpha channel. Synonymous with alpha. Defaults to 1.0.
             y_tick_locator (float): Places ticks on energy axis on regular intervals. Defaults to 100 cm^(-1).
-            show_accoustic_bands (bool): Highlighs accoustic bands. Defaults to True.
-            accoustic_bands_color (str): Color of the accoustic bands.
+            show_acoustic_bands (bool): Highlighs accoustic bands. Defaults to True.
+            acoustic_bands_color (str): Color of the accoustic bands.
        
         Returns:
             axes: Axes object.        
@@ -460,6 +266,26 @@ class FHIVibesPhonons(FHIVibesParser):
         with AxesContext(ax=axes, main=main, **kwargs) as axes:
             pbs = PhononPlot(ax=axes, spectrum=spectrum, main=main, **kwargs)
             pbs.draw()
+        return axes
+
+    def plot_dos(
+        self, axes=None, color=mutedblack, main=True, unit=r"cm$^{-1}$", **kwargs
+    ):
+        """Plots phonon density of states. Similar syntax as :func:`~aimstools.density_of_states.total_dos.TotalDOS.plot`.
+
+        Example:
+            >>> from aimstools.phonons import FHIVibesPhonons as FVP
+            >>> phon = FVP("path/to/dir")
+            >>> phon.plot_dos()
+     
+        Returns:
+            axes: Axes object.        
+        """
+        kwargs = self._process_kwargs(kwargs)
+        dos = self.get_dos(unit=unit)
+        with AxesContext(ax=axes, main=main, **kwargs) as axes:
+            pdos = PhononDOSPlot(ax=axes, dos=dos, main=main, **kwargs)
+            pdos.draw()
         return axes
 
     def read_thermal_properties(self, unit="per mol"):

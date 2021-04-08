@@ -1,5 +1,5 @@
 
 from aimstools.phonons import FHIVibesPhonons as FVP
 phon = FVP("")
-phon.plot()
+phon.plot_dos()
 

@@ -6,3 +6,4 @@ Phonons
    :caption: Subclasses
 
    aimstools.phonons.phonons.rst
+   aimstools.phonons.utilities.rst
