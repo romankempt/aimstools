@@ -1,0 +1,42 @@
+# configfile written at 2020/12/03 13:18:03
+
+[phonopy]
+supercell_matrix:              [2, 2, 2]
+displacement:                  0.01
+is_diagonal:                   True
+is_plusminus:                  auto
+symprec:                       0.001
+q_mesh:                        [45, 45, 45]
+workdir:                       phonopy
+
+[machine]
+basissetloc:                   /home/rkempt/FHIaims/species_defaults
+aims_command:                  mpirun /home/rkempt/FHIaims/bin/aims.201122.mpi.x
+
+[calculator]
+name:                          aims
+workdir:                       /mnt/c/Users/rkempt/Dropbox/Repositories/aimstools/tests/vibes_relax/phonopy
+
+[calculator.parameters]
+xc:                            pbe
+many_body_dispersion_nl:       
+tier:                          1
+sc_accuracy_rho:               0.001
+charge_mix_param:              0.2
+occupation_type:               gaussian 0.01
+sc_iter_limit:                 100
+check_stacksize:               .false.
+k_grid:                        [6, 6, 6]
+relativistic:                  atomic_zora scalar
+output_level:                  MD_light
+compute_forces:                True
+use_pimd_wrapper:              ('localhost', 10001)
+
+[calculator.kpoints]
+density:                       5.49
+
+[calculator.basissets]
+default:                       light
+
+[calculator.socketio]
+port:                          auto

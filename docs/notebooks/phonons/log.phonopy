@@ -1,0 +1,47 @@
+[vibes.run]    run phonopy workflow with settings from phonopy.in
+
+[calculator]   Update aims k_grid with kpt density of 5.49 to [6, 6, 6]
+[calculator]   .. add `relativistic: atomic_zora scalar` to parameters (default)
+[calculator]   .. add `output_level: MD_light` to parameters (default)
+[calculator]   Add basisset `light` for atom `Si` to basissets folder.
+[calculator]   Calculator: aims
+[calculator]   settings:
+[calculator]     xc: pbe
+[calculator]     many_body_dispersion_nl: 
+[calculator]     tier: 1
+[calculator]     sc_accuracy_rho: 0.001
+[calculator]     charge_mix_param: 0.2
+[calculator]     occupation_type: gaussian 0.01
+[calculator]     sc_iter_limit: 100
+[calculator]     check_stacksize: .false.
+[calculator]     k_grid: [6, 6, 6]
+[calculator]     relativistic: atomic_zora scalar
+[calculator]     output_level: MD_light
+[calculator]     compute_forces: True
+[calculator]     use_pimd_wrapper: ('localhost', 10001)
+[calculator]     aims_command: mpirun /home/rkempt/FHIaims/bin/aims.201122.mpi.x
+[calculator]     species_dir: /mnt/c/Users/rkempt/Dropbox/Repositories/aimstools/tests/vibes_relax/phonopy/basissets
+[vibes]        Run phonopy workflow in working directory
+  /mnt/c/Users/rkempt/Dropbox/Repositories/aimstools/tests/vibes_relax/phonopy
+[phonopy.postprocess] Start phonopy postprocess:
+[trajectory]   Parse `/mnt/c/Users/rkempt/Dropbox/Repositories/aimstools/tests/vibes_relax/phonopy/trajectory.son`
+[son] read file:  /mnt/c/Users/rkempt/Dropbox/Repositories/aimstools/tests/vibes_relax/phonopy/trajectory.son
+[watchdog]     seems we are not on a cluster, nothing to do for watchdog
+[watchdog]     walltime not set, disable watchdog
+[socketio]     Use SocketIO with host localhost and port 10001
+[backup]       /mnt/c/Users/rkempt/Dropbox/Repositories/aimstools/tests/vibes_relax/phonopy/calculations does not exist, nothing to back up.
+[vibes]        Compute structure 1 of 1: working
+[vibes]        Compute structure 1 of 1: finished.
+[vibes]        Close the socket
+[vibes]        Start postprocess.
+[phonopy.postprocess] Start phonopy postprocess:
+[trajectory]   Parse `phonopy/trajectory.son`
+[son] read file:  phonopy/trajectory.son
+[son] process:    |                                   |  0/2[son] process:    |||||||||||||||||||||||||||||||||||||  2/2[trajectory]   .. time elapsed: 0.005s
+[trajectory]   .. create atoms
+[trajectory]   .. time elapsed: 0.046s
+[trajectory]   .. set raw hash
+[trajectory]   .. time elapsed: 0.005s
+[trajectory]   .. done in 0.057s
+[phonopy.postprocess] .. done in 0.254s
+[vibes]        done.

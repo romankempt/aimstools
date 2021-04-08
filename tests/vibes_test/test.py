@@ -1,5 +1,10 @@
 
 from aimstools.phonons import FHIVibesPhonons as FVP
 phon = FVP("")
-phon.plot()
+
+g = phon.get_gamma_point_frequencies()
+print(g)
+
+f = phon.get_irreducible_representations()
+print(f)
 

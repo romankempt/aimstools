@@ -10,12 +10,12 @@ This prepares the files for FHI-vibes with light numerical settings and a tier 1
 
 Additionally, you should consider changing the following parameters:
 
-| parameter | values |
-|---|---|
-| `sc_accuracy_rho` | Depending on the number of atoms, you can choose this value somewhere between `1e-3` to `1e-6`. |
-| `fmax` | For an initial relaxation, choose a higher value like `1e-2` or even `5e-2` eV/Angström. |
-| `fix_symmetry` | If you fix the symmetry, you introduce a bias to the structure of your system. If you investigate new systems, do not fix the symmetry. |
-| `mask` | This keyword is extremely useful for 2D materials. Set it to [1,1,0,0,0,1] to remove all forces on the unit cell in the `z`-direction. |
+| parameter         | values                                                                                                                                  |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `sc_accuracy_rho` | Depending on the number of atoms, you can choose this value somewhere between `1e-3` to `1e-6`.                                         |
+| `fmax`            | For an initial relaxation, choose a higher value like `1e-2` or even `5e-2` eV/Angström.                                                |
+| `fix_symmetry`    | If you fix the symmetry, you introduce a bias to the structure of your system. If you investigate new systems, do not fix the symmetry. |
+| `mask`            | This keyword is extremely useful for 2D materials. Set it to [1,1,0,0,0,1] to remove all forces on the unit cell in the `z`-direction.  |
 
 
 <div class="warning">
@@ -39,11 +39,11 @@ The recommended setting for production calculations from FHI-aims is <b>tight ti
 
 Change the following values:
 
-| parameter | values |
-| --- | --- |
-| `sc_accuracy_rho` | Stick to `1e-6`. |
-| `fmax` | Choose `5e-2` or `1e-3` if possible. |
-| `fix_symmetry` | When you have refined the structure, you may fix the symmetry. |
+| parameter         | values                                                         |
+| ----------------- | -------------------------------------------------------------- |
+| `sc_accuracy_rho` | Stick to `1e-6`.                                               |
+| `fmax`            | Choose `5e-2` or `1e-3` if possible.                           |
+| `fix_symmetry`    | When you have refined the structure, you may fix the symmetry. |
 
 If your structure does not converge for a stricter criterion of `fmax`, this might be an indication that you have to choose a denser `k_grid` or even tighter numerical settings, such as `sc_accuracy_rho 1e-7`. If your system is very flexible (e.g., rotating organic groups), then it might not be possible to set such a strict convergence criterion.
 
@@ -51,12 +51,12 @@ If your structure does not converge for a stricter criterion of `fmax`, this mig
 
 After you finished the second step, you might run phonon calculations. In case you encounter small imaginary frequencies, especially small pockets around the Gamma-point, this *typically* just means you need to converge your geometry a little tighter. Then, you might consider choosing:
 
-| parameter | values |
-| --- | --- |
-| `sc_accuracy_rho` | `1e-7` |
+| parameter            | values |
+| -------------------- | ------ |
+| `sc_accuracy_rho`    | `1e-7` |
 | `sc_accuracy_forces` | `1e-6` |
-| `fmax` | `5e-4` |
-| `maxstep` | `0.05` |
+| `fmax`               | `5e-4` |
+| `maxstep`            | `0.05` |
 
 Additionally, denser k-grids may help or some more structural refinement.
 
