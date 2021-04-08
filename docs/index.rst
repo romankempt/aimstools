@@ -38,6 +38,7 @@ This library contains a personal collection of scripts to handle FHI-aims calcul
    notebooks/bandstructures.ipynb
    notebooks/dosfigure.ipynb
    notebooks/fatbands.ipynb
+   notebooks/phonons.ipynb
    notebooks/absorption.ipynb
 
 .. toctree::
