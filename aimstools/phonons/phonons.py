@@ -157,6 +157,7 @@ class FHIVibesPhonons(FHIVibesParser):
         qpoint_axis = np.concatenate(qpoint_axis, axis=0)
         atoms = self.structure.copy()
         sp = PhononSpectrum(
+            qpoints=qps,
             qpoint_axis=qpoint_axis,
             frequencies=spectrum,
             atoms=atoms,
@@ -362,6 +363,7 @@ class FHIVibesPhonons(FHIVibesParser):
     def get_gamma_point_frequencies(self, unit=r"cm$^{-1}$"):
         """Returns Gamma-point frequencies as ndarray."""
         s = self.get_spectrum(bandpath=None, unit=r"cm$^{-1}$")
+        print(s)
         index = np.where(
             (s.qpoints[:, 0] == 0.00)
             & (s.qpoints[:, 1] == 0.00)
