@@ -30,8 +30,8 @@ def main(
     overwrite: bool = typer.Option(
         False, "-f", "--force_overwrite", help="Force overwrite existing files."
     ),
-    verbose: int = typer.Option(
-        0, "--verbose", "-v", count=True, help="Set verbosity level."
+    verbosity: int = typer.Option(
+        0, "--verbosity", "-v", count=True, help="Set verbosity level."
     ),
     standardize: bool = typer.Option(
         False,
@@ -41,7 +41,7 @@ def main(
     ),
 ):
 
-    set_verbosity_level(verbose)
+    set_verbosity_level(verbosity)
     vibes_keywords = ["relaxation", "go", "geometry", "phonons", "phonon", "phonopy"]
     aims_keywords = ["bs", "dos", "fatbs"]
     k_grid = [] if k_grid == (None, None, None) else k_grid

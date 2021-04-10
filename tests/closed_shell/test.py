@@ -1,18 +1,4 @@
-from aimstools.density_of_states.total_dos import TotalDOS as TDOS
-from aimstools.density_of_states.atom_proj_dos import AtomProjectedDOS as APD
-from aimstools.density_of_states.species_proj_dos import SpeciesProjectedDOS as SPD
-from aimstools.misc import *
-import matplotlib.pyplot as plt
-#tdos = TDOS(".")
-#tdos.plot()
-apd = APD(".")
-spd = SPD(".")
+from aimstools import BandStructure as BS
 
-
-set_global_plotsettings(target="presentation")
-#spd.plot_contributions(contributions=("Si", "tot"), labels=["Si_tot"], colors=["green"])
-#spd.plot_all_species()
-
-#fig, axes = plt.subplots(dpi=600)
-spd.plot_all_angular_momenta()
-
+bs = BS(".")
+bs.plot()
