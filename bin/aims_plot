@@ -1,236 +1,125 @@
 #!/usr/bin/env python
-import argparse
+import typer
+from typer.params import Option
 from aimstools.misc import *
-from aimstools import BandStructure as BS
-from aimstools import DensityOfStates as DOS
-from aimstools.bandstructures import BrillouineZone
-from aimstools.postprocessing import FHIAimsOutputReader as Reader
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-from matplotlib.lines import Line2D
+
+from pathlib import Path
+from typing import Tuple, List, Optional
+
+from aimstools import BandStructure, DensityOfStates
+from aimstools.phonons import FHIVibesPhonons
+
+app = typer.Typer()
 
 
-def parseArguments():
-    # Create argument parser
-    parser = argparse.ArgumentParser()
-
-    # Optional arguments
-    parser.add_argument(
-        "-bs",
-        "--bandstructure",
-        "--bs",
-        help="Path to bandstructure calculation.",
-        type=str,
-        default=None,
-    )
-
-    parser.add_argument(
-        "-mbs",
-        "--mulliken_bandstructure",
-        "--mbs",
-        help="Path to bandstructure calculation.",
-        type=str,
-        default=None,
-    )
-
-    parser.add_argument(
-        "-dos",
-        "--densityofstates",
-        "--DOS",
-        "--dos",
-        help="Path to density of states calculation.",
-        type=str,
-        default=None,
-    )
-
-    parser.add_argument(
-        "-s",
-        "--set",
-        metavar="KEY=VALUE",
-        nargs="+",
-        help="Set arbitrary number of key-value pairs for plotting. "
-        "Pay attention that there is no space before and after the '='. "
-        "Example: --set window=5",
-    )
-
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        help="Verbosity level, e.g. -v, -vv, default 0)",
-        action="count",
-        default=0,
-    )
-
-    # Parse arguments
-    args = parser.parse_args()
-    return args
-
-
-def parse_vars(extra_vars):
-    """
-    Take a list of comma seperated key value pair strings, seperated
-    by comma strings like 'foo=bar' and return as dict.
-    :param extra_vars: list[str] ['foo=bar, 'key2=value2']
-
-    :return: dict[str, str] {'foo': 'bar', 'key2': 'value2'}
-    """
-    vars_list = []
-    if extra_vars:
-        for i in extra_vars:
-            items = i.split("=")
-            key = items[0].strip()
-            if len(items) > 1:
-                value = "=".join(items[1:])
-                vars_list.append((key, value))
-    return dict(vars_list)
-
-
-if __name__ == "__main__":
-    args = parseArguments()
-    kwargs = parse_vars(args.set)
-    args = vars(args)
-
-    if kwargs.get("window", None) != None:
-        w = kwargs["window"]
+@app.command(
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+)
+def main(
+    ctx: typer.Context,
+    bs: Optional[Path] = typer.Option(None, "-bs", help="Path to bandstructure files."),
+    dos: Optional[Path] = typer.Option(
+        None, "-dos", help="Path to density of states files."
+    ),
+    phons: Optional[Path] = typer.Option(
+        None, "-ph", help="Path to FHI-vibes phonon calculation."
+    ),
+    hide_bz: bool = typer.Option(False, "--hbz", help="Hide Brillouin Zone"),
+    verbosity: int = typer.Option(
+        1, "--verbosity", "-v", count=True, help="Set verbosity level."
+    ),
+    target: str = typer.Option(
+        "presentation",
+        "-t",
+        "--target",
+        help="Plotting target, can be presentation or paper.",
+    ),
+):
+    kwargs = []
+    for i in ctx.args:
+        items = i.split("=")
+        key = items[0].strip()
+        value = items[1].strip()
+        if value.lower() == "false":
+            value = False
+        elif value.lower() == "true":
+            value = True
         try:
-            w = float(w)
+            value = float(value)
         except:
-            w = 5
-        finally:
-            kwargs["window"] = w
+            pass
+        try:
+            value = int(value)
+        except:
+            pass
+        kwargs.append((key, value))
+    kwargs = dict(kwargs)
 
-    verbosity = args.pop("verbose")
     set_verbosity_level(verbosity)
-    bp = kwargs.get("bandpath", None)
-    _ = kwargs.pop("main", None)
+    set_global_plotsettings(target)
 
-    bsdir = args.pop("bandstructure")
-    dosdir = args.pop("densityofstates")
-    mlkdir = args.pop("mulliken_bandstructure")
-    i = 0
-    if bsdir != None:
-        i += 1
-    if mlkdir != None:
-        i += 1
-    if bsdir or mlkdir:
-        i += 1
-    if dosdir != None:
-        i += 1
-    assert (
-        i > 0
-    ), "You have to specify a directory containing either a band structure or a density of states calculation."
-    fig = plt.figure(constrained_layout=False, figsize=(i * 6.4, 4.8))
-    ws = 0.25
-    if dosdir != None and mlkdir != None and bsdir != None:
-        spec = gridspec.GridSpec(
-            ncols=i, nrows=1, figure=fig, width_ratios=[4, 4, 1, 4], wspace=ws
-        )
-    elif dosdir != None and mlkdir != None and bsdir == None:
-        spec = gridspec.GridSpec(
-            ncols=i, nrows=1, figure=fig, width_ratios=[4, 1, 4], wspace=ws
-        )
-    elif dosdir != None and mlkdir == None and bsdir != None:
-        spec = gridspec.GridSpec(
-            ncols=i, nrows=1, figure=fig, width_ratios=[4, 1, 4], wspace=ws
-        )
-    else:
-        spec = gridspec.GridSpec(ncols=i, nrows=1, figure=fig, wspace=ws)
+    filename = "aimsplot.png" if target == "paper" else None
+    show = True if ((target == "presentation") and (filename == None)) else False
 
-    j = 0
-    bs_scalar, bs_soc, mbs = None, None, None
-    if bsdir != None:
-        bs = BS(bsdir)
+    count = 0
+    tasks = []
+    width_ratios = []
+    projections = []
+    if bs != None:
+        bs = BandStructure(bs)
         try:
             bs.get_properties()
         except:
-            logger.error(
-                "Couldn't get bandstructure properties. Probably a metal. Remind Roman to fix this."
-            )
-        ax_bs = fig.add_subplot(spec[j])
-        plt.sca(ax_bs)
-        if bs.soc:
-            bs_scalar = bs.bandstructure_zora
-            bs_soc = bs.bandstructure_soc
-            bs_soc.plot(axes=ax_bs, color="crimson", main=True, **kwargs)
-            bs_scalar.plot(
-                axes=ax_bs, color=mutedblack, alpha=0.5, main=False, **kwargs
-            )
-            handles = []
-            handles.append(Line2D([0], [0], color=mutedblack, label="ZORA", lw=1.5))
-            handles.append(Line2D([0], [0], color="crimson", label="ZORA+SOC", lw=1.5))
-            lgd = ax_bs.legend(
-                handles=handles,
-                frameon=True,
-                fancybox=False,
-                borderpad=0.4,
-                loc="upper right",
-            )
-            logger.info("Processing {}".format(bs_scalar))
-            logger.info("Processing {}".format(bs_soc))
-        else:
-            bs_soc = None
-            bs_scalar = bs.bandstructure_zora
-            bs_scalar.plot(axes=ax_bs, color=mutedblack, main=True, **kwargs)
-            logger.info("Processing {}".format(bs_scalar))
-        ax_bs.set_title("Band structure")
-        j += 1
-    if mlkdir != None:
-        if (bsdir != None) and (mlkdir == bsdir):
-            mbs = bs.bandstructure_mulliken
-        else:
-            mbs = BS(mlkdir)
-            if j == 0:
-                mbs.get_properties()
-            mbs = mbs.bandstructure_mulliken
-        logger.info("Processing {}".format(mbs))
-        ax_mlk = fig.add_subplot(spec[j])
-        plt.sca(ax_mlk)
-        mbs.plot_majority_contribution(axes=ax_mlk, **kwargs)
-        ax_mlk.set_title("Majority contribution")
-        if j > 0:
-            ax_mlk.set_ylabel("")
-            ax_mlk.set_yticks([])
-        j += 1
-    if dosdir != None:
-        dos = DOS(dosdir)
-        ax_dos = fig.add_subplot(spec[j])
-        plt.sca(ax_dos)
-        if "species" in dos.methods:
-            if dos.soc:
-                dos = dos.species_dos_soc
-            else:
-                dos = dos.species_dos_zora
-            dos.plot_all_species(axes=ax_dos)
-        elif "atom" in dos.methods:
-            if dos.soc:
-                dos = dos.atom_dos_soc
-            else:
-                dos = dos.atom_dos_zora
-            dos.plot_all_species(axes=ax_dos)
-        elif "total" in dos.methods:
-            if dos.soc:
-                dos = dos.total_dos_soc
-            else:
-                dos = dos.total_dos_zora
-            dos.plot(axes=ax_dos)
-        logger.info("Processing {}".format(dos))
+            logger.error("Could not get band structure properties.")
+        tasks.append("bs")
+        width_ratios.append(2)
+        projections.append("rectilinear")
+        count += 1
+    if dos != None:
+        dos = DensityOfStates(dos)
+        tasks.append("dos")
+        width_ratios.append(1)
+        projections.append("rectilinear")
+        count += 1
+    if bs is not None and not hide_bz:
+        tasks.append("bz")
+        width_ratios.append(3)
+        projections.append("3d")
+        count += 1
+    if phons != None:
+        phons = FHIVibesPhonons(phons)
+        tasks.append("phon")
+        width_ratios.append(2)
+        projections.append("rectilinear")
+        count += 1
 
-        ax_dos.set_title("DOS")
-        if j > 0:
-            ax_dos.set_ylabel("")
-            ax_dos.set_yticks([])
-        j += 1
+    figsize = (count * 2.5, 5)
+    with AxesContext(
+        ax=None,
+        ncols=count,
+        width_ratios=width_ratios,
+        projections=[projections],
+        figsize=figsize,
+        show=show,
+        filename=filename,
+    ) as axes:
+        for i, task in enumerate(tasks):
+            ax = axes if count == 1 else axes[i]
+            if task == "bs":
+                bs.plot(axes=ax, **kwargs)
+            if task == "dos":
+                dos.plot(axes=ax, **kwargs)
+                if bs is not None:
+                    ax.set_ylim(axes[0].get_ylim())
+                    ax.set_ylabel("")
+                    ax.set_xticks([])
+                    ax.set_xlabel("DOS")
+                    ax.set_yticks([])
+            if task == "bz":
+                bs.plot_brillouin_zone(axes=ax)
+            if task == "phon":
+                phons.plot(axes=ax, **kwargs)
 
-    if bsdir or mlkdir:
-        bzs = bs_scalar or bs_soc or mbs
-        if bzs.structure.is_2d():
-            ax_bz = fig.add_subplot(spec[j])
-        else:
-            ax_bz = fig.add_subplot(spec[j], projection="3d")
-        plt.sca(ax_bz)
-        bp = bzs.bandpath
-        bz = BrillouineZone(bzs.structure, bp.path, special_points=bp.special_points)
-        logger.info("Processing {}".format(bz))
-        ax_bz = bz.plot(axes=ax_bz)
-        ax_bz.set_title("Brillouine Zone")
-    plt.show()
+
+if __name__ == "__main__":
+    app()
