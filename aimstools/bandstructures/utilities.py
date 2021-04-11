@@ -429,9 +429,10 @@ class BandStructurePlot:
         self.show_bandgap_vertices = kwargs.get("show_bandgap_vertices", True)
 
         self.window = kwargs.get("window", 3)
-        self.y_tick_locator = kwargs.get("y_tick_locator", 0.5)
+        self.y_tick_locator = kwargs.get("y_tick_locator", "auto")
         self.set_xy_axes_labels()
         self.set_xy_limits()
+        self.set_energy_tick_locator()
         self.set_kpoint_labels()
 
         self.main = main
@@ -518,6 +519,20 @@ class BandStructurePlot:
         upper_xlimit = np.max(x)
         self.xlimits = (lower_xlimit, upper_xlimit)
         self.ylimits = (lower_ylimit, upper_ylimit)
+
+    def set_energy_tick_locator(self):
+        if self.y_tick_locator == "auto":
+            a, b = self.ylimits
+            if (b - a) < 6:
+                self.y_tick_locator = 0.5
+            elif (b - a) < 9:
+                self.y_tick_locator = 1
+            else:
+                self.y_tick_locator = 2
+        else:
+            assert isinstance(
+                self.y_tick_locator, (int, float)
+            ), "DOS tick locator must be int or float."
 
     def set_kpoint_labels(self):
         def pretty(kpt):

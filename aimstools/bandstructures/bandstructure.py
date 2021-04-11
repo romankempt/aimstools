@@ -39,10 +39,9 @@ class BandStructure(BandStructureBaseClass):
         self._mulliken_bandstructure_zora = None
         self._mulliken_bandstructure_soc = None
         if "band structure" in self.tasks:
-            if not self.control["include_spin_orbit"]:
-                self._regular_bandstructure_zora = RegularBandStructure(
-                    outputfile=outputfile, soc=False
-                )
+            self._regular_bandstructure_zora = RegularBandStructure(
+                outputfile=outputfile, soc=False
+            )
             if self.control["include_spin_orbit"]:
                 self._regular_bandstructure_soc = RegularBandStructure(
                     outputfile=outputfile, soc=True
@@ -118,6 +117,7 @@ class BandStructure(BandStructureBaseClass):
             case is not None
         ), "Could not choose appropriate plotting case for this calculation setup."
 
+        # regular cases
         if self.control.spin == "none" and not self.control.include_spin_orbit:
             target = "zora only"
         if self.control.spin == "collinear" and not self.control.include_spin_orbit:
@@ -128,6 +128,20 @@ class BandStructure(BandStructureBaseClass):
             and "mlk" not in case
         ):
             target = "zora+soc"
+
+        # mlk cases
+        if (
+            self.control.spin == "collinear"
+            and self.control.include_spin_orbit
+            and "mlk" not in case
+        ):
+            target = "soc only"
+        if (
+            self.control.spin == "collinear"
+            and self.control.include_spin_orbit
+            and "mlk" in case
+        ):
+            target = "soc only"
         if (
             self.control.spin == "none"
             and self.control.include_spin_orbit
@@ -142,13 +156,15 @@ class BandStructure(BandStructureBaseClass):
 
     def _plot_both_spin_channels(self, axes=None, **kwargs):
         bs = self._regular_bandstructure_zora or self._mulliken_bandstructure_zora
-        kwargs.pop("reference")
-        kwargs.pop("color")
+        kwargs.pop("reference", None)
+        kwargs.pop("color", None)
+        spin_up_color = kwargs.get("spin_up_color", "tab:blue")
+        spin_down_color = kwargs.get("spin_down_color", "tab:cyan")
         axes = bs.plot(
             axes=axes,
             main=True,
             spin="up",
-            color="tab:blue",
+            color=spin_up_color,
             reference="fermi",
             **kwargs
         )
@@ -156,7 +172,7 @@ class BandStructure(BandStructureBaseClass):
             axes=axes,
             main=True,
             spin="down",
-            color="tab:red",
+            color=spin_down_color,
             reference="fermi",
             **kwargs
         )
@@ -164,14 +180,14 @@ class BandStructure(BandStructureBaseClass):
             Line2D(
                 [0],
                 [0],
-                color="tab:blue",
+                color=spin_up_color,
                 label="up",
                 linewidth=plt.rcParams["lines.linewidth"],
             ),
             Line2D(
                 [0],
                 [0],
-                color="tab:red",
+                color=spin_down_color,
                 label="down",
                 linewidth=plt.rcParams["lines.linewidth"],
             ),
@@ -189,21 +205,26 @@ class BandStructure(BandStructureBaseClass):
     def _plot_zora_and_soc(self, axes=None, **kwargs):
         zora = self.regular_bandstructure_zora
         soc = self.regular_bandstructure_soc
-        kwargs.pop("color")
-        axes = zora.plot(axes=axes, main=True, color="gray", **kwargs)
-        axes = soc.plot(axes=axes, main=True, color="tab:blue", **kwargs)
+        kwargs.pop("color", None)
+        zora_color = kwargs.get("zora_color", "tab:gray")
+        soc_color = kwargs.get("soc_color", "tab:blue")
+        axes = zora.plot(
+            axes=axes, main=True, color=zora_color, linestyle="--", **kwargs
+        )
+        axes = soc.plot(axes=axes, main=True, color=soc_color, **kwargs)
         handles = [
             Line2D(
                 [0],
                 [0],
-                color="gray",
+                color=zora_color,
                 label="ZORA",
                 linewidth=plt.rcParams["lines.linewidth"],
+                linestyle="--",
             ),
             Line2D(
                 [0],
                 [0],
-                color="tab:blue",
+                color=soc_color,
                 label="SOC",
                 linewidth=plt.rcParams["lines.linewidth"],
             ),
@@ -256,22 +277,45 @@ class BandStructure(BandStructureBaseClass):
                 bz_axes = axes[1]
             if case == "reg+zora":
                 if target == "zora only":
+                    logger.info(
+                        "Plotting regular band structure without spin-orbit coupling."
+                    )
                     bs = self.regular_bandstructure_zora
                     bs.plot(axes=ax, **kwargs)
                 elif target == "two spin channels":
+                    logger.info(
+                        "Plotting regular band structure with both spin channels."
+                    )
                     bs = self.regular_bandstructure_zora
                     self._plot_both_spin_channels(axes=ax, **kwargs)
-            elif case == "reg+zora+soc" and target == "zora+soc":
-                bs = self.regular_bandstructure_soc
-                self._plot_zora_and_soc(axes=ax, **kwargs)
+            elif case == "reg+zora+soc":
+                if target == "soc only":
+                    logger.info(
+                        "Plotting regular band structure with spin-orbit coupling."
+                    )
+                    bs = self.regular_bandstructure_soc
+                    bs.plot(axes=axes, **kwargs)
+                if target == "zora+soc":
+                    logger.info("Plotting regular band structure with ZORA+SOC.")
+                    bs = self.regular_bandstructure_soc
+                    self._plot_zora_and_soc(axes=ax, **kwargs)
             if case == "mlk+zora":
                 if target == "zora only":
+                    logger.info(
+                        "Plotting mulliken-projected band structure without spin-orbit coupling."
+                    )
                     bs = self.mulliken_bandstructure_zora
                     bs.plot_majority_contribution(axes=ax, **kwargs)
                 elif target == "two spin channels":
+                    logger.info(
+                        "Plotting mulliken-projected band structure with both spin channels."
+                    )
                     bs = self.mulliken_bandstructure_zora
                     self._plot_both_spin_channels(axes=ax, **kwargs)
             elif case == "mlk+zora+soc" and target == "soc only":
+                logger.info(
+                    "Plotting mulliken-projected band structure with spin-orbit coupling."
+                )
                 bs = self.mulliken_bandstructure_soc
                 try:
                     bs.plot_majority_contribution(axes=ax, **kwargs)

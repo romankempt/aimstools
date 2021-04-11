@@ -160,8 +160,9 @@ class BrillouinZone:
             for name, point in zip(names, points):
                 x, y, z = point
                 name = pretty(name)
+                axes.scatter(x, y, z, c="tab:red", s=2, zorder=2)
                 axes.text(
-                    x, y, z, name, ha="center", va="bottom", color="tab:red", zorder=2
+                    x, y, z, name, ha="center", va="bottom", color="tab:red", zorder=3
                 )
         axes.set_axis_off()
         axes.view_init(azim=azim / np.pi * 180, elev=elev / np.pi * 180)
