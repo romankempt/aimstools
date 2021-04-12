@@ -15,10 +15,3 @@ __all__ = [
     "RegularBandStructure",
 ]
 
-
-allow_plotting = os.environ.get("AIMSOOLS_ALLOW_PLOTTING")
-if allow_plotting == "FALSE":
-    raise Exception(
-        "The plotting functionalities are not available on this system, e.g., if you are running aimstools on a cluster."
-    )
-

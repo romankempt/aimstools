@@ -41,6 +41,12 @@ def main(
         help="Plotting target, can be presentation or paper.",
     ),
 ):
+    allow_plotting = os.environ.get("AIMSOOLS_ALLOW_PLOTTING")
+    if allow_plotting == "FALSE":
+        raise Exception(
+            "The plotting functionalities are not available on this system, e.g., if you are running aimstools on a cluster."
+        )
+
     kwargs = []
     for i in ctx.args:
         items = i.split("=")
