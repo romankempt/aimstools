@@ -262,7 +262,7 @@ class FHIAimsSetup:
                     line += band
         if "mulliken-projected band structure" in self.tasks:
             line += "\n### Mulliken-projected band structure section \n"
-            logger.info("Setting up mulliken-projected band structure calculation.")
+            logger.debug("Setting up mulliken-projected band structure calculation.")
             output_bands = self.get_bandpath_as_aims_strings(pbc=pbc)
             for band in output_bands:
                 if not band.startswith("#"):

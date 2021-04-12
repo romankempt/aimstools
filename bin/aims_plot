@@ -13,7 +13,13 @@ app = typer.Typer()
 
 
 @app.command(
-    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+    help=typer.style(
+        """Parse keyword arguments as key=value pairs, e.g.:\n
+    aims_plot -bs path/ -dos path/ -t paper bandpath='GMKG'""",
+        fg=typer.colors.GREEN,
+        bold=False,
+    ),
 )
 def main(
     ctx: typer.Context,
