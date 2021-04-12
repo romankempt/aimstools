@@ -114,17 +114,23 @@ def main(
             if task == "bs":
                 bs.plot(axes=ax, **kwargs)
             if task == "dos":
-                dos.plot(axes=ax, **kwargs)
                 if bs is not None:
+                    ref = bs.reference
+                    kwargs["reference"] = ref
+                    dos.plot(axes=ax, **kwargs)
                     ax.set_ylim(axes[0].get_ylim())
                     ax.set_ylabel("")
                     ax.set_xticks([])
                     ax.set_xlabel("DOS")
                     ax.set_yticks([])
+                else:
+                    dos.plot(axes=ax, **kwargs)
             if task == "bz":
                 bs.plot_brillouin_zone(axes=ax)
             if task == "phon":
                 phons.plot(axes=ax, **kwargs)
+    if filename is not None:
+        logger.info("Saved figure to file aimsplot.png with publication settings.")
 
 
 if __name__ == "__main__":

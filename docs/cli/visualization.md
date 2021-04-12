@@ -1,15 +1,16 @@
 # Visualizing Results
 
-The command-line utility `aims_plot` offers a quick-and-dirty approach to visualize band structures and densities of states. It is not meant to yield best-looking plots for every possible scenario. In that regard, please consider the examples on how to use the python interface for plotting.
+The command-line utility `aims_plot` can be used to plot band structures, densities of states and phonons out-of-the-box with sensible defaults. For more advanced plots, it is easier to use the python interface.
 
-The utility can be used in the following fashion:
+The utility is a typer interface:
 
 ```bash
-aims_plot -bs /path/to/bandstructure -dos /path/to/dos -mbs /path/to/mullikenbands -v 
+aims_plot -bs path/ -dos path/ -t paper bandpath='GMKG'
 ```
 
-The option `-v` means that verbose logging will be enabled, which prints out additional information about the band gap.
-With the option `-s`, you can specify key-value pairs, such as `reference="VBM"` to set the reference energy to the valence band maximum. However, these options may be rather limited and can lead to conflicts.
+The option `-t` or `--target` can either be `presentation` or `paper` and chooses sensible defaults for font sizes, line widths etc. The latter option also saves the plot to a file named `aimsplot.png`.
 
-![](../../pictures/aims_plot_Si.png)
+Any keyword arguments can be specified as key-value pairs separated by an equal sign, such as `reference="VBM"` or `bandpath="GMKG"`.
+
+![](../../pictures/aimsplot.png)
 

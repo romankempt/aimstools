@@ -4,14 +4,14 @@
 # Sun Nov 15 16:53:51 2020
 #===============================================================================
 xc                                 pbe
-include_spin_orbit
+#include_spin_orbit
 check_stacksize .false.
 ## Common choices of dispersion methods:
 # 	 vdw_correction_hirshfeld
 # 	 many_body_dispersion
 # 	 many_body_dispersion_nl
 spin                               none
-k_grid                             15 15 1
+k_grid                             21 21 1
 
 ### SCF settings 
 adjust_scf 	 always 	 3 
@@ -35,9 +35,7 @@ output band_mulliken 0.500000 0.000000 0.000000 	 0.333333 0.333333 0.000000 	 3
 output band_mulliken 0.333333 0.333333 0.000000 	 0.000000 0.000000 0.000000 	 31 	 K G
 
 ### DOS section 
-output dos_tetrahedron  -10 0 300
-output species_proj_dos_tetrahedron -10 0 300
-output atom_proj_dos_tetrahedron -10 0 300
+output species_proj_dos_tetrahedron -20 10 500
 #===============================================================================
 
 ################################################################################

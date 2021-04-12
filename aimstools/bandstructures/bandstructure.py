@@ -305,7 +305,7 @@ class BandStructure(BandStructureBaseClass):
                         "Plotting mulliken-projected band structure without spin-orbit coupling."
                     )
                     bs = self.mulliken_bandstructure_zora
-                    bs.plot_majority_contribution(axes=ax, **kwargs)
+                    bs.plot_all_species(axes=ax, **kwargs)
                 elif target == "two spin channels":
                     logger.info(
                         "Plotting mulliken-projected band structure with both spin channels."
@@ -317,12 +317,11 @@ class BandStructure(BandStructureBaseClass):
                     "Plotting mulliken-projected band structure with spin-orbit coupling."
                 )
                 bs = self.mulliken_bandstructure_soc
-                try:
-                    bs.plot_majority_contribution(axes=ax, **kwargs)
-                except:
-                    bs.plot_all_species(axes=ax, **kwargs)
+                bs.plot_all_species(axes=ax, **kwargs)
             if show_BZ:
                 self.plot_brillouin_zone(axes=bz_axes)
+
+            self.reference = bs.spectrum.reference
 
         return axes
 

@@ -443,8 +443,7 @@ class MullikenBandStructure(BandStructureBaseClass):
         kwargs["show_bandstructure"] = True
         bandpath = kwargs.pop("bandpath", None)
         reference = kwargs.pop("reference", None)
-        if bandpath != None or reference != None:
-            spectrum = self.get_spectrum(bandpath=bandpath, reference=reference)
+        spectrum = self.get_spectrum(bandpath=bandpath, reference=reference)
 
         with AxesContext(ax=axes, **kwargs) as axes:
             bs = BandStructurePlot(ax=axes, spectrum=spectrum, **kwargs)
