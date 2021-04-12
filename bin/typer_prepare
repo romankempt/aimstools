@@ -8,8 +8,38 @@ from typing import Tuple, List, Optional
 
 def main(
     geometryfile: str,
-    tasks: Optional[List[str]] = typer.Option(
-        None, "-j", "--task", help="Tasks to perform."
+    bs: Optional[bool] = typer.Option(
+        False,
+        "-bs",
+        help="Prepare regular band structure calculation.",
+        show_default=False,
+    ),
+    mbs: Optional[bool] = typer.Option(
+        False,
+        "-mbs",
+        help="Prepare mulliken-projected band structure calculation.",
+        show_default=False,
+    ),
+    dos: Optional[bool] = typer.Option(
+        False,
+        "-dos",
+        help="Prepare atom-projected density of states calculation.",
+        show_default=False,
+    ),
+    abs: Optional[bool] = typer.Option(
+        False,
+        "-abs",
+        help="Prepare UV/Vis absorption spectrum calculation.",
+        show_default=False,
+    ),
+    go: Optional[bool] = typer.Option(
+        False, "-go", help="Prepare relaxation via FHI-vibes.", show_default=False
+    ),
+    phon: Optional[bool] = typer.Option(
+        False,
+        "-phon",
+        help="Prepare phonon calculation via FHI-vibes.",
+        show_default=False,
     ),
     xc: str = typer.Option("pbe", "--xc", help="Exchange correlation functional."),
     spin: str = typer.Option(

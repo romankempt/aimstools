@@ -1,0 +1,39 @@
+[calculator]
+name:                          aims
+
+[calculator.parameters]
+xc:                            pbe
+spin:                          none
+many_body_dispersion_nl:
+tier: 1
+sc_accuracy_rho: 1e-6
+charge_mix_param: 0.2
+occupation_type: gaussian 0.01
+sc_iter_limit: 100
+k_grid: 15 15 1
+
+
+[calculator.basissets]
+default:                       tight
+
+[calculator.socketio]
+port: auto
+
+[relaxation]
+driver:                        BFGS
+fmax:                          1e-3
+unit_cell:                     True
+fix_symmetry:                  False
+hydrostatic_strain:            False
+constant_volume:               False
+scalar_pressure:               0.0
+decimals:                      12
+symprec:                       1e-03
+workdir:                       relaxation
+mask:                          [1,1,0,0,0,1]
+
+[relaxation.kwargs]
+maxstep:                       0.2
+logfile:                       relaxation.log
+restart:                       bfgs.restart
+alpha: 25
