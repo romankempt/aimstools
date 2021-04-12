@@ -3,14 +3,14 @@
 from aimstools.misc import *
 from aimstools.bandstructures.bandstructure import BandStructure
 from aimstools.bandstructures.regular_bandstructure import RegularBandStructure
-from aimstools.bandstructures.brillouinezone import BrillouineZone
+from aimstools.bandstructures.brillouinezone import BrillouinZone
 from aimstools.bandstructures.mulliken_bandstructure import MullikenBandStructure
 
 import os
 
 __all__ = [
     "BandStructure",
-    "BrillouineZone",
+    "BrillouinZone",
     "MullikenBandStructure",
     "RegularBandStructure",
 ]

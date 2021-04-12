@@ -21,7 +21,7 @@ class FHIVibesSetup(FHIAimsSetup):
         self.basis = kwargs.get("basis", "tight")
 
     def setup_relaxation(self, overwrite=False):
-        logger.info("Setting up relaxation with FHI-vibes.")
+        logger.debug("Setting up relaxation with FHI-vibes.")
         xc = self.aseargs["xc"]
         basis = self.basis
         tier = self.aseargs["tier"]
@@ -30,24 +30,33 @@ class FHIVibesSetup(FHIAimsSetup):
         k_density = monkhorstpack2kptdensity(self.structure, k_grid)
 
         calculator_kwargs = []
+        vibes_kwargs = []
         if spin == "collinear":
             calculator_kwargs.append("default_initial_moment: 0.1")
-        calculator_kwargs = "\n".join(str(k) for k in calculator_kwargs) + "\n"
+
+        if not self.structure.is_2d():
+            vibes_kwargs.append(
+                "\n[calculator.kpoints]\ndensity: {:.2f}".format(k_density)
+            )
+        else:
+            calculator_kwargs.append("k_grid: {:d} {:d} {:d}".format(*k_grid))
+        calculator_kwargs = "\n".join(str(k) for k in calculator_kwargs)
+        vibes_kwargs = "\n".join(str(k) for k in vibes_kwargs)
 
         mask = "[1,1,1,1,1,1]" if not self.structure.is_2d() else "[1,1,0,0,0,1]"
         template = vibes_relaxation_template.format(
             xc=xc,
             basis=basis,
             tier=tier,
-            kptdensity=k_density,
             mask=mask,
             spin=spin,
             calculator_kwargs=calculator_kwargs,
+            vibes_kwargs=vibes_kwargs,
         )
         relaxationfile = self.dirpath.joinpath("relaxation.in")
         if relaxationfile.exists() and (overwrite == False):
             logger.warning(
-                "File relaxation.in is already existing. Set overwrite=True to force overwrite."
+                "File relaxation.in already exists. Set overwrite=True to force overwrite."
             )
         if not relaxationfile.exists() or overwrite:
             logger.info("Writing file {} ...".format(relaxationfile))
@@ -55,7 +64,7 @@ class FHIVibesSetup(FHIAimsSetup):
                 file.write(template)
 
     def setup_phonopy(self, overwrite=False):
-        logger.info("Setting up phonon calculation with FHI-vibes.")
+        logger.debug("Setting up phonon calculation with FHI-vibes.")
         xc = self.aseargs["xc"]
         basis = self.basis
         tier = self.aseargs["tier"]
@@ -64,17 +73,26 @@ class FHIVibesSetup(FHIAimsSetup):
         k_density = monkhorstpack2kptdensity(self.structure, k_grid)
 
         calculator_kwargs = []
+        vibes_kwargs = []
         if spin == "collinear":
             calculator_kwargs.append("default_initial_moment: 0.1")
-        calculator_kwargs = "\n".join(str(k) for k in calculator_kwargs) + "\n"
+
+        if not self.structure.is_2d():
+            vibes_kwargs.append(
+                "\n[calculator.kpoints]\ndensity: {:.2f}".format(k_density)
+            )
+        else:
+            calculator_kwargs.append("k_grid: {:d} {:d} {:d}".format(*k_grid))
+        calculator_kwargs = "\n".join(str(k) for k in calculator_kwargs)
+        vibes_kwargs = "\n".join(str(k) for k in vibes_kwargs)
 
         template = vibes_phonopy_template.format(
             xc=xc,
             basis=basis,
             tier=tier,
-            kptdensity=k_density,
             spin=spin,
             calculator_kwargs=calculator_kwargs,
+            vibes_kwargs=vibes_kwargs,
         )
         phonopyfile = self.dirpath.joinpath("phonopy.in")
         if phonopyfile.exists() and (overwrite == False):

@@ -11,9 +11,7 @@ charge_mix_param: 0.2
 occupation_type: gaussian 0.01
 sc_iter_limit: 100
 {calculator_kwargs}
-
-[calculator.kpoints]
-density: {kptdensity}
+{vibes_kwargs}
 
 [calculator.basissets]
 default:                       {basis}
@@ -55,9 +53,7 @@ charge_mix_param: 0.2
 occupation_type: gaussian 0.01
 sc_iter_limit: 100
 {calculator_kwargs}
-
-[calculator.kpoints]
-density: {kptdensity}
+{vibes_kwargs}
 
 [calculator.basissets]
 default:                       {basis}

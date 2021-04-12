@@ -74,8 +74,9 @@ class AxesContext:
         main: bool = True,
         nrows: int = 1,
         ncols: int = 1,
-        width_ratios: list = [1],
-        height_ratios: list = [1],
+        width_ratios: list = None,
+        height_ratios: list = None,
+        projections: list = None,
         hspace: float = 0.05,
         wspace: float = 0.05,
         **kwargs
@@ -87,10 +88,13 @@ class AxesContext:
         self.nrows = nrows
         self.ncols = ncols
         self.main = main
-        self.width_ratios = width_ratios
-        self.height_ratios = height_ratios
+        self.width_ratios = width_ratios or [1] * ncols
+        self.height_ratios = height_ratios or [1] * nrows
         self.hspace = hspace
         self.wspace = wspace
+        self.projections = projections or [
+            ["rectilinear" for i in range(ncols)] for j in range(nrows)
+        ]
         self.show = kwargs.get("show", True)
 
     def __enter__(self) -> "matplotlib.axes.Axes":
@@ -107,7 +111,9 @@ class AxesContext:
             )
             for i in range(self.nrows):
                 for j in range(self.ncols):
-                    self.figure.add_subplot(self.spec[i, j])
+                    self.figure.add_subplot(
+                        self.spec[i, j], projection=self.projections[i][j]
+                    )
             self.ax = self.figure.axes
             if self.ncols == self.nrows and self.ncols == 1:
                 self.ax = self.ax[0]

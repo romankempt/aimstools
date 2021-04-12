@@ -3,44 +3,37 @@
 The **preparation** module contains functionalities to set up the files needed for different tasks. This module is wrapped in the **aims_prepare** command line tool.
 The input is any file supported by the ASE containing (periodic) coordinate informations, e.g., .xyz, .cif or POSCAR.
 
-```bash
-aims_prepare geometry_inputfile [options]
-```
-
-The script has different options. Show these with:
+The **aims_prepare** utility is a typer command line interface:
 ```bash
 aims_prepare.py --help
 ```
+The following flags prepare specific tasks:
 
-| option                        | function                                                                                       | default             |
-| ----------------------------- | ---------------------------------------------------------------------------------------------- | ------------------- |
-| `--xc`                        | Sets exchange-correlation functional and additional keywords, e.g., for hybrid functionals.    | PBE                 |
-| `--spin`                      | Sets spin to none or collinear and adds additional keywords for the initial spin moment.       | none                |
-| `-t, --tier`                  | Sets basis set tier 1, 2, 3 or 4.                                                              | 1                   |
-| `-b, --basis`                 | Sets basis set integration grids. Can be light, tight or intermediate depending on species.    | tight               |
-| `-k, -k_density`              | Chooses k-grid based on line k-point density. Preferred over -k_grid .                         | 5 points / Angström |
-| `--k_grid`                    | Explicitly sets number of k-points per reciprocal lattice direction for x, y and z.            | None                |
-| `-j, --jobs, --task, --tasks` | Sets up different types of FHI-aims or FHI-vibes tasks. See more below.                        | None                |
-| `-v, --verbose, -vv, -vvv`    | Sets verbosity level depending on number of "v". Verbosity levels are warning, info and debug. | 0                   |
-| `-s, --standardize`           | Standardize structure via spglib with enforced axes order.                                     | False               |
-| `-f`                          | Force overwrite of existing files.                                                             | False               |
+| keyword | task                                                                                                                                  |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `-bs`   | Sets up regular bandstructure calculation with Setyawan-Curtarolo convention regarding Brillouine zone sampling.                      |
+| `-mbs`  | Sets up mulliken bandstructure calculation with Setyawan-Curtarolo convention regarding Brillouine zone sampling.                     |
+| `-dos`  | Sets up density of states calculation. By default, atom-projected and total density of states with the tetrahedron method are chosen. |
+| `-go`   | Sets up relaxation with FHI-vibes.                                                                                                    |
+| `-phon` | Sets up phonon calculation with FHI-vibes.                                                                                            |
+| `-abs`  | Sets up calculation of the dielectric tensor.                                                                                         |
 
-The supported tasks for the option `-j` are:
+| option                     | function                                                                                       | default             |
+| -------------------------- | ---------------------------------------------------------------------------------------------- | ------------------- |
+| `--xc`                     | Sets exchange-correlation functional and additional keywords, e.g., for hybrid functionals.    | PBE                 |
+| `--spin`                   | Sets spin to none or collinear and adds additional keywords for the initial spin moment.       | none                |
+| `-t, --tier`               | Sets basis set tier 1, 2, 3 or 4.                                                              | 1                   |
+| `-b, --basis`              | Sets basis set integration grids. Can be light, tight or intermediate depending on species.    | tight               |
+| `-k, -k_density`           | Chooses k-grid based on line k-point density. Preferred over -k_grid .                         | 5 points / Angström |
+| `--k_grid`                 | Explicitly sets number of k-points per reciprocal lattice direction for x, y and z.            | None                |
+| `-v, --verbose, -vv, -vvv` | Sets verbosity level depending on number of "v". Verbosity levels are warning, info and debug. | 0                   |
+| `-s, --standardize`        | Standardize structure via spglib with enforced axes order.                                     | False               |
+| `-f`                       | Force overwrite of existing files.                                                             | False               |
 
-| keyword      | task                                                                                                                                  |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `bs`         | Sets up regular bandstructure calculation with Setyawan-Curtarolo convention regarding Brillouine zone sampling.                      |
-| `fatbs`      | Sets up mulliken bandstructure calculation with Setyawan-Curtarolo convention regarding Brillouine zone sampling.                     |
-| `dos`        | Sets up density of states calculation. By default, atom-projected and total density of states with the tetrahedron method are chosen. |
-| `go`         | Sets up relaxation with FHI-vibes.                                                                                                    |
-| `phonons`    | Sets up phonon calculation with FHI-vibes.                                                                                            |
-| `absorption` | Sets up calculation of the dielectric tensor.                                                                                         |
-
-The options `bs`, `dos` and `fatbs` are additive, whereas the options `go` and `phonons` are exclusive.
 
 An examplary call looks like this:
 ```bash
-aims_prepare MoS2.cif -basis tight -tier 1 -task BS DOS
+aims_prepare MoS2.cif -basis tight -tier 1 -bs -dos -mbs -abs
 ```
 
 The submission scripts are generated from templates which can be modified by setting the environment variables `$AIMS_SLURM_TEMPLATE` and `$VIBES_SLURM_TEMPLATE`.

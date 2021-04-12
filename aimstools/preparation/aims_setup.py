@@ -230,6 +230,7 @@ class FHIAimsSetup:
         if is_in(
             [
                 "fatbs",
+                "mbs",
                 "fat band structure",
                 "fatbandstructure",
                 "mulliken-projected band structure",
@@ -252,7 +253,7 @@ class FHIAimsSetup:
             pbc = [True, True, True]
         if "band structure" in self.tasks:
             line += "\n### Band structure section \n"
-            logger.info("Setting up band structure calculation.")
+            logger.debug("Setting up band structure calculation.")
             output_bands = self.get_bandpath_as_aims_strings(pbc=pbc)
             for band in output_bands:
                 if not band.startswith("#"):
@@ -261,7 +262,7 @@ class FHIAimsSetup:
                     line += band
         if "mulliken-projected band structure" in self.tasks:
             line += "\n### Mulliken-projected band structure section \n"
-            logger.info("Setting up mulliken-projected band structure calculation.")
+            logger.debug("Setting up mulliken-projected band structure calculation.")
             output_bands = self.get_bandpath_as_aims_strings(pbc=pbc)
             for band in output_bands:
                 if not band.startswith("#"):
@@ -274,7 +275,7 @@ class FHIAimsSetup:
     def __write_dos_tasks(self, line):
         if any(["dos" in x for x in self.tasks]):
             line += "\n### DOS section \n"
-            logger.info("Setting up density of states calculation.")
+            logger.debug("Setting up density of states calculation.")
         if "total dos" in self.tasks:
             line += "output dos \t -20 0 300 0.00\n"
             line += "dos_kgrid_factors \t 4 4 4\n"
@@ -289,7 +290,7 @@ class FHIAimsSetup:
     def __write_absorption_tasks(self, line):
         if "absorption" in self.tasks:
             line += "\n### TDDFT Absorption spectrum\n"
-            logger.info("Setting up absorption spectrum calculation.")
+            logger.debug("Setting up absorption spectrum calculation.")
             line += "#The first value \omega_max in eV specifies the energy of the incoming photon and the upper limit of possible excitations.\n"
             line += "#The second value n_\omega specifies the number of frequency points to propagate through.\n"
             line += "compute_dielectric 15 100\n"

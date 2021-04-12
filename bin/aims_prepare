@@ -1,139 +1,148 @@
 #!/usr/bin/env python
-import argparse
+import typer
 from aimstools.misc import *
 from aimstools.preparation import FHIAimsSetup, FHIVibesSetup
 
+from typing import Tuple, List, Optional
 
-def parseArguments():
-    # Create argument parser
-    parser = argparse.ArgumentParser()
+app = typer.Typer()
 
-    # Positional mandatory arguments
-    parser.add_argument("geometryfile", help="Path to geometry file", type=str)
 
-    # Optional arguments
-    parser.add_argument(
-        "--xc",
-        help="Exchange correlation functional (default pbe)",
-        type=str,
-        default="pbe",
-    )
-    parser.add_argument(
+@app.command(
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+    help=typer.style(
+        """Example:\n
+        aims_prepare test.cif -bs -dos -f -s --tier 1 --basis light""",
+        fg=typer.colors.GREEN,
+        bold=False,
+    ),
+)
+def main(
+    geometryfile: str,
+    bs: Optional[bool] = typer.Option(
+        False,
+        "-bs",
+        help="Prepare regular band structure calculation.",
+        show_default=False,
+    ),
+    mbs: Optional[bool] = typer.Option(
+        False,
+        "-mbs",
+        help="Prepare mulliken-projected band structure calculation.",
+        show_default=False,
+    ),
+    dos: Optional[bool] = typer.Option(
+        False,
+        "-dos",
+        help="Prepare atom-projected density of states calculation.",
+        show_default=False,
+    ),
+    abs: Optional[bool] = typer.Option(
+        False,
+        "-abs",
+        help="Prepare UV/Vis absorption spectrum calculation.",
+        show_default=False,
+    ),
+    go: Optional[bool] = typer.Option(
+        False, "-go", help="Prepare relaxation via FHI-vibes.", show_default=False
+    ),
+    phon: Optional[bool] = typer.Option(
+        False,
+        "-phon",
+        help="Prepare phonon calculation via FHI-vibes.",
+        show_default=False,
+    ),
+    xc: str = typer.Option("pbe", "--xc", help="Exchange correlation functional."),
+    spin: str = typer.Option(
+        "none",
         "--spin",
-        help="Spin keyword (none or collinear, default none)",
-        type=str,
-        default="none",
-    )
-    parser.add_argument(
-        "-t", "--tier", help="basis set tier (default 1)", type=int, default=1
-    )
-    parser.add_argument(
-        "-b",
-        "--basis",
-        help="Basis set type (default tight)",
-        type=str,
-        default="tight",
-    )
-    parser.add_argument(
+        help="Restricted (none) or unrestricted (collinear) spin treatment.",
+    ),
+    tier: int = typer.Option(1, "-t", "--tier", help="Basis set tier."),
+    basis: str = typer.Option("tight", "-b", "--basis", help="Basis set grid."),
+    k_grid: Tuple[int, int, int] = typer.Option(
+        (None, None, None),
         "--k_grid",
-        help="Number of k-points per reciprocal lattice direction for x, y, z",
-        nargs="+",
-        type=int,
-        default=[],
-    )
-    parser.add_argument(
-        "-k",
-        "--k_density",
-        help="Line k-point density (default: 5)",
-        type=int,
-        default=5,
-    )
-    parser.add_argument(
-        "-j",
-        "--jobs",
-        "--task",
-        "--tasks",
-        nargs="+",
-        help="""List of task(s) to perform:
-        None (default) = single point;
-        bs = band structure;
-        fatbs = mulliken-projected band structure;
-        dos = density of states;
-        go = relaxation (via FHI-vibes);
-        phonons = phonons (via FHI-vibes);
-        absorption = UV/Vis absorption spectrum (TDDFT)""",
-        type=str,
-        default=["None"],
-        dest="tasks",
-    )
-    parser.add_argument(
-        "-f",
-        help="Force overwrite existing files.",
-        action="store_true",
-        dest="overwrite",
-    )
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        help="Verbosity level, e.g. -v, -vv, default 0)",
-        action="count",
-        default=0,
-    )
-    parser.add_argument(
+        help="Number of k-points per reciprocal lattice direction.",
+        show_default=False,
+    ),
+    k_density: float = typer.Option(
+        5, "-k", "--k_density", help="Line k-point density in points / Angström."
+    ),
+    overwrite: bool = typer.Option(
+        False, "-f", "--force_overwrite", help="Force overwrite existing files."
+    ),
+    verbosity: int = typer.Option(
+        1, "--verbosity", "-v", count=True, help="Set verbosity level."
+    ),
+    standardize: bool = typer.Option(
+        False,
         "-s",
         "--standardize",
         help="Standardize structure via spglib with enforced axes order.",
-        action="store_true",
-    )
-    # Parse arguments
-    args = parser.parse_args()
-    return args
+    ),
+):
 
-
-if __name__ == "__main__":
-    args = vars(parseArguments())
-    overwrite = args.pop("overwrite")
-    verbosity = args.pop("verbose")
-    geometryfile = args.pop("geometryfile")
-    standardize = args.pop("standardize")
-    tasks = args["tasks"]
     set_verbosity_level(verbosity)
-    vibes_keywords = [
-        "relaxation",
-        "go",
-        "geometry",
-        "phonons",
-        "phonon",
-        "phonopy",
-    ]
-    aims_keywords = ["bs", "dos", "fatbs", "absorption"]
+    vibes_tasks = dict(zip(["go", "phonons"], [go, phon]))
+    aims_tasks = dict(zip(["bs", "mbs", "dos", "abs"], [bs, mbs, dos, abs]))
+    k_grid = [] if k_grid == (None, None, None) else k_grid
 
-    tasks = [k.lower() for k in args["tasks"]]
-    if any(x in vibes_keywords for x in tasks):
-        assert not any(
-            x in aims_keywords for x in tasks
-        ), "You cannot perform electronic analysis in relaxations or phonon calculations."
-        relax = any(x in ["relaxation", "go", "geometry"] for x in tasks)
-        phon = any(x in ["phonons", "phonon", "phonopy"] for x in tasks)
+    args = {
+        "xc": xc,
+        "spin": spin,
+        "tier": tier,
+        "basis": basis,
+        "k_grid": k_grid,
+        "k_density": k_density,
+    }
+    assert (any(aims_tasks.values()) and not any(vibes_tasks.values())) or (
+        not any(aims_tasks.values()) and any(vibes_tasks.values())
+    ), "You cannot run electronic structure calculations and relaxations or phonons at the same time."
+
+    if any(vibes_tasks.values()):
         assert not (
-            relax and phon
-        ), "You can only specify either relaxation or phonons as task."
-        vibup = FHIVibesSetup(geometryfile, **args)
-        if standardize:
-            logger.info("Standardizing structure ...")
-            vibup.structure.standardize()
-        vibup.setup_geometry(overwrite=overwrite)
-        if relax:
+            go and phon
+        ), "You cannot run relaxations and phonons at the same time."
+        if go:
+            logger.info("Preparing relaxation via FHI-vibes.")
+            vibup = FHIVibesSetup(geometryfile, tasks=["go"], **args)
+            if standardize:
+                logger.info("Standardizing structure ...")
+                vibup.structure.standardize()
+            vibup.setup_geometry(overwrite=overwrite)
             vibup.setup_relaxation(overwrite=overwrite)
             vibup.write_submission_file("relaxation", overwrite=overwrite)
-        elif phon:
+        if phon:
+            logger.info("Preparing phonon calculation via FHI-vibes.")
+            vibup = FHIVibesSetup(geometryfile, tasks=["phonons"], **args)
+            if standardize:
+                logger.info("Standardizing structure ...")
+                vibup.structure.standardize()
+            vibup.setup_geometry(overwrite=overwrite)
             vibup.setup_phonopy(overwrite=overwrite)
             vibup.write_submission_file("phonopy", overwrite=overwrite)
-    else:
-        ais = FHIAimsSetup(geometryfile, **args)
+
+    if any(aims_tasks.values()):
+        if bs:
+            logger.info("Preparing regular band structure calculation.")
+        if mbs:
+            logger.info("Preparing mulliken-projected band structure calculation.")
+        if dos:
+            logger.info("Preparing atom-projected density of states calculation.")
+        if abs:
+            logger.info(
+                "Preparing UV/Vis absorption spectrum calculation via linear macroscopic dielectric tensor."
+            )
+        tasks = [k for k, v in aims_tasks.items() if v]
+        ais = FHIAimsSetup(geometryfile, tasks=tasks, **args)
         if standardize:
             logger.info("Standardizing structure ...")
             ais.structure.standardize()
         ais.setup_geometry(overwrite=overwrite)
         ais.setup_control(overwrite=overwrite)
         ais.write_submission_file(overwrite=overwrite)
+
+
+if __name__ == "__main__":
+    app()

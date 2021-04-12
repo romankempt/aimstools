@@ -5,7 +5,7 @@ Please keep in mind that some of these recommendations do not work for every sys
 
 ## Initial optimization
 
-Set up an initial optimization with `aims_prepare geometry.xyz --basis light --tier 1 --task GO -k 3`.
+Set up an initial optimization with `aims_prepare geometry.xyz -go --basis light --tier 1 -k 3`.
 This prepares the files for FHI-vibes with light numerical settings and a tier 1 basis set. The k-point density is a value you need to converge separately of the relaxation procedure.
 
 Additionally, you should consider changing the following parameters:

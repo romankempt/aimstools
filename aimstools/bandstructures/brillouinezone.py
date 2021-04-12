@@ -4,9 +4,10 @@ from aimstools.structuretools import Structure
 import numpy as np
 import scipy.linalg
 import scipy.spatial
+import matplotlib
 import matplotlib.pyplot as plt
 
-from ase.dft.kpoints import resolve_kpt_path_string
+from ase.dft.kpoints import bandpath, resolve_kpt_path_string
 
 import ase.io
 from ase.dft.kpoints import BandPath
@@ -49,48 +50,59 @@ def set_axes_equal(ax):
     ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
 
 
-class BrillouineZone:
+class BrillouinZone:
     """ Mostly taken from ase.dft.bz, just cleaned up. """
 
-    def __init__(self, atoms, bandpathstring, special_points: dict = None) -> None:
-        if type(atoms) == ase.atoms.Atoms:
+    def __init__(
+        self, atoms, bandpathstring: str = None, special_points: dict = None
+    ) -> None:
+        if isinstance(atoms, (ase.atoms.Atoms,)):
             self.structure = Structure(atoms)
         else:
             self.structure = atoms
-        self.special_points = special_points
-        self.__set_bandpath(bandpathstring)
-        self.is_2d = self.structure.is_2d()
-        logger.info(
-            "In some cases, some points in the Brillouine-Zone are shown wrongly. I have not figured out why yet. The band structure points are set up correctly."
-        )
+        self._special_points = special_points
+        self._is_2d = self.structure.is_2d()
+        self._set_bandpath(bandpathstring)
 
     def __repr__(self):
         return "{}(structure={}, is_2d={})".format(
-            self.__class__.__name__, repr(self.structure), self.is_2d
+            self.__class__.__name__, repr(self.structure), self._is_2d
         )
 
     @property
     def bandpath(self):
         return self._bandpath
 
-    def __set_bandpath(self, bandpathstring):
+    @property
+    def special_points(self):
+        return self._special_points
+
+    @property
+    def is_2d(self):
+        return self._is_2d
+
+    def _set_bandpath(self, bandpathstring=None):
+        if bandpathstring == None:
+            pbc = [1, 1, 1] if not self.is_2d else [1, 1, 0]
+            bandpath = self.structure.cell.get_bravais_lattice(pbc=pbc).bandpath()
+            self._special_points = bandpath.special_points
+            bandpathstring = bandpath.path
+
         bp = BandPath(
             path=bandpathstring,
             cell=self.structure.cell,
             special_points=self.special_points,
         )
         self._bandpath = bp
-        self.special_points = bp.special_points
+        self._special_points = bp.special_points
 
-    def get_bz(self, dim=3):
+    def _get_bz_vertices(self):
         atoms = self.structure
         cell = atoms.get_cell()
-        icell = np.linalg.pinv(cell).T
+        icell = cell.reciprocal() * 2 * np.pi
 
-        if dim < 3:
+        if self.is_2d:
             icell[2, 2] = 1e-3
-        if dim < 2:
-            icell[1, 1] = 1e-3
 
         bz = []
         I = (np.indices((3, 3, 3)) - 1).reshape((3, 27))
@@ -103,47 +115,35 @@ class BrillouineZone:
                 bz.append((voronoi.vertices[vertices], normal))
         return bz
 
-    def plot(self, axes=None, paths=None, points=None, elev=None):
+    def plot(self, axes=None, azim=None, elev=None, **kwargs):
         special_points = self.special_points
+        cell = self.structure.get_cell()
+        icell = cell.reciprocal() * 2 * np.pi
         labelseq, coords = resolve_kpt_path_string(self.bandpath.path, special_points)
-        fig = plt.gcf()
         paths = []
         points_already_plotted = set()
         for subpath_labels, subpath_coords in zip(labelseq, coords):
             subpath_coords = np.array(subpath_coords)
+            subpath_coords = np.dot(subpath_coords, icell)
             points_already_plotted.update(subpath_labels)
-            paths.append((subpath_labels, self.bandpath._scale(subpath_coords)))
+            paths.append((subpath_labels, subpath_coords))
 
-        dimensions = 2 if self.is_2d else 3
-        if dimensions == 3:
-            if axes == None:
-                axes = fig.gca(projection="3d")
-            try:
-                axes = self.plot_3d_bz(axes=axes, paths=paths)
-            except Exception as exct:
-                print(exct)
-                logger.error(
-                    "An exception occured. Most likely you did not specify a 3D-projected axis, but your brillouine zone is 3D."
-                )
-        elif dimensions == 2:
-            if axes == None:
-                axes = fig.gca()
-            axes = self.plot_2d_bz(axes=axes, paths=paths)
-        else:
-            raise Exception(
-                "1D and 0D Brillouine zones do not make much sense to plot."
-            )
+        with AxesContext(ax=axes, projections=[["3d"]], **kwargs) as axes:
+            assert axes.name == "3d", "Axes must be 3D."
+            azim = np.pi if self.is_2d else azim
+            elev = np.pi / 2 if self.is_2d else elev
+            self._plot_3d_bz(axes=axes, paths=paths, azim=azim, elev=elev)
         return axes
 
-    def plot_3d_bz(self, axes, paths, elev=None):
-        azim = np.pi / 5
+    def _plot_3d_bz(self, axes, paths, azim=None, elev=None):
+        azim = azim or np.pi / 5
         elev = elev or np.pi / 6
         x = np.sin(azim)
         y = np.cos(azim)
         view = [x * np.cos(elev), y * np.cos(elev), np.sin(elev)]
         maxp = 0.0
         minp = 0.0
-        bz = self.get_bz(dim=3)
+        bz = self._get_bz_vertices()
         for points, normal in bz:
             x, y, z = np.concatenate([points, points[:1]]).T
             maxp = max(maxp, points.max())
@@ -156,11 +156,14 @@ class BrillouineZone:
             axes.plot(x, y, z, c=mutedblack, ls=ls)
         for names, points in paths:
             x, y, z = np.array(points).T
-            axes.plot(x, y, z, c="royalblue", ls="-", marker=".")
+            axes.plot(x, y, z, c="tab:blue", ls="-", marker=".", zorder=1)
             for name, point in zip(names, points):
                 x, y, z = point
                 name = pretty(name)
-                axes.text(x, y, z, name, ha="center", va="bottom", color="crimson")
+                axes.scatter(x, y, z, c="tab:red", s=2, zorder=2)
+                axes.text(
+                    x, y, z, name, ha="center", va="bottom", color="tab:red", zorder=3
+                )
         axes.set_axis_off()
         axes.view_init(azim=azim / np.pi * 180, elev=elev / np.pi * 180)
 
@@ -172,53 +175,5 @@ class BrillouineZone:
         axes.set_xlim3d(minp0, maxp0)
         axes.set_ylim3d(minp0, maxp0)
         axes.set_zlim3d(minp0, maxp0)
-
-        return axes
-
-    def plot_2d_bz(self, axes, paths):
-        cell = self.structure.cell.copy()
-        assert all(abs(cell[2][0:2]) < 1e-6) and all(abs(cell.T[2][0:2]) < 1e-6)
-
-        points = self.bandpath._scale(self.bandpath.kpts)
-        bz = self.get_bz(dim=2)
-
-        maxp = 0.0
-        minp = 0.0
-        for points, _ in bz:
-            x, y, z = np.concatenate([points, points[:1]]).T
-            axes.plot(x, y, c=mutedblack, ls="-")
-            maxp = max(maxp, points.max())
-            minp = min(minp, points.min())
-
-        for names, points in paths:
-            x, y, z = np.array(points).T
-            axes.plot(x, y, c="royalblue", ls="-")
-
-            for name, point in zip(names, points):
-                x, y, z = point
-                name = pretty(name)
-
-                ha_s = ["right", "left", "right"]
-                va_s = ["bottom", "bottom", "top"]
-
-                ha = ha_s[int(np.sign(x))]
-                va = va_s[int(np.sign(y))]
-                if abs(z) < 1e-6:
-                    axes.text(
-                        x,
-                        y,
-                        name,
-                        ha=ha,
-                        va=va,
-                        color="crimson",
-                        zorder=5,
-                    )
-
-        axes.set_axis_off()
-        axes.autoscale_view(tight=True)
-        s = maxp * 1.05
-        axes.set_xlim(-s, s)
-        axes.set_ylim(-s, s)
-        axes.set_aspect("equal")
 
         return axes

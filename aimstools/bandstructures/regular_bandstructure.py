@@ -25,11 +25,16 @@ class RegularBandStructure(BandStructureBaseClass):
         else:
             if soc:
                 logger.warning(
-                    "Past Roman to future Roman: Should I just sum up the spin channels in case of SOC?"
+                    "FHI-aims puts out two band files for spin=collinear with SOC, but only the first one seems to be meaningful. Please check for yourself."
                 )
-            bandfiles_dn = self.get_bandfiles(spin="dn", soc=soc).regular
-            bandfiles_up = self.get_bandfiles(spin="up", soc=soc).regular
-            self.bands = self.read_bandfiles(zip(bandfiles_dn, bandfiles_up))
+                self.spin == "none"
+                bandfiles = self.get_bandfiles(spin="none", soc=soc).regular
+                self.bands = self.read_bandfiles(zip(bandfiles, bandfiles))
+            else:
+                bandfiles_up = self.get_bandfiles(spin="up", soc=soc).regular
+                bandfiles_dn = self.get_bandfiles(spin="dn", soc=soc).regular
+                self.bands = self.read_bandfiles(zip(bandfiles_up, bandfiles_dn))
+
         self._spectrum = self.set_spectrum(None, None)
 
     def __repr__(self):

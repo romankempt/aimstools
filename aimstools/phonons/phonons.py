@@ -20,12 +20,7 @@ from aimstools.phonons.utilities import (
 
 
 class FHIVibesPhonons(FHIVibesParser):
-    """Handles phonopy output from FHI-vibes.
-
-    Todo:
-        Add DOS.
-
-    """
+    """Handles phonopy output from FHI-vibes."""
 
     def __init__(self, outputdir) -> None:
         super().__init__(outputdir)
