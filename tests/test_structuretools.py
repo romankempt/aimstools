@@ -7,7 +7,7 @@ from pathlib import Path
 from aimstools.structuretools import (
     Structure,
     find_fragments,
-    find_nonperiodic_axes,
+    find_periodic_axes,
     hexagonal_to_rectangular,
 )
 

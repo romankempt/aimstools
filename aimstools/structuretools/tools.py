@@ -18,7 +18,8 @@ def find_fragments(atoms, scale=1.0) -> list:
     of connected vertices.
 
     Args:
-        atoms: :class:`~ase.atoms.Atoms` or :class:`~aimstools.structuretools.structure.Structure`
+        atoms: :class:`~ase.atoms.Atoms` or :class:`~aimstools.structuretools.structure.Structure`.
+        scale: Scaling factor for covalent radii.
 
     Note:
         Requires networkx library.
@@ -78,7 +79,7 @@ def find_fragments(atoms, scale=1.0) -> list:
     return fragments
 
 
-def find_nonperiodic_axes(atoms) -> dict:
+def find_periodic_axes(atoms) -> dict:
     """Evaluates if given structure is qualitatively periodic along certain lattice directions.
 
     Args:
@@ -92,7 +93,7 @@ def find_nonperiodic_axes(atoms) -> dict:
     """
     atoms = atoms.copy()
     sc = ase.build.make_supercell(atoms, 2 * np.identity(3), wrap=True)
-    fragments = find_fragments(sc)
+    fragments = find_fragments(sc, scale=1.5)
     crit1 = True if len(fragments) > 1 else False
     logger.debug("Len fragments: {:d}".format(len(fragments)))
     pbc = dict(zip([0, 1, 2], [True, True, True]))

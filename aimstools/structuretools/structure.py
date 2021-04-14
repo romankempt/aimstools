@@ -80,6 +80,10 @@ class Structure(Atoms):
             charges=charges,
             momenta=momenta,
         )
+        self._is_1d = None
+        self._is_2d = None
+        self._is_3d = None
+        self._periodic_axes = None
         self._check_lattice_vectors()
 
         try:
@@ -87,13 +91,18 @@ class Structure(Atoms):
         except:
             self.sg = ase.spacegroup.Spacegroup(1)
         self.lattice = self.cell.get_bravais_lattice().crystal_family
-        self._is_2d = None
 
     def _check_lattice_vectors(self):
         cell = self.cell.copy()
         zerovecs = np.where(~cell.any(axis=1))[0]
         if len(zerovecs) == 3:
             logger.warning("Aimstools currently does not support molecules.")
+        elif len(zerovecs) == 2:
+            self._is_1d = True
+        elif len(zerovecs) == 1:
+            self._is_2d = True
+        elif len(zerovecs) == 0:
+            self._is_3d = True
         for i in zerovecs:
             min_p, max_p = (
                 np.min(self.positions[:, i]) - 25,
@@ -134,7 +143,7 @@ class Structure(Atoms):
         """
 
         atoms = self.copy()
-        pbc1 = find_nonperiodic_axes(atoms)
+        pbc1 = find_periodic_axes(atoms)
         lattice, positions, numbers = (
             atoms.get_cell(),
             atoms.get_scaled_positions(),
@@ -158,7 +167,7 @@ class Structure(Atoms):
                 cell=newcell[0],
                 pbc=atoms.pbc,
             )
-            pbc2 = find_nonperiodic_axes(atoms)
+            pbc2 = find_periodic_axes(atoms)
             logger.debug("new pbc: {} {} {}".format(*pbc2))
             if pbc1 != pbc2:
                 old = [k for k, v in pbc1.items() if v]
@@ -224,18 +233,35 @@ class Structure(Atoms):
         )
         self.__init__(atoms)
 
+    def is_3d(self) -> bool:
+        """Evaluates if structure is qualitatively three-dimensional.
+
+        Note:
+            A structure is considered 3D if all axes are periodic.
+
+        Returns:
+            bool: 3-dimensional or not.
+        """
+        if self._is_3d == None:
+            pbcax = self.periodic_axes
+            if sum(list(pbcax.values())) == 3:
+                return True
+            else:
+                return False
+        else:
+            return self._is_3d
+
     def is_2d(self) -> bool:
         """Evaluates if structure is qualitatively two-dimensional.
 
         Note:
-            A 2D structure is considered 2D if only one axis is non-periodic.
+            A structure is considered 2D if only one axis is non-periodic.
 
         Returns:
             bool: 2D or not to 2D, that is the question.
         """
         if self._is_2d == None:
-            atoms = self.copy()
-            pbcax = find_nonperiodic_axes(atoms)
+            pbcax = self.periodic_axes
             if sum(list(pbcax.values())) == 2:
                 return True
             else:
@@ -243,10 +269,28 @@ class Structure(Atoms):
         else:
             return self._is_2d
 
-    def find_nonperiodic_axes(self) -> dict:
-        """ See :func:`~aimstools.structuretools.tools.find_nonperiodic_axes` """
+    def is_1d(self) -> bool:
+        """Evaluates if structure is qualitatively one-dimensional.
+
+        Note:
+            A structure is considered 1D if two axes are non-periodic.
+
+        Returns:
+            bool: 1-dimensional or not.
+        """
+        if self._is_1d == None:
+            pbcax = self.periodic_axes
+            if sum(list(pbcax.values())) == 1:
+                return True
+            else:
+                return False
+        else:
+            return self._is_1d
+
+    def find_periodic_axes(self) -> dict:
+        """ See :func:`~aimstools.structuretools.tools.find_periodic_axes` """
         atoms = self.copy()
-        pbc = find_nonperiodic_axes(atoms)
+        pbc = find_periodic_axes(atoms)
         return pbc
 
     def find_fragments(self) -> list:
@@ -268,6 +312,14 @@ class Structure(Atoms):
         atoms.constraints = copy.deepcopy(self.constraints)
         self._atoms = atoms
         return self._atoms
+
+    @property
+    def periodic_axes(self):
+        "Corresponds to ASE periodic boundary conditions pbc. Kept separate for transferability reasons within FHI-aims."
+        if self._periodic_axes == None:
+            pbc = self.find_periodic_axes()
+            self._periodic_axes = pbc
+        return self._periodic_axes
 
     def hexagonal_to_rectangular(self):
         """ See :func:`~aimstools.structuretools.tools.hexagonal_to_rectangular` """
