@@ -64,6 +64,14 @@ def main(
             value = int(value)
         except:
             pass
+        if (value.startswith("[") and value.endswith("]")) or (
+            value.startswith("(") and value.endswith(")")
+        ):
+            try:
+                value = value[1:-1].split(",")
+            except:
+                logger.warning("Could not convert {} to list.".format(value))
+                value = None
         kwargs.append((key, value))
     kwargs = dict(kwargs)
 
