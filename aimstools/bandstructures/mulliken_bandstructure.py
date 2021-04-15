@@ -259,7 +259,7 @@ class MullikenBandStructure(BandStructureBaseClass):
 
     def _read_mlk_bandfiles(self, spin="none"):
         # Turns out that any attemps to use regex (np.fromregex, re.finditer ...) are much slower in this case than just pure string matching.
-        atoms = self.structure.copy()
+        atoms = self.structure.atoms
         natoms = len(atoms)
         if spin == "none" and self.soc == False:
             nspins = 1
@@ -627,8 +627,11 @@ class MullikenBandStructure(BandStructureBaseClass):
         kwargs["mode"] = "majority"
 
         if contributions == []:
-            contributions = list(set(self.structure.symbols))
-            labels = list(set(self.structure.symbols))
+            species = list(
+                dict.fromkeys(string2symbols(self.structure.get_chemical_formula()))
+            )
+            contributions = [(j, "tot") for j in species]
+            labels = species
 
         self.plot_contributions(
             axes=axes,
@@ -649,8 +652,12 @@ class MullikenBandStructure(BandStructureBaseClass):
             l (str, optional): Angular momentum. Defaults to "tot".
         """
         kwargs = self._process_kwargs(kwargs)
-        contributions = [(j, l) for j in set(self.structure.symbols)]
-        labels = set(self.structure.symbols)
+
+        species = list(
+            dict.fromkeys(string2symbols(self.structure.get_chemical_formula()))
+        )
+        contributions = [(j, "tot") for j in species]
+        labels = species
 
         if len(colors) == 0:
             colors = [jmol_colors[symbols2numbers(n)][0] for n in labels]
@@ -658,13 +665,6 @@ class MullikenBandStructure(BandStructureBaseClass):
         assert len(labels) == len(
             colors
         ), "Number of symbols does not match number of colors."
-
-        masses = [atomic_masses[symbols2numbers(m)] for m in labels]
-        scm = tuple(
-            sorted(zip(labels, colors, masses), key=lambda x: x[2], reverse=True)
-        )
-        labels = [j[0] for j in scm]
-        colors = [j[1] for j in scm]
 
         self.plot_contributions(
             axes=axes,

@@ -71,7 +71,7 @@ class SpeciesProjectedDOS(TotalDOS, DOSBaseClass):
         self.set_energy_reference(reference, self.soc)
         fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
         reference, shift = self.energy_reference
-        atoms = self.structure.copy()
+        atoms = self.structure.atoms
         self._spectrum = DOSSpectrum(
             atoms=atoms,
             energies=energies,
@@ -209,6 +209,7 @@ class SpeciesProjectedDOS(TotalDOS, DOSBaseClass):
         reference = kwargs.pop("reference", None)
         spectrum = self.get_spectrum(reference=reference)
         contributions = self._process_contributions(contributions)
+
         if isinstance(colors, (list, np.array)):
             if len(colors) == 0:
                 cmap = plt.cm.get_cmap("tab10")
@@ -260,8 +261,11 @@ class SpeciesProjectedDOS(TotalDOS, DOSBaseClass):
             l (str, optional): Angular momentum. Defaults to "tot".
         """
         kwargs = self._process_kwargs(kwargs)
-        contributions = [(j, l) for j in set(self.structure.symbols)]
-        labels = set(self.structure.symbols)
+        species = list(
+            dict.fromkeys(string2symbols(self.structure.get_chemical_formula()))
+        )
+        contributions = [(j, l) for j in species]
+        labels = species
 
         if len(colors) == 0:
             colors = [jmol_colors[symbols2numbers(n)][0] for n in labels]
@@ -269,13 +273,6 @@ class SpeciesProjectedDOS(TotalDOS, DOSBaseClass):
         assert len(labels) == len(
             colors
         ), "Number of symbols does not match number of colors."
-
-        masses = [atomic_masses[symbols2numbers(m)] for m in labels]
-        scm = tuple(
-            sorted(zip(labels, colors, masses), key=lambda x: x[2], reverse=True)
-        )
-        labels = [j[0] for j in scm]
-        colors = [j[1] for j in scm]
 
         self.plot_contributions(
             axes=axes,

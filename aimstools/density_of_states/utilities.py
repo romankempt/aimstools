@@ -364,7 +364,7 @@ class DOSSpectrum:
         self,
         atoms: "ase.atoms.Atoms" = None,
         energies: "numpy.ndarray" = None,
-        contributions: "aimstools.density_of_states.utilities.DOSContribution" = None,
+        contributions: list = None,
         type: str = None,
         fermi_level: float = None,
         reference: str = None,
@@ -394,7 +394,7 @@ class DOSSpectrum:
 
     @property
     def contributions(self):
-        "List of :class:`~aimstools.density_of_states.utilities.DOSContribution`."
+        "List of (index, ndarray) or (symbol, ndarray)."
         return self._contributions
 
     @property

@@ -67,6 +67,7 @@ class FHIAimsControlReader(dict):
             "qpe_calc": None,
             "use_dipole_correction": False,
             "compute_dielectric": False,
+            "output_level": "normal",
         }
         tasks = set()
         band_sections = []

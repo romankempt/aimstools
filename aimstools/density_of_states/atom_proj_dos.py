@@ -73,7 +73,7 @@ class AtomProjectedDOS(SpeciesProjectedDOS, TotalDOS, DOSBaseClass):
         self.set_energy_reference(reference, self.soc)
         fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
         reference, shift = self.energy_reference
-        atoms = self.structure.copy()
+        atoms = self.structure.atoms
         self._spectrum = DOSSpectrum(
             atoms=atoms,
             energies=energies,

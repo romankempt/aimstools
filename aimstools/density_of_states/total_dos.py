@@ -35,7 +35,7 @@ class TotalDOS(DOSBaseClass):
             self._read_dosfiles()
         energies, total_dos = self.dos
         self.set_energy_reference(reference, self.soc)
-        atoms = self.structure.copy()
+        atoms = self.structure.atoms
         fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
         reference, shift = self.energy_reference
         self._spectrum = DOSSpectrum(
