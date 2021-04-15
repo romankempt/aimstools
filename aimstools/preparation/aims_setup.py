@@ -307,7 +307,7 @@ class FHIAimsSetup:
                 if write:
                     if "xc" in line:  # corrections to the functional
                         line = self.__adjust_xc(line)
-                        line += "output_level \t \t MD_light\n"
+                        line += "output_level \t \t normal\n"
                     elif ("spin" in line) and ("collinear" in line):
                         line += "#default_initial_moment   0.1      # only necessary if not specified in geometry.in\n"
                     elif "k_grid" in line:

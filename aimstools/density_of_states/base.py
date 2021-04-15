@@ -248,6 +248,9 @@ class DOSBaseClass(FHIAimsOutputReader):
             if metallic:
                 # Default for metals is Fermi level.
                 reference = "fermi level"
+            elif self.control["output_level"] == "MD_light":
+                # This is a current work around because MD light lacks the post-SCF fermi level.
+                reference = "fermi level"
             else:
                 # Defaults for insulators is middle.
                 reference = "middle"
@@ -281,6 +284,11 @@ class DOSBaseClass(FHIAimsOutputReader):
             logger.info("Reference energy set to {:.4f} eV.".format(shift))
         else:
             shift = 0.0
+
+        if self.control["output_level"] == "MD_light" and reference != "fermi level":
+            logger.warning(
+                "Output level MD light currently lacks information about the post-SCF fermi level. This might lead to wrong plotting results for other references than the Fermi level."
+            )
 
         rf = namedtuple("energy_reference", ["reference", "shift"])
         self._energy_reference = rf(reference, shift)

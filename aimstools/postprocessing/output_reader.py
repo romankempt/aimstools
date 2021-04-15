@@ -136,6 +136,9 @@ class FHIAimsControlReader(dict):
             if "compute_dielectric" in line:
                 p["compute_dielectric"] = line.split()[-2:]
                 tasks.add("absorption")
+            # output level
+            if "output_level" in line:
+                p["output_level"] = line.strip().split()[-1]
 
         p["tasks"] = tasks
         p["band_sections"] = band_sections
