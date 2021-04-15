@@ -237,11 +237,13 @@ class FHIAimsOutputReader(dict):
     @property
     def is_converged(self):
         outputfile = self.outputfile
-        check = os.popen("tail -n 10 {}".format(outputfile)).read()
-        if "Have a nice day." in check:
-            return True
-        else:
-            return False
+        converged = False
+        with open(outputfile, "r") as file:
+            for l in file.readlines()[::-1]:
+                if "Have a nice day." in l:
+                    converged = True
+                    break
+        return converged
 
     def read_outputfile(self):
         outputfile = self.outputfile
