@@ -9,6 +9,8 @@ from typing import Tuple, List, Optional
 from aimstools import BandStructure, DensityOfStates
 from aimstools.phonons import FHIVibesPhonons
 
+import re
+
 app = typer.Typer(add_completion=False)
 
 
@@ -56,15 +58,7 @@ def main(
             value = False
         elif value.lower() == "true":
             value = True
-        try:
-            value = float(value)
-        except:
-            pass
-        try:
-            value = int(value)
-        except:
-            pass
-        if (value.startswith("[") and value.endswith("]")) or (
+        elif (value.startswith("[") and value.endswith("]")) or (
             value.startswith("(") and value.endswith(")")
         ):
             try:
@@ -72,8 +66,15 @@ def main(
             except:
                 logger.warning("Could not convert {} to list.".format(value))
                 value = None
+        else:
+            if re.match(r"^-?\d+\.\d+$", value):
+                value = float(value)
+            elif re.match(r"^-?\d+$", value):
+                value = int(value)
         kwargs.append((key, value))
     kwargs = dict(kwargs)
+    for k, v in kwargs.items():
+        logger.info("Setting {} to {} .".format(k, v))
 
     set_verbosity_level(verbosity)
     set_global_plotsettings(target)
