@@ -73,9 +73,6 @@ class BandStructureBaseClass(FHIAimsOutputReader):
         elif reference == "work function":
             assert self.work_function != None, "Work function has not been calculated."
             logger.debug("Reference energy set to vacuum level.")
-            logger.warning(
-                r"I am not a 100 % sure the work function referencing is done correctly. Please check the relevant equations."
-            )
             work_function = self.work_function.upper_work_function
             vacuum_level_upper = work_function + fermi_level
             shift = (
@@ -94,7 +91,7 @@ class BandStructureBaseClass(FHIAimsOutputReader):
 
         if self.control["output_level"] == "MD_light" and reference != "fermi level":
             logger.warning(
-                "Output level MD light currently lacks information about the post-SCF fermi level. This might lead to wrong plotting results for other references than the Fermi level."
+                "Output level MD light lacks information about the post-SCF fermi level in FHI-aims versions below 210415. This might lead to wrong plotting results for other references than the Fermi level."
             )
 
         rf = namedtuple("energy_reference", ["reference", "shift"])
@@ -199,9 +196,7 @@ class BandStructureBaseClass(FHIAimsOutputReader):
                 assert len(reg) == n, "Wrong number of scalar band files found."
             if "mulliken-projected band structure" in self.tasks:
                 if self.control["include_spin_orbit"]:
-                    logger.warning(
-                        "Mulliken-projected soc files overwrite scalar files."
-                    )
+                    logger.debug("Mulliken-projected soc files overwrite scalar files.")
                     mlk = None
                 else:
                     mlk = self.__get_mlk_bandfiles_scalar(spin=spin)

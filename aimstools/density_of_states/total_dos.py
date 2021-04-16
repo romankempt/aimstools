@@ -10,7 +10,7 @@ class TotalDOS(DOSBaseClass):
         super().__init__(outputfile)
         self.soc = soc
         self._dos = None
-        self._spectrum = None
+        self._spectrum = self.set_spectrum(None)
 
     def __repr__(self):
         return "{}(outputfile={}, spin_orbit_coupling={})".format(

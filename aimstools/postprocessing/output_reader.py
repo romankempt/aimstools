@@ -301,13 +301,21 @@ class FHIAimsOutputReader(dict):
                 d["total_energy"] = float(value.search(l).group())
             if "| Electronic free energy        :" in l:
                 d["electronic_free_energy"] = float(value.search(l).group())
+
             if re.search(r"Highest occupied state \(VBM\)", l) and socread == False:
                 vbm = float(value.search(l).group())
             if re.search(r"Lowest unoccupied state \(CBM\)", l) and socread == False:
                 cbm = float(value.search(l).group())
+
+            # Chemical potential
             if "Chemical potential (Fermi level)" in l and socread == False:
                 scalar_fermi_level = float(value.search(l).group())
-
+            if (
+                (self.control["output_level"] == "MD_light")
+                and "| Chemical Potential                          :" in l
+                and not socread
+            ):
+                scalar_fermi_level = float(value.search(l).group())
             # fixed spin moment:
             if "Chemical potential, spin up:" in l:
                 scalar_fermi_level_up = float(value.search(l).group())

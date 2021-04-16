@@ -156,6 +156,7 @@ class BandStructure(BandStructureBaseClass):
 
     def _plot_both_spin_channels(self, axes=None, **kwargs):
         bs = self._regular_bandstructure_zora or self._mulliken_bandstructure_zora
+        kwargs = kwargs.copy()
         kwargs.pop("reference", None)
         kwargs.pop("color", None)
         spin_up_color = kwargs.get("spin_up_color", "tab:blue")
@@ -205,6 +206,7 @@ class BandStructure(BandStructureBaseClass):
     def _plot_zora_and_soc(self, axes=None, **kwargs):
         zora = self.regular_bandstructure_zora
         soc = self.regular_bandstructure_soc
+        kwargs = kwargs.copy()
         kwargs.pop("color", None)
         zora_color = kwargs.get("zora_color", "tab:gray")
         soc_color = kwargs.get("soc_color", "tab:blue")

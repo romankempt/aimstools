@@ -23,6 +23,7 @@ class AtomProjectedDOS(SpeciesProjectedDOS, TotalDOS, DOSBaseClass):
         ), "Atom-projected DOS was not specified as task in control.in ."
         self.soc = soc
         self.spin = "none" if self.control["spin"] != "collinear" else "collinear"
+        self._spectrum = self.set_spectrum(None)
 
     def __repr__(self):
         return "{}(outputfile={}, spin_orbit_coupling={})".format(
@@ -84,3 +85,9 @@ class AtomProjectedDOS(SpeciesProjectedDOS, TotalDOS, DOSBaseClass):
             shift=shift,
         )
 
+    @property
+    def spectrum(self):
+        ":class:`aimstools.density_of_states.utilities.DOSSpectrum`."
+        if self._spectrum == None:
+            self.set_spectrum(None)
+        return self._spectrum

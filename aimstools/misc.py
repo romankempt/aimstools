@@ -27,6 +27,16 @@ pretty_errors.configure(
 pretty_errors.blacklist("c:/python")
 
 
+class DuplicateFilter(logging.Filter):
+    def filter(self, record):
+        # add other fields if you need more granular comparison, depends on your app
+        current_log = (record.module, record.levelno, record.msg)
+        if current_log != getattr(self, "last_log", None):
+            self.last_log = current_log
+            return True
+        return False
+
+
 def setup_custom_logger(name):
     formatter = logging.Formatter(fmt="{message:s}", style="{")
     handler = RichHandler(
@@ -37,6 +47,7 @@ def setup_custom_logger(name):
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     logger.addHandler(handler)
+    logger.addFilter(DuplicateFilter())
     return logger
 
 
