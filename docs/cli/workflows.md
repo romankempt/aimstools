@@ -13,4 +13,4 @@ The utility `aimstools_workflow` has different commands:
 
 | command            | function                                    |
 | ------------------ | ------------------------------------------- |
-| `converge_kpoints` | Automatic workflow for k-point convergence. |
+| `converge-kpoints` | Automatic workflow for k-point convergence. |
