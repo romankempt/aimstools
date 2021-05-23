@@ -1,6 +1,6 @@
 from logging import raiseExceptions
 from aimstools.misc import *
-from aimstools.bandstructures.base import BandStructureBaseClass
+from aimstools.bandstructures.base import BandStructureBaseClass, get_energy_reference
 from aimstools.bandstructures.utilities import BandStructurePlot, BandSpectrum
 
 from ase.dft.kpoints import parse_path_string
@@ -114,6 +114,7 @@ class RegularBandStructure(BandStructureBaseClass):
         fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
         self.set_energy_reference(reference, self.soc)
         reference, shift = self.energy_reference
+        band_extrema = self.band_extrema[:2] if not self.soc else self.band_extrema[2:]
         sp = BandSpectrum(
             atoms=self.structure.atoms,
             kpoints=kps,
@@ -125,6 +126,7 @@ class RegularBandStructure(BandStructureBaseClass):
             jumps=jumps,
             fermi_level=fermi_level,
             reference=reference,
+            band_extrema=band_extrema,
             shift=shift,
             bandpath=bandpath,
         )

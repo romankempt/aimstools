@@ -42,6 +42,7 @@ class MullikenSpectrum(BandSpectrum):
         jumps: list = None,
         fermi_level: float = None,
         reference: str = None,
+        band_extrema: tuple = None,
         shift: float = None,
         bandpath: str = None,
     ) -> None:
@@ -56,6 +57,7 @@ class MullikenSpectrum(BandSpectrum):
             jumps=jumps,
             fermi_level=fermi_level,
             reference=reference,
+            band_extrema=band_extrema,
             shift=shift,
             bandpath=bandpath,
         )
@@ -382,7 +384,11 @@ class MullikenBandStructure(BandStructureBaseClass):
                 kpoint_labels.append(s2)
             jumps.append(label_coords[-1])
         jumps = jumps[:-1]
+
         spectrum = np.concatenate(spectrum, axis=0)
+        if self.MBS_LAPACK_WARNING == "TRUE":
+            spectrum += self.fermi_level.scalar - self.fermi_level.soc
+
         kps = np.concatenate(kps, axis=0)
         kpoint_axis = np.concatenate(kpoint_axis, axis=0)
         occs = np.concatenate(occs, axis=0)
@@ -390,6 +396,7 @@ class MullikenBandStructure(BandStructureBaseClass):
         fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
         self.set_energy_reference(reference, self.soc)
         reference, shift = self.energy_reference
+        band_extrema = self.band_extrema[:2] if not self.soc else self.band_extrema[2:]
         spec = MullikenSpectrum(
             atoms=atoms,
             kpoints=kps,
@@ -402,6 +409,7 @@ class MullikenBandStructure(BandStructureBaseClass):
             jumps=jumps,
             fermi_level=fermi_level,
             reference=reference,
+            band_extrema=band_extrema,
             shift=shift,
             bandpath=bp,
         )

@@ -1,6 +1,7 @@
-# Tools for FHI-aims - aimstools
+# Tools for FHI-aims
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/romankempt/aimstools/HEAD)
+[![Documentation Status](https://readthedocs.org/projects/aims-tools/badge/?version=latest)](https://aims-tools.readthedocs.io/en/latest/?badge=latest)
 
 This library contains a personal collection of scripts to handle FHI-aims calculations. It's mainly meant for private use or to be shared with students and colleagues.
 
@@ -11,6 +12,7 @@ I recommend using Anaconda to manage package dependencies and updates. See [here
 You can directly install from git:
 
 ```bash
+conda install -c conda-forge git pip
 pip install git+https://github.com/romankempt/aimstools
 ```
 
@@ -23,6 +25,9 @@ export AIMS_SPECIES_DIR="path/to/directory"
 export AIMS_EXECUTABLE="aims.mpi.x"
 ```
 
+## Documentation
+The documentation is now available at [ReadTheDocs](https://aims-tools.readthedocs.io/en/master/).
+
 ## Requirements
 
 - [Atomic Simulation Environment](https://wiki.fysik.dtu.dk/ase/)
@@ -34,16 +39,4 @@ export AIMS_EXECUTABLE="aims.mpi.x"
 
 - [FHI-vibes](https://vibes-developers.gitlab.io/vibes/) - An excellent interface for relaxations, phonon calculations and molecular dynamics.
 - [BoltzTraP2](https://gitlab.com/sousaw/BoltzTraP2) - Boltzmann transport theory to calculate electronic transport properties.
-- [2D-Interface-Builder](https://github.com/AK-Heine/2D-Interface-Builder) - My tool to build heterostructure interfaces via coincidence lattice theory.
-
-## Examples
-
-You can test the functionalities of this library via the [Binder link](https://mybinder.org/v2/gh/romankempt/aimstools/HEAD). Setting up the repository might take a little while. Afterwards, navigate to the `notebooks` directory and interact with `aimstools` in a live environment.
-
-## Testing
-
-Install [pytest](https://docs.pytest.org/en/stable/) to run a simple set of tests to see that everything installed correctly. Clone the repository and navigate to the directory, then run:
-
-```bash
-pytest -v tests/
-```
+- [Hetbuilder](https://github.com/romankempt/hetbuilder) - Builds heterostructure interfaces via coincidence lattice theory.

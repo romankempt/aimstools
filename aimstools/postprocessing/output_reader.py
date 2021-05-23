@@ -352,6 +352,22 @@ class FHIAimsOutputReader(dict):
                 cbm_soc = float(next(iterable).strip().split()[-2])
                 vbm_soc = float(next(iterable).strip().split()[-2])
 
+            if "Output mulliken decomposition of band k points for SOC in" in l:
+                mbs_lapack_warning = (
+                    True if l.strip().split()[-1].lower() == "lapack" else False
+                )
+                if mbs_lapack_warning:
+                    logger.warning(
+                        "Detected mulliken-projected band structure with SOC with Lapack routines."
+                    )
+                    logger.warning(
+                        "Fermi level is set wrongly in this case. See my MR https://aims-git.rz-berlin.mpg.de/aims/FHIaims/-/merge_requests/699 for details."
+                    )
+                    logger.warning("I have added a temporary workaround.")
+                    d["MBS_LAPACK_WARNING"] = "TRUE"
+                else:
+                    d["MBS_LAPACK_WARNING"] = "FALSE"
+
         # VBM, CBM
         be = namedtuple(
             "band_extrema", ["vbm_scalar", "cbm_scalar", "vbm_soc", "cbm_soc"]

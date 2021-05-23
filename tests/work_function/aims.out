@@ -31,17 +31,17 @@
 
 
 
-  Date     :  20210416, Time     :  134114.886
-  Time zero on CPU 1             :   0.164260000000000E-01  s.
-  Internal wall clock time zero  :           387812474.886  s.
+  Date     :  20210523, Time     :  130145.595
+  Time zero on CPU 1             :   0.238700000000000E-01  s.
+  Internal wall clock time zero  :           391006905.595  s.
 
   FHI-aims created a unique identifier for this run for later identification
-  aims_uuid : F10F7677-98D9-44A0-AB7B-048EC0033A86
+  aims_uuid : 77C70ABC-ABF7-4E72-ADBA-47F4CA080CCE
 
   Build configuration of the current instance of FHI-aims
   -------------------------------------------------------
-  FHI-aims version      : 210415
-  Commit number         : c7c1f0aae
+  FHI-aims version      : 210513
+  Commit number         : 168eee114
   CMake host system     : Linux-5.4.72-microsoft-standard-WSL2
   CMake version         : 3.19.4
   Fortran compiler      : /home/rkempt/miniconda3/envs/aims-env/bin/mpifort (GNU) version 9.3.0
@@ -56,9 +56,11 @@
                    /home/rkempt/miniconda3/envs/aims-env/lib/libmkl_sequential.so
                    /home/rkempt/miniconda3/envs/aims-env/lib/libmkl_core.so
 
-  Using        2 parallel tasks.
+  Using        4 parallel tasks.
   Task        0 on host DESKTOP-VF3RMOI reporting.
   Task        1 on host DESKTOP-VF3RMOI reporting.
+  Task        2 on host DESKTOP-VF3RMOI reporting.
+  Task        3 on host DESKTOP-VF3RMOI reporting.
 
   Performing system and environment tests:
   *** Environment variable OMP_NUM_THREADS is not set
@@ -82,7 +84,7 @@
   #===============================================================================
   xc                                 pbe
   check_stacksize .False.
-  include_spin_orbit
+  #include_spin_orbit
   output_level MD_light
   # Common choices of dispersion methods:
   # 	 vdw_correction_hirshfeld
@@ -317,7 +319,6 @@
           Reading file control.in.
 ------------------------------------------------------------
   XC: Using PBE gradient-corrected functionals.
-  Calculating non-self-consistent second-variational spin-orbit coupling after scf-cycle
   Requested output level: MD_light
   Spin treatment: No spin polarisation.
   Found k-point grid:        12        12         1
@@ -671,14 +672,14 @@
   Preparing densities etc. for the partition functions (integrals / Hartree potential).
 
   Preparations completed.
-  max(cpu_time)          :      0.085 s.
-  Wall clock time (cpu1) :      0.085 s.
+  max(cpu_time)          :      0.112 s.
+  Wall clock time (cpu1) :      0.115 s.
 ------------------------------------------------------------
 
 ------------------------------------------------------------
           Begin self-consistency loop: Initialization.
 
-          Date     :  20210416, Time     :  134115.008
+          Date     :  20210523, Time     :  130145.774
 ------------------------------------------------------------
 
   Initializing index lists of integration centers etc. from given atomic structure:
@@ -689,8 +690,10 @@
   | k-points reduced from:      144 to       74
   | Number of k-points                             :        74
   The eigenvectors in the calculations are COMPLEX.
-  | K-points in task   0:        37
-  | K-points in task   1:        37
+  | K-points in task   0:        18
+  | K-points in task   1:        19
+  | K-points in task   2:        19
+  | K-points in task   3:        18
   | Number of basis functions in the Hamiltonian integrals :      1128
   | Number of basis functions in a single unit cell        :        28
   | Number of centers in hartree potential         :       348
@@ -713,10 +716,12 @@
   | Average batch size:      73.427
   | Standard deviation of batch sizes:      21.134
 
-  Integration load balanced across     2 MPI tasks.
+  Integration load balanced across     4 MPI tasks.
   Work distribution over tasks is as follows:
-  Task     0 has       6564 integration points.
-  Task     1 has       6506 integration points.
+  Task     0 has       3236 integration points.
+  Task     1 has       3269 integration points.
+  Task     2 has       3273 integration points.
+  Task     3 has       3292 integration points.
   Initializing partition tables, free-atom densities, potentials, etc. across the integration grid (initialize_grid_storage).
   | initialize_grid_storage: Actual outermost partition radius vs. multipole_radius_free
   | (-- VB: in principle, multipole_radius_free should be larger, hence this output)
@@ -739,13 +744,15 @@
   | Charge integration error                      :       0.0001051265
   | Normalization factor for density and gradient :       0.9999912395
   Obtaining max. number of non-zero basis functions in each batch (get_n_compute_maxes).
-  | Maximal number of non-zero basis functions:      373 in task     0
-  | Maximal number of non-zero basis functions:      371 in task     1
-  Allocating        0.190 MB for KS_eigenvector_complex
+  | Maximal number of non-zero basis functions:      372 in task     0
+  | Maximal number of non-zero basis functions:      366 in task     1
+  | Maximal number of non-zero basis functions:      373 in task     2
+  | Maximal number of non-zero basis functions:      371 in task     3
+  Allocating        0.092 MB for KS_eigenvector_complex
   Integrating Hamiltonian matrix: batch-based integration.
-  Time summed over all CPUs for integration: real work        0.230 s, elapsed        0.233 s
+  Time summed over all CPUs for integration: real work        0.392 s, elapsed        0.417 s
   Integrating overlap matrix.
-  Time summed over all CPUs for integration: real work        0.138 s, elapsed        0.140 s
+  Time summed over all CPUs for integration: real work        0.260 s, elapsed        0.277 s
   Decreasing sparse matrix size:
   | Tolerance:  0.1000E-12
   Hamiltonian matrix
@@ -819,53 +826,53 @@
   Max. number of atoms included in rho_multipole:            2
 
   End scf initialization - timings             :  max(cpu_time)    wall_clock(cpu1)
-  | Time for scf. initialization               :        3.650 s           3.650 s
-  | Boundary condition initialization          :        3.293 s           3.293 s
-  | Integration                                :        0.188 s           0.188 s
-  | Solution of K.-S. eqns.                    :        0.018 s           0.019 s
-  | Grid partitioning                          :        0.024 s           0.025 s
-  | Preloading free-atom quantities on grid    :        0.108 s           0.108 s
-  | Free-atom superposition energy             :        0.017 s           0.017 s
-  | Total energy evaluation                    :        0.000 s           0.000 s
+  | Time for scf. initialization               :        2.279 s           2.305 s
+  | Boundary condition initialization          :        1.971 s           1.970 s
+  | Integration                                :        0.171 s           0.175 s
+  | Solution of K.-S. eqns.                    :        0.010 s           0.017 s
+  | Grid partitioning                          :        0.029 s           0.029 s
+  | Preloading free-atom quantities on grid    :        0.086 s           0.087 s
+  | Free-atom superposition energy             :        0.011 s           0.011 s
+  | Total energy evaluation                    :        0.001 s           0.001 s
 
   Partial memory accounting:
   | Current value for overall tracked memory usage:
-  |   Minimum:        0.382 MB (on task 0)
-  |   Maximum:        0.382 MB (on task 0)
-  |   Average:        0.382 MB
+  |   Minimum:        0.285 MB (on task 0)
+  |   Maximum:        0.290 MB (on task 1)
+  |   Average:        0.288 MB
   | Peak value for overall tracked memory usage:
-  |   Minimum:        2.537 MB (on task 1 after allocating wave)
-  |   Maximum:        2.554 MB (on task 0 after allocating wave)
-  |   Average:        2.545 MB
+  |   Minimum:        2.404 MB (on task 1 after allocating wave)
+  |   Maximum:        2.461 MB (on task 2 after allocating wave)
+  |   Average:        2.438 MB
   | Largest tracked array allocation so far:
-  |   Minimum:        1.050 MB (hamiltonian_shell on task 1)
-  |   Maximum:        1.061 MB (hamiltonian_shell on task 0)
-  |   Average:        1.056 MB
+  |   Minimum:        1.022 MB (hamiltonian_shell on task 1)
+  |   Maximum:        1.061 MB (hamiltonian_shell on task 2)
+  |   Average:        1.047 MB
   Note:  These values currently only include a subset of arrays which are explicitly tracked.
   The "true" memory usage will be greater.
 ------------------------------------------------------------
   Time for density update prior                :  max(cpu_time)    wall_clock(cpu1)
-  | self-consistency iterative process         :        0.223 s           0.222 s
+  | self-consistency iterative process         :        0.177 s           0.178 s
 ------------------------------------------------------------
 Convergence:    q app. |  density  | eigen (eV) | Etot (eV) |             . |       CPU time |     Clock time
-  SCF    1 : -0.12E-13 |  0.29E+00 |   0.49E+01 |  0.29E+00 |             . |        0.624 s |        0.624 s
-  SCF    2 :  0.24E-13 |  0.26E+00 |   0.44E+02 |  0.13E+01 |             . |        0.646 s |        0.646 s
-  SCF    3 :  0.40E-13 |  0.90E-01 |   0.73E+01 |  0.64E-01 |             . |        0.600 s |        0.600 s
-  SCF    4 :  0.44E-13 |  0.50E-01 |   0.10E+02 |  0.24E-01 |             . |        0.606 s |        0.606 s
-  SCF    5 :  0.34E-14 |  0.86E-02 |  -0.17E+01 |  0.14E-02 |             . |        0.640 s |        0.640 s
-  SCF    6 :  0.32E-13 |  0.48E-02 |   0.77E-01 |  0.10E-03 |             . |        0.607 s |        0.608 s
-  SCF    7 : -0.12E-13 |  0.46E-02 |   0.20E+00 |  0.38E-03 |             . |        0.699 s |        0.699 s
-  SCF    8 :  0.28E-13 |  0.36E-02 |   0.23E-01 |  0.27E-04 |             . |        0.618 s |        0.618 s
-  SCF    9 :  0.75E-14 |  0.35E-02 |   0.29E+00 |  0.36E-03 |             . |        0.625 s |        0.625 s
-  SCF   10 :  0.17E-13 |  0.23E-02 |   0.52E+00 |  0.54E-03 |             . |        0.725 s |        0.725 s
-  SCF   11 :  0.41E-13 |  0.75E-04 |  -0.76E-02 | -0.80E-05 |             . |        0.396 s |        0.396 s
+  SCF    1 :  0.10E-13 |  0.29E+00 |   0.49E+01 |  0.29E+00 |             . |        0.477 s |        0.477 s
+  SCF    2 : -0.58E-14 |  0.26E+00 |   0.44E+02 |  0.13E+01 |             . |        0.508 s |        0.518 s
+  SCF    3 : -0.96E-14 |  0.90E-01 |   0.73E+01 |  0.64E-01 |             . |        0.508 s |        0.508 s
+  SCF    4 : -0.22E-13 |  0.50E-01 |   0.10E+02 |  0.24E-01 |             . |        0.520 s |        0.520 s
+  SCF    5 :  0.13E-13 |  0.86E-02 |  -0.17E+01 |  0.14E-02 |             . |        0.517 s |        0.517 s
+  SCF    6 : -0.14E-13 |  0.48E-02 |   0.77E-01 |  0.10E-03 |             . |        0.500 s |        0.500 s
+  SCF    7 :  0.11E-13 |  0.46E-02 |   0.20E+00 |  0.38E-03 |             . |        0.521 s |        0.522 s
+  SCF    8 :  0.81E-14 |  0.36E-02 |   0.23E-01 |  0.27E-04 |             . |        0.536 s |        0.535 s
+  SCF    9 : -0.14E-13 |  0.35E-02 |   0.29E+00 |  0.36E-03 |             . |        0.676 s |        0.675 s
+  SCF   10 : -0.69E-15 |  0.23E-02 |   0.52E+00 |  0.54E-03 |             . |        0.722 s |        0.720 s
+  SCF   11 :  0.23E-13 |  0.74E-04 |  -0.76E-02 | -0.80E-05 |             . |        0.496 s |        0.496 s
 
   Total energy components:
-  | Sum of eigenvalues            :         -44.93078082 Ha       -1222.62875283 eV
-  | XC energy correction          :         -10.99362191 Ha        -299.15167289 eV
-  | XC potential correction       :          14.12648708 Ha         384.40127147 eV
+  | Sum of eigenvalues            :         -44.93078083 Ha       -1222.62875307 eV
+  | XC energy correction          :         -10.99362191 Ha        -299.15167288 eV
+  | XC potential correction       :          14.12648708 Ha         384.40127145 eV
   | Free-atom electrostatic energy:         -35.52152100 Ha        -966.58976604 eV
-  | Hartree energy correction     :          -2.39944813 Ha         -65.29230564 eV
+  | Hartree energy correction     :          -2.39944812 Ha         -65.29230539 eV
   | Entropy correction            :          -0.00000000 Ha          -0.00000000 eV
   | ---------------------------
   | Total energy                  :         -79.71888479 Ha       -2169.26122592 eV
@@ -873,223 +880,53 @@ Convergence:    q app. |  density  | eigen (eV) | Etot (eV) |             . |   
   | Electronic free energy        :         -79.71888479 Ha       -2169.26122592 eV
 
   Derived energy quantities:
-  | Kinetic energy                :          79.52918627 Ha        2164.09926652 eV
-  | Electrostatic energy          :        -148.25444915 Ha       -4034.20881956 eV
+  | Kinetic energy                :          79.52918627 Ha        2164.09926649 eV
+  | Electrostatic energy          :        -148.25444915 Ha       -4034.20881954 eV
   | Energy correction for multipole
   | error in Hartree potential    :           0.02922614 Ha           0.79528384 eV
-  | Sum of eigenvalues per atom                           :        -611.31437641 eV
+  | Sum of eigenvalues per atom                           :        -611.31437653 eV
   | Total energy (T->0) per atom                          :       -1084.63061296 eV  <-- do not rely on this value for anything but (periodic) metals
   | Electronic free energy per atom                       :       -1084.63061296 eV
   What follows are estimated values for band gap, HOMO, LUMO, etc.
   | They are estimated on a discrete k-point grid and not necessarily exact.
   | For converged numbers, create a DOS and/or band structure plot on a denser k-grid.
 
-  Highest occupied state (VBM) at     -6.04816786 eV (relative to internal zero)
+  Highest occupied state (VBM) at     -6.04816788 eV (relative to internal zero)
   | Occupation number:      2.00000000
   | K-point:      38 at    0.333333    0.333333    0.000000 (in units of recip. lattice)
 
-  Lowest unoccupied state (CBM) at    -1.40785241 eV (relative to internal zero)
+  Lowest unoccupied state (CBM) at    -1.40785242 eV (relative to internal zero)
   | Occupation number:      0.00000000
   | K-point:      38 at    0.333333    0.333333    0.000000 (in units of recip. lattice)
 
-  ESTIMATED overall HOMO-LUMO gap:      4.64031545 eV between HOMO at k-point 38 and LUMO at k-point 38
+  ESTIMATED overall HOMO-LUMO gap:      4.64031546 eV between HOMO at k-point 38 and LUMO at k-point 38
   | This appears to be a direct band gap.
   The gap value is above 0.2 eV. Unless you are using a very sparse k-point grid,
   this system is most likely an insulator or a semiconductor.
-  | Chemical Potential                          :    -2.82246323 eV
-  | Potential vacuum level, "upper" slab surface:    -0.08063028 eV
-  | Potential vacuum level, "lower" slab surface:    -0.08064420 eV
-  | Work function ("upper" slab surface)        :     2.74183295 eV
-  | Work function ("lower" slab surface)        :     2.74181903 eV
+  | Chemical Potential                          :    -2.82246325 eV
+  | Potential vacuum level, "upper" slab surface:    -0.08063026 eV
+  | Potential vacuum level, "lower" slab surface:    -0.08064427 eV
+  | Work function ("upper" slab surface)        :     2.74183299 eV
+  | Work function ("lower" slab surface)        :     2.74181898 eV
   *** Warning: band gap may exist, check the suitability to define work function using chemical potential.
-  | VBM (reference: upper vacuum level)         :     5.96753758 eV
-  | CBM (reference: upper vacuum level)         :     1.32722213 eV
+  | VBM (reference: upper vacuum level)         :     5.96753763 eV
+  | CBM (reference: upper vacuum level)         :     1.32722216 eV
 
   Self-consistency cycle converged.
 
 
   Energy and forces in a compact form:
-  | Total energy uncorrected      :         -0.216926122592495E+04 eV
-  | Total energy corrected        :         -0.216926122592495E+04 eV  <-- do not rely on this value for anything but (periodic) metals
-  | Electronic free energy        :         -0.216926122592495E+04 eV
+  | Total energy uncorrected      :         -0.216926122592486E+04 eV
+  | Total energy corrected        :         -0.216926122592486E+04 eV  <-- do not rely on this value for anything but (periodic) metals
+  | Electronic free energy        :         -0.216926122592486E+04 eV
 
-
-  ******************************************************************
-  **          STARTING SECOND VARIATIONAL SOC CALCULATION         **
-  ******************************************************************
-
-  ******************************************************************
-  **                     Stable functionality:                    **
-  **                 Writes eigenvalues to stdout                 **
-  **                    Recalculates band gaps                    **
-  **                Regular and interpolated DOSs                 **
-  **                       Band structures                        **
-  **                      Mulliken analysis                       **
-  **                         ELSI Support                         **
-  ******************************************************************
-
-  ******************************************************************
-  **               New/Experimental functionality:                **
-  **         use_local_index and load balancing support           **
-  **         Dielectric constant/absorption coefficents           **
-  **             Specifying restricted energy window              **
-  **                         Cube files                           **
-  ******************************************************************
-
-  ******************************************************************
-  **            Known buggy functionality (in SOC code):          **
-  **   SOC-perturbed total energies are meaningless (DO NOT USE)  **
-  ******************************************************************
-
-  ******************************************************************
-  **                             Note:                            **
-  **             You may see oscillations or blips in             **
-  **       high-lying conduction bands or slight sub-banding      **
-  **            in calculations.  This is likely due to           **
-  **        to not enough empty bands being mixed into the        **
-  **             eigensolver, and you should increase             **
-  **      the keyword 'empty_states' until the behavior goes      **
-  **                        away to fix it.                       **
-  **      If you are feeling particularly paranoid, consider      **
-  **        setting the calculate_all_eigenstates flag in         **
-  **      control.in to calculate all empty states possible.      **
-  **                    This is rarely needed.                    **
-  ******************************************************************
-
-  ******************************************************************
-  **                      Future Developments:                    **
-  **                       Self-Consistency                       **
-  ******************************************************************
-
-  Number of core states to omit from SOC       :                 0
-  Number of high-lying states to omit from SOC :                 0
-
-  Index of first SOC-perturbed state to save   :                 1
-  Index of last SOC-perturbed state to save    :                24
-
-  Allocating memory for main spin-orbit coupling matrices...
-  Allocating        0.009 MB for soc_ham
-  Allocating        0.009 MB for eigenvec_soc_wf_basis
-  Allocating        0.014 MB for KS_eigenvalue_soc_perturbed
-  Allocating        0.014 MB for occ_numbers_soc
-  Allocating        0.068 MB for spin_expectation
-  Allocating        0.000 MB for KS_eigenvalue_soc_perturbed_temp
-  Allocating        0.000 MB for sr_to_soc_idxmap
-  Allocating        0.001 MB for spin_expectation_temp
-  Allocating        0.759 MB for KS_eigenvector_soc_perturbed
-  Allocating        0.231 MB for soc_matrix
-
-  Integrating SOC matrix: batch-based integration p2 version.
-  Allocating        0.085 MB for dist_tab
-  Allocating        0.085 MB for dist_tab_sq
-  Allocating        0.256 MB for dir_tab
-  Allocating        0.005 MB for i_basis_fns
-  Allocating        0.099 MB for i_basis_fns_inv
-  Allocating        0.005 MB for i_atom_fns
-  Allocating        0.956 MB for gradient_basis_wave
-  Allocating        0.002 MB for ylm_tab
-  Allocating        0.001 MB for radial_wave
-  Allocating        0.001 MB for radial_wave_deriv
-  Allocating        0.004 MB for i_basis
-  Allocating        1.061 MB for soc_shell
-  Allocating        0.004 MB for cartesians
-  Allocating        0.006 MB for sum_gradient
-  Allocating        0.012 MB for sum_hessian
-  Allocating        0.001 MB for potential_shell
-
-  Largest matrix element of SOC matrix is                      0.00026
-  Sparsity of soc_matrix based on threshhold of 0.25828E-18 is 0.20659
-
-  Determining occupation numbers for Kohn-Sham eigenstates.
-  | Chemical potential (Fermi level) in eV                 : -.60002771E+01
-  | Error in electron count due to remaining E_F inaccuracy: 0.37303494E-13
-  | Maximum occupation number of highest empty state:  0.00E+00
-
-  Writing SOC-perturbed Kohn-Sham eigenvalues.
-  K-point:       1 at    0.000000    0.000000    0.000000 (in units of recip. lattice)
-
-  State    Occupation    Unperturbed Eigenvalue [eV]    Eigenvalue [eV]    Level Spacing [eV]
-      1       1.00000                    -380.537464        -380.537465             0.000000
-      2       1.00000                    -380.537464        -380.537465             0.000000
-      3       1.00000                    -177.842044        -177.842044           202.695420
-      4       1.00000                    -177.842044        -177.842044             0.000000
-      5       1.00000                     -23.751303         -23.751303           154.090741
-      6       1.00000                     -23.751303         -23.751303             0.000000
-      7       1.00000                     -11.240827         -11.240833            12.510470
-      8       1.00000                     -11.240827         -11.240833             0.000000
-      9       1.00000                      -7.504158          -7.509924             3.730909
-     10       1.00000                      -7.504158          -7.509924             0.000000
-     11       1.00000                      -7.504108          -7.498344             0.011580
-     12       1.00000                      -7.504108          -7.498344             0.000000
-     13       0.00000                       1.798894           1.798894             9.297238
-     14       0.00000                       1.798894           1.798894             0.000000
-     15       0.00000                       2.672748           2.672746             0.873853
-     16       0.00000                       2.672748           2.672746             0.000000
-     17       0.00000                       5.358550           5.355894             2.683148
-     18       0.00000                       5.358550           5.355894             0.000000
-     19       0.00000                       5.359888           5.362550             0.006656
-     20       0.00000                       5.359888           5.362550             0.000000
-     21       0.00000                       8.702112           8.702116             3.339566
-     22       0.00000                       8.702112           8.702116             0.000000
-     23       0.00000                      12.908925          12.908925             4.206810
-     24       0.00000                      12.908925          12.908925             0.000000
-
-  What follows are estimated values for band gap, HOMO, LUMO, etc.
-  | They are estimated on a discrete k-point grid and not necessarily exact.
-  | For converged numbers, create a DOS and/or band structure plot on a denser k-grid.
-
-  Highest occupied state (VBM) at     -6.04816290 eV (relative to internal zero)
-  | Occupation number:      1.00000000
-  | K-point:      38 at    0.333333    0.333333    0.000000 (in units of recip. lattice)
-
-  Lowest unoccupied state (CBM) at    -1.40786430 eV (relative to internal zero)
-  | Occupation number:      0.00000000
-  | K-point:      38 at    0.333333    0.333333    0.000000 (in units of recip. lattice)
-
-  ESTIMATED overall HOMO-LUMO gap:      4.64029861 eV between HOMO at k-point 38 and LUMO at k-point 38
-  | This appears to be a direct band gap.
-  The gap value is above 0.2 eV. Unless you are using a very sparse k-point grid,
-  this system is most likely an insulator or a semiconductor.
-  | Potential vacuum level, "upper" slab surface:    -0.08063028 eV
-  | Potential vacuum level, "lower" slab surface:    -0.08064420 eV
-  | Work function ("upper" slab surface)        :     5.91964679 eV
-  | Work function ("lower" slab surface)        :     5.91963287 eV
-  *** Warning: band gap may exist, check the suitability to define work function using chemical potential.
-  | VBM (reference: upper vacuum level)         :     5.96753262 eV
-  | CBM (reference: upper vacuum level)         :     1.32723402 eV
-
-  Spin-orbit coupling                                     :  max(cpu_time)    wall_clock(cpu1)
-  | Computing matrix elements for SOC operator            :          0.604               0.604
-  | Constructing second-variational Hamiltonian           :          0.005               0.008
-  | Diagonalizing second-variational Hamiltonian          :          0.009               0.008
-  | Constructing SOC-perturbed eigenvectors               :          0.001               0.000
-  | Syncing data and calculating occupations              :          0.001               0.001
-  | Writing out data, calculating band gaps, etc.         :          0.001               0.001
-  | Total SOC time                                        :          0.623               0.623
-
-  Partial memory accounting:
-  | Current value for overall tracked memory usage:
-  |   Minimum:        1.169 MB (on task 0)
-  |   Maximum:        1.169 MB (on task 0)
-  |   Average:        1.169 MB
-  | Peak value for overall tracked memory usage:
-  |   Minimum:        4.053 MB (on task 1 after allocating potential_shell)
-  |   Maximum:        4.070 MB (on task 0 after allocating potential_shell)
-  |   Average:        4.062 MB
-  | Largest tracked array allocation so far:
-  |   Minimum:        1.050 MB (hamiltonian_shell on task 1)
-  |   Maximum:        1.061 MB (hamiltonian_shell on task 0)
-  |   Average:        1.056 MB
-  Note:  These values currently only include a subset of arrays which are explicitly tracked.
-  The "true" memory usage will be greater.
- ------------------------------------------------------------
 
   ------------------------------------------------------------
                    Starting Mulliken Analysis
   ------------------------------------------------------------
 
-  Performing scalar-relativistic Mulliken charge analysis on all atoms.
-  Full analysis (per state, per k-point, etc.) will NOT be written to separate file 'Mulliken.out.no_soc'.
+  Performing Mulliken charge analysis on all atoms.
+  Full analysis (per state, per k-point, etc.) will NOT be written to separate file 'Mulliken.out'.
   This file can be requested by stating 'output mulliken' explicitly.
   Summary of the per-atom charge analysis:
   |
@@ -1097,303 +934,132 @@ Convergence:    q app. |  density  | eigen (eV) | Etot (eV) |             . |   
   |     1        7.457068       -0.457068        3.432487        3.992379        0.032203
   |     2        4.542932        0.457068        2.710501        1.582305        0.250127
   |
-  | Total       12.000000        0.000000
+  | Total       12.000000       -0.000000
 
 
   Calculating atom-projected density of states ...
   | Chemical potential is  -2.822463 eV.
-  | writing   projected DOS (shifted by the chemical potential) for species N to file atom_proj_dos_N0001.dat.no_soc.
-  | writing   projected DOS (raw data) for species N to file atom_proj_dos_N0001_raw.dat.no_soc.
-  | writing   projected DOS (shifted by the chemical potential) for species B to file atom_proj_dos_B0002.dat.no_soc.
-  | writing   projected DOS (raw data) for species B to file atom_proj_dos_B0002_raw.dat.no_soc.
-
-  Performing spin-orbit-coupled Mulliken charge analysis on all atoms.
-*** output_mulliken expected pure occ_numbers
-*** sum(occ_numbers) =  4.4400000000000000E+02 instead of  1.2000000000000000E+01
-  Full analysis (per state, per k-point, etc.) will NOT be written to separate file 'Mulliken.out.no_soc'.
-  This file can be requested by stating 'output mulliken' explicitly.
-  Summary of the per-atom charge analysis:
-  |
-  |  atom       electrons          charge             l=0             l=1             l=2
-  |     1        7.457067       -0.457067        3.432487        3.992378        0.032203
-  |     2        4.542933        0.457067        2.710501        1.582305        0.250127
-  |
-  | Total       12.000000        0.000000
-
-
-  Calculating atom-projected density of states ...
-  | Chemical potential is  -6.000277 eV.
   | writing   projected DOS (shifted by the chemical potential) for species N to file atom_proj_dos_N0001.dat.
   | writing   projected DOS (raw data) for species N to file atom_proj_dos_N0001_raw.dat.
   | writing   projected DOS (shifted by the chemical potential) for species B to file atom_proj_dos_B0002.dat.
   | writing   projected DOS (raw data) for species B to file atom_proj_dos_B0002_raw.dat.
   Mulliken analysis                                       :  max(cpu_time)    wall_clock(cpu1)
-  | Time for Mulliken analysis (scalar relativistic)      :          0.044               0.064
-  | Time for Mulliken analysis (spin-orbit coupled)       :          0.127               0.147
-  | Total time for Mulliken analysis                      :          0.171               0.211
+  | Time for Mulliken analysis                            :          0.040               0.058
+  | Total time for Mulliken analysis                      :          0.040               0.058
 ------------------------------------------------------------
- Output mulliken decomposition of band k points for SOC in LAPACK
+ Output mulliken decomposition of band k points in LAPACK
+
+  -------------------------------------------------------------------
+  Writing the requested band Mulliken decomposition output (LAPACK version):
+  -------------------------------------------------------------------
+
+  Integrating Hamiltonian matrix: batch-based integration.
+  Time summed over all CPUs for integration: real work        0.568 s, elapsed        0.575 s
+
+  Treating all   31 k-points in band plot segment #   1:
+
+  Performing scalar-relativistic Mulliken charge analysis on all atoms.
+ n_atoms, n_states, n_spin,n_k_points           2          12           1          31
+  Allocating        0.017 MB for mulliken_decomp
+
+  Treating all   31 k-points in band plot segment #   2:
+
+  Performing scalar-relativistic Mulliken charge analysis on all atoms.
+ n_atoms, n_states, n_spin,n_k_points           2          12           1          31
+  Allocating        0.017 MB for mulliken_decomp
+
+  Treating all   31 k-points in band plot segment #   3:
+
+  Performing scalar-relativistic Mulliken charge analysis on all atoms.
+ n_atoms, n_states, n_spin,n_k_points           2          12           1          31
+  Allocating        0.017 MB for mulliken_decomp
+
+  Treating all   31 k-points in band plot segment #   4:
+
+  Performing scalar-relativistic Mulliken charge analysis on all atoms.
+ n_atoms, n_states, n_spin,n_k_points           2          12           1          31
+  Allocating        0.017 MB for mulliken_decomp
+
+  Treating all   31 k-points in band plot segment #   5:
+
+  Performing scalar-relativistic Mulliken charge analysis on all atoms.
+ n_atoms, n_states, n_spin,n_k_points           2          12           1          31
+  Allocating        0.017 MB for mulliken_decomp
+
+  Treating all   31 k-points in band plot segment #   6:
+
+  Performing scalar-relativistic Mulliken charge analysis on all atoms.
+ n_atoms, n_states, n_spin,n_k_points           2          12           1          31
+  Allocating        0.017 MB for mulliken_decomp
 
   -------------------------------------------------------------------
   Writing the requested band structure output (LAPACK version):
   -------------------------------------------------------------------
 
   Integrating Hamiltonian matrix: batch-based integration.
-  Time summed over all CPUs for integration: real work        0.372 s, elapsed        0.376 s
-  Integrating SOC matrix: batch-based integration p2 version.
-  Allocating        0.085 MB for dist_tab
-  Allocating        0.085 MB for dist_tab_sq
-  Allocating        0.256 MB for dir_tab
-  Allocating        0.005 MB for i_basis_fns
-  Allocating        0.099 MB for i_basis_fns_inv
-  Allocating        0.005 MB for i_atom_fns
-  Allocating        0.956 MB for gradient_basis_wave
-  Allocating        0.002 MB for ylm_tab
-  Allocating        0.001 MB for radial_wave
-  Allocating        0.001 MB for radial_wave_deriv
-  Allocating        0.004 MB for i_basis
-  Allocating        1.061 MB for soc_shell
-  Allocating        0.004 MB for cartesians
-  Allocating        0.006 MB for sum_gradient
-  Allocating        0.012 MB for sum_hessian
-  Allocating        0.001 MB for potential_shell
+  Time summed over all CPUs for integration: real work        0.566 s, elapsed        0.615 s
 
   Treating all   31 k-points in band plot segment #   1:
 
 
-  Scalar-relativistic "band gap" along reciprocal space direction number:    1
-  | Lowest unoccupied state:      -1.21347735 eV
-  | Highest occupied state :      -6.94691357 eV
-  | Energy difference      :       5.73343622 eV
-
-  Allocating        0.068 MB for mulliken_decomp
-
-  Spin-orbit-coupled "band gap" along reciprocal space direction number:    1
-  | Lowest unoccupied state:      -1.21347716 eV
-  | Highest occupied state :      -6.94691121 eV
-  | Energy difference      :       5.73343406 eV
+  "Band gap" along reciprocal space direction number:    1
+  | Lowest unoccupied state:      -1.21347737 eV
+  | Highest occupied state :      -6.94691359 eV
+  | Energy difference      :       5.73343623 eV
 
 
   Treating all   31 k-points in band plot segment #   2:
 
 
-  Scalar-relativistic "band gap" along reciprocal space direction number:    2
-  | Lowest unoccupied state:      -1.40785241 eV
-  | Highest occupied state :      -6.04816786 eV
-  | Energy difference      :       4.64031545 eV
-
-  Allocating        0.068 MB for mulliken_decomp
-
-  Spin-orbit-coupled "band gap" along reciprocal space direction number:    2
-  | Lowest unoccupied state:      -1.40786430 eV
-  | Highest occupied state :      -6.04816290 eV
-  | Energy difference      :       4.64029861 eV
+  "Band gap" along reciprocal space direction number:    2
+  | Lowest unoccupied state:      -1.40785242 eV
+  | Highest occupied state :      -6.04816788 eV
+  | Energy difference      :       4.64031546 eV
 
 
   Treating all   31 k-points in band plot segment #   3:
 
 
-  Scalar-relativistic "band gap" along reciprocal space direction number:    3
-  | Lowest unoccupied state:      -1.40785241 eV
-  | Highest occupied state :      -6.04816786 eV
-  | Energy difference      :       4.64031545 eV
-
-  Allocating        0.068 MB for mulliken_decomp
-
-  Spin-orbit-coupled "band gap" along reciprocal space direction number:    3
-  | Lowest unoccupied state:      -1.40786430 eV
-  | Highest occupied state :      -6.04816290 eV
-  | Energy difference      :       4.64029861 eV
+  "Band gap" along reciprocal space direction number:    3
+  | Lowest unoccupied state:      -1.40785242 eV
+  | Highest occupied state :      -6.04816788 eV
+  | Energy difference      :       4.64031546 eV
 
 
   Treating all   31 k-points in band plot segment #   4:
 
 
-  Scalar-relativistic "band gap" along reciprocal space direction number:    4
-  | Lowest unoccupied state:      -1.21347735 eV
-  | Highest occupied state :      -6.94691357 eV
-  | Energy difference      :       5.73343622 eV
-
-  Allocating        0.068 MB for mulliken_decomp
-
-  Spin-orbit-coupled "band gap" along reciprocal space direction number:    4
-  | Lowest unoccupied state:      -1.21347716 eV
-  | Highest occupied state :      -6.94691121 eV
-  | Energy difference      :       5.73343406 eV
+  "Band gap" along reciprocal space direction number:    4
+  | Lowest unoccupied state:      -1.21347737 eV
+  | Highest occupied state :      -6.94691359 eV
+  | Energy difference      :       5.73343623 eV
 
 
   Treating all   31 k-points in band plot segment #   5:
 
 
-  Scalar-relativistic "band gap" along reciprocal space direction number:    5
-  | Lowest unoccupied state:      -1.40785241 eV
-  | Highest occupied state :      -6.04816786 eV
-  | Energy difference      :       4.64031545 eV
-
-  Allocating        0.068 MB for mulliken_decomp
-
-  Spin-orbit-coupled "band gap" along reciprocal space direction number:    5
-  | Lowest unoccupied state:      -1.40786430 eV
-  | Highest occupied state :      -6.04816290 eV
-  | Energy difference      :       4.64029861 eV
+  "Band gap" along reciprocal space direction number:    5
+  | Lowest unoccupied state:      -1.40785242 eV
+  | Highest occupied state :      -6.04816788 eV
+  | Energy difference      :       4.64031546 eV
 
 
   Treating all   31 k-points in band plot segment #   6:
 
 
-  Scalar-relativistic "band gap" along reciprocal space direction number:    6
-  | Lowest unoccupied state:      -1.40785241 eV
-  | Highest occupied state :      -6.04816786 eV
-  | Energy difference      :       4.64031545 eV
+  "Band gap" along reciprocal space direction number:    6
+  | Lowest unoccupied state:      -1.40785242 eV
+  | Highest occupied state :      -6.04816788 eV
+  | Energy difference      :       4.64031546 eV
 
-  Allocating        0.068 MB for mulliken_decomp
-
-  Spin-orbit-coupled "band gap" along reciprocal space direction number:    6
-  | Lowest unoccupied state:      -1.40786430 eV
-  | Highest occupied state :      -6.04816290 eV
-  | Energy difference      :       4.64029861 eV
-
-  Scalar-relativistic "band gap" of total set of bands:
-  | Lowest unoccupied state:      -1.40785241 eV
-  | Highest occupied state :      -6.04816786 eV
-  | Energy difference      :       4.64031545 eV
-
-  Spin-orbit-coupled "band gap" of total set of bands:
-  | Lowest unoccupied state:      -1.40786430 eV
-  | Highest occupied state :      -6.04816290 eV
-  | Energy difference      :       4.64029861 eV
+  "Band gap" of total set of bands:
+  | Lowest unoccupied state:      -1.40785242 eV
+  | Highest occupied state :      -6.04816788 eV
+  | Energy difference      :       4.64031546 eV
 
 
   Band Structure                                          :  max(cpu_time) wall_clock(cpu1)
-  | Total Time                                            :          1.711            1.906
-------------------------------------------------------------
-
-  -------------------------------------------------------------------
-  Writing the requested band structure output (LAPACK version):
-  -------------------------------------------------------------------
-
-  Integrating Hamiltonian matrix: batch-based integration.
-  Time summed over all CPUs for integration: real work        0.380 s, elapsed        0.387 s
-  Integrating SOC matrix: batch-based integration p2 version.
-  Allocating        0.085 MB for dist_tab
-  Allocating        0.085 MB for dist_tab_sq
-  Allocating        0.256 MB for dir_tab
-  Allocating        0.005 MB for i_basis_fns
-  Allocating        0.099 MB for i_basis_fns_inv
-  Allocating        0.005 MB for i_atom_fns
-  Allocating        0.956 MB for gradient_basis_wave
-  Allocating        0.002 MB for ylm_tab
-  Allocating        0.001 MB for radial_wave
-  Allocating        0.001 MB for radial_wave_deriv
-  Allocating        0.004 MB for i_basis
-  Allocating        1.061 MB for soc_shell
-  Allocating        0.004 MB for cartesians
-  Allocating        0.006 MB for sum_gradient
-  Allocating        0.012 MB for sum_hessian
-  Allocating        0.001 MB for potential_shell
-
-  Treating all   31 k-points in band plot segment #   1:
-
-
-  Scalar-relativistic "band gap" along reciprocal space direction number:    1
-  | Lowest unoccupied state:      -1.21347735 eV
-  | Highest occupied state :      -6.94691357 eV
-  | Energy difference      :       5.73343622 eV
-
-
-Spin-orbit-coupled "band gap" along reciprocal space direction number:    1
-  | Lowest unoccupied state:      -1.21347716 eV
-  | Highest occupied state :      -6.94691121 eV
-  | Energy difference      :       5.73343406 eV
-
-
-  Treating all   31 k-points in band plot segment #   2:
-
-
-  Scalar-relativistic "band gap" along reciprocal space direction number:    2
-  | Lowest unoccupied state:      -1.40785241 eV
-  | Highest occupied state :      -6.04816786 eV
-  | Energy difference      :       4.64031545 eV
-
-
-Spin-orbit-coupled "band gap" along reciprocal space direction number:    2
-  | Lowest unoccupied state:      -1.40786430 eV
-  | Highest occupied state :      -6.04816290 eV
-  | Energy difference      :       4.64029861 eV
-
-
-  Treating all   31 k-points in band plot segment #   3:
-
-
-  Scalar-relativistic "band gap" along reciprocal space direction number:    3
-  | Lowest unoccupied state:      -1.40785241 eV
-  | Highest occupied state :      -6.04816786 eV
-  | Energy difference      :       4.64031545 eV
-
-
-Spin-orbit-coupled "band gap" along reciprocal space direction number:    3
-  | Lowest unoccupied state:      -1.40786430 eV
-  | Highest occupied state :      -6.04816290 eV
-  | Energy difference      :       4.64029861 eV
-
-
-  Treating all   31 k-points in band plot segment #   4:
-
-
-  Scalar-relativistic "band gap" along reciprocal space direction number:    4
-  | Lowest unoccupied state:      -1.21347735 eV
-  | Highest occupied state :      -6.94691357 eV
-  | Energy difference      :       5.73343622 eV
-
-
-Spin-orbit-coupled "band gap" along reciprocal space direction number:    4
-  | Lowest unoccupied state:      -1.21347716 eV
-  | Highest occupied state :      -6.94691121 eV
-  | Energy difference      :       5.73343406 eV
-
-
-  Treating all   31 k-points in band plot segment #   5:
-
-
-  Scalar-relativistic "band gap" along reciprocal space direction number:    5
-  | Lowest unoccupied state:      -1.40785241 eV
-  | Highest occupied state :      -6.04816786 eV
-  | Energy difference      :       4.64031545 eV
-
-
-Spin-orbit-coupled "band gap" along reciprocal space direction number:    5
-  | Lowest unoccupied state:      -1.40786430 eV
-  | Highest occupied state :      -6.04816290 eV
-  | Energy difference      :       4.64029861 eV
-
-
-  Treating all   31 k-points in band plot segment #   6:
-
-
-  Scalar-relativistic "band gap" along reciprocal space direction number:    6
-  | Lowest unoccupied state:      -1.40785241 eV
-  | Highest occupied state :      -6.04816786 eV
-  | Energy difference      :       4.64031545 eV
-
-
-Spin-orbit-coupled "band gap" along reciprocal space direction number:    6
-  | Lowest unoccupied state:      -1.40786430 eV
-  | Highest occupied state :      -6.04816290 eV
-  | Energy difference      :       4.64029861 eV
-
-  Scalar-relativistic "band gap" of total set of bands:
-  | Lowest unoccupied state:      -1.40785241 eV
-  | Highest occupied state :      -6.04816786 eV
-  | Energy difference      :       4.64031545 eV
-
-  Spin-orbit-coupled "band gap" of total set of bands:
-  | Lowest unoccupied state:      -1.40786430 eV
-  | Highest occupied state :      -6.04816290 eV
-  | Energy difference      :       4.64029861 eV
-
-
-  Band Structure                                          :  max(cpu_time) wall_clock(cpu1)
-  | Total Time                                            :          1.261            1.317
+  | Total Time                                            :          0.210            0.239
 ------------------------------------------------------------
 
 ------------------------------------------------------------------------------
@@ -1404,7 +1070,6 @@ Spin-orbit-coupled "band gap" along reciprocal space direction number:    6
 
   | Total energy of the DFT / Hartree-Fock s.c.f. calculation      :          -2169.261225925 eV
   | Final zero-broadening corrected energy (caution - metals only) :          -2169.261225925 eV
-  | Total energy after non-SC SOC correction (DO NOT USE)          :          -2169.261239611 eV
   | For reference only, the value of 1 Hartree used in FHI-aims is :             27.211384500 eV
   | For reference only, the overall average (free atom contribution
   | + realspace contribution) of the electrostatic potential after
@@ -1447,14 +1112,6 @@ Spin-orbit-coupled "band gap" along reciprocal space direction number:    6
     Copyright (C) 2008 Atsushi Togo
 
 
-  For second-variational spin-orbit coupling used in your run, please cite:
-
-    William P. Huhn and Volker Blum,
-    'One-hundred-three compound band-structure benchmark of post-self-consistent'
-    'spin-orbit coupling treatments in density functional theory'
-    Phys. Rev. Materials 1, 033803 (2017).
-
-
   The ELSI infrastructure was used in your run to solve the Kohn-Sham electronic structure.
   Please check out http://elsi-interchange.org to learn more.
   If scalability is important for your project, please acknowledge ELSI by citing:
@@ -1481,38 +1138,37 @@ Spin-orbit-coupled "band gap" along reciprocal space direction number:    6
 
 ------------------------------------------------------------
           Leaving FHI-aims.
-          Date     :  20210416, Time     :  134129.754
+          Date     :  20210523, Time     :  130154.982
 
           Computational steps:
           | Number of self-consistency cycles          :           11
           | Number of SCF (re)initializations          :            1
 
           Detailed time accounting                     :  max(cpu_time)    wall_clock(cpu1)
-          | Total time                                 :       14.838 s          14.868 s
-          | Preparation time                           :        0.085 s           0.085 s
-          | Boundary condition initalization           :        3.293 s           3.293 s
-          | Grid partitioning                          :        0.024 s           0.025 s
-          | Preloading free-atom quantities on grid    :        0.108 s           0.108 s
-          | Free-atom superposition energy             :        0.017 s           0.017 s
-          | Total time for integrations                :        1.567 s           1.567 s
-          | Total time for solution of K.-S. equations :        0.127 s           0.129 s
-          | Total time for density update              :        2.418 s           2.419 s
-          | Total time for mixing & preconditioning    :        0.696 s           0.696 s
-          | Total time for Hartree multipole update    :        0.007 s           0.004 s
-          | Total time for Hartree multipole sum       :        2.396 s           2.398 s
-          | Total time for total energy evaluation     :        0.001 s           0.000 s
+          | Total time                                 :        9.266 s           9.387 s
+          | Preparation time                           :        0.112 s           0.115 s
+          | Boundary condition initalization           :        1.971 s           1.970 s
+          | Grid partitioning                          :        0.029 s           0.029 s
+          | Preloading free-atom quantities on grid    :        0.086 s           0.087 s
+          | Free-atom superposition energy             :        0.011 s           0.011 s
+          | Total time for integrations                :        1.392 s           1.396 s
+          | Total time for solution of K.-S. equations :        0.116 s           0.123 s
+          | Total time for density update              :        2.062 s           2.063 s
+          | Total time for mixing & preconditioning    :        0.646 s           0.655 s
+          | Total time for Hartree multipole update    :        0.011 s           0.010 s
+          | Total time for Hartree multipole sum       :        2.108 s           2.108 s
+          | Total time for total energy evaluation     :        0.002 s           0.003 s
           | Total time for scaled ZORA corrections     :        0.000 s           0.000 s
-          | Total time for perturbative SOC            :        0.623 s           0.623 s
-          | Total time for band structures, DOS        :        3.215 s           3.223 s
-          | Total time for Mulliken analysis           :        0.212 s           0.211 s
+          | Total time for band structures, DOS        :        0.239 s           0.239 s
+          | Total time for Mulliken analysis           :        0.058 s           0.058 s
 
           Partial memory accounting:
-          | Residual value for overall tracked memory usage across tasks:     0.246094 MB (should be 0.000000 MB)
+          | Residual value for overall tracked memory usage across tasks:     0.072388 MB (should be 0.000000 MB)
           |
           | Largest tracked array allocation:
-          |   Minimum:        1.050 MB (hamiltonian_shell on task 1)
-          |   Maximum:        1.061 MB (hamiltonian_shell on task 0)
-          |   Average:        1.056 MB
+          |   Minimum:        1.022 MB (hamiltonian_shell on task 1)
+          |   Maximum:        1.061 MB (hamiltonian_shell on task 2)
+          |   Average:        1.047 MB
           |
           | Because the residual tracked memory usage was not zero, the peak value for overall
           | tracked memory usage was not output, as it is probably incorrect.  This is likely due

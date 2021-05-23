@@ -72,6 +72,7 @@ class SpeciesProjectedDOS(TotalDOS, DOSBaseClass):
         self.set_energy_reference(reference, self.soc)
         fermi_level = self.fermi_level.soc if self.soc else self.fermi_level.scalar
         reference, shift = self.energy_reference
+        band_extrema = self.band_extrema[:2] if not self.soc else self.band_extrema[2:]
         atoms = self.structure.atoms
         self._spectrum = DOSSpectrum(
             atoms=atoms,
@@ -80,6 +81,7 @@ class SpeciesProjectedDOS(TotalDOS, DOSBaseClass):
             type="species",
             fermi_level=fermi_level,
             reference=reference,
+            band_extrema=band_extrema,
             shift=shift,
         )
 

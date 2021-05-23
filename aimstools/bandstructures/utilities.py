@@ -124,6 +124,7 @@ class BandSpectrum:
         jumps (list): List of jumps from unconnected Brillouin zone sections on the plotting axis.
         fermi_level (float): Fermi level in eV.
         reference (str): Reference energy description.
+        band_extrema (tuple): Band extrema (VBM, CBM) from the FHI-aims output file.
         shift (float): Value to shift energies for reference.
         bandpath (str): Bandpath string in ASE format.
 
@@ -142,6 +143,7 @@ class BandSpectrum:
         jumps: list = None,
         fermi_level: float = None,
         reference: str = None,
+        band_extrema: tuple = None,
         shift: float = None,
         bandpath: str = None,
     ) -> None:
@@ -155,6 +157,7 @@ class BandSpectrum:
         self._jumps = jumps
         self._fermi_level = fermi_level
         self._reference = reference
+        self._band_extrema = band_extrema
         self._shift = shift
         self._bandpath = bandpath
         self._bandgap = None
@@ -328,6 +331,10 @@ class BandSpectrum:
         return self._reference
 
     @property
+    def band_extrema(self):
+        return self._band_extrema
+
+    @property
     def shift(self):
         return self._shift
 
@@ -448,6 +455,7 @@ class BandStructurePlot:
         self.x = spectrum.kpoint_axis.copy()
         self.y = spectrum.eigenvalues[:, self.spin, :].copy() - self.shift
         self.fermi_level = spectrum.fermi_level
+        self.band_extrema = spectrum.band_extrema
 
     def draw(self):
         ylocs = ticker.MultipleLocator(base=self.y_tick_locator)
@@ -494,7 +502,9 @@ class BandStructurePlot:
         if self.reference in ["fermi level", "VBM", "middle"]:
             ylabel = r"E - E$_{\mathrm{F}}$ [eV]"
         elif self.reference == "work function":
-            ylabel = r"E - E$_{vacuum}$ [eV]"
+            ylabel = r"E - E$_{\mathrm{F}}$ - $\phi$ [eV]"
+        elif self.reference == "vacuum":
+            ylabel = r"E - E$_{\mathrm{vacuum}}$ [eV]"
         else:
             ylabel = r"E [eV]"
         xlabel = ""
@@ -506,11 +516,11 @@ class BandStructurePlot:
         x, y = self.x, self.y
         if isinstance(window, (float, int)):
             lower_ylimit, upper_ylimit = (-window, window)
-            if self.reference in ["work function", "user-specified"]:
+            if self.reference in ["work function", "user-specified", "vacuum"]:
                 lower_ylimit, upper_ylimit = (-window - self.shift, window - self.shift)
         elif len(window) == 2:
             lower_ylimit, upper_ylimit = window[0], window[1]
-            if self.reference in ["work function", "user-specified"]:
+            if self.reference in ["work function", "user-specified", "vacuum"]:
                 lower_ylimit, upper_ylimit = (window[0], window[1])
         else:
             logger.error("Energy window not recognized.")
@@ -560,8 +570,11 @@ class BandStructurePlot:
     def _show_fermi_level(self):
         reference = self.spectrum.reference
         value = self.spectrum.shift
-        if reference in ["work function", "user-specified"]:
+        if reference in ["user-specified", "vacuum"]:
             mark = -value
+        elif reference in ["work function"]:
+            vbm = self.band_extrema[0]
+            mark = -(self.fermi_level - vbm + value)
         else:
             mark = 0.00
 

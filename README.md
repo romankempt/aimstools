@@ -39,4 +39,4 @@ The documentation is now available at [ReadTheDocs](https://aims-tools.readthedo
 
 - [FHI-vibes](https://vibes-developers.gitlab.io/vibes/) - An excellent interface for relaxations, phonon calculations and molecular dynamics.
 - [BoltzTraP2](https://gitlab.com/sousaw/BoltzTraP2) - Boltzmann transport theory to calculate electronic transport properties.
-- [2D-Interface-Builder](https://github.com/AK-Heine/2D-Interface-Builder) - My tool to build heterostructure interfaces via coincidence lattice theory.
+- [Hetbuilder](https://github.com/romankempt/hetbuilder) - Builds heterostructure interfaces via coincidence lattice theory.
