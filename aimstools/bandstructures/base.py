@@ -74,7 +74,7 @@ class BandStructureBaseClass(FHIAimsOutputReader):
             assert self.work_function != None, "Work function has not been calculated."
             logger.debug("Reference energy set to vacuum level.")
             work_function = self.work_function.upper_work_function
-            vacuum_level_upper = work_function + fermi_level
+            vacuum_level_upper = work_function + self.fermi_level.scalar
             shift = (
                 -(vacuum_level_upper) - fermi_level
             )  # referencing to absolute vacuum

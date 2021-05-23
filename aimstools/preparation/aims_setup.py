@@ -193,6 +193,7 @@ class FHIAimsSetup:
             line += "exx_band_structure_version \t 1\n"
 
         line += "# include_spin_orbit\n"
+        line += "# use_dipole_correction\n"
         line += "## Common choices of dispersion methods:\n"
         line += "# \t vdw_correction_hirshfeld\n"
         line += "# \t many_body_dispersion\n"
