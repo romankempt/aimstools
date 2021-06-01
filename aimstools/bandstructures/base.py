@@ -17,7 +17,12 @@ def get_energy_reference(
     output_level="normal",
     soc=False,
 ):
-    """ Get energy reference shift for electronic structure."""
+    """ Get energy reference shift for electronic structure.
+    
+    Note:
+        I would like to move this part to the actual plotting or calculation of the spectrum.
+        However, there are corner-cases which require additional information from the output file to shift the bands correctly.
+    """
     if not soc:
         vbm, cbm = band_extrema[:2]
         bandgap = abs(cbm - vbm)
@@ -36,9 +41,7 @@ def get_energy_reference(
             reference = "fermi level"
         elif "vbm" in reference.lower():
             reference = "VBM"
-        elif reference.lower() in ["work function", "wf"]:
-            reference = "work function"
-        elif reference.lower() in ["vacuum", "vac"]:
+        elif reference.lower() in ["work function", "wf", "vacuum", "vac"]:
             reference = "vacuum"
         elif number.match(reference):
             shift = float(number.match(reference).group())
@@ -62,28 +65,24 @@ def get_energy_reference(
             # Defaults for insulators is middle.
             reference = "middle"
         if work_function != None:
-            reference = "work function"
+            reference = "vacuum"
 
     if reference == "middle":
         logger.debug("Reference energy set to band gap middle.")
-        shift = (cbm + vbm) / 2 - fl
+        shift = -((cbm + vbm) / 2 - fl)
     elif reference == "VBM":
         logger.debug("Reference energy set to valence band maximum.")
-        shift = vbm - fl
-    elif reference == "work function":
-        assert work_function != None, "Work function has not been set."
-        logger.debug("Reference energy set to upper work function.")
-        work_function = work_function.upper_work_function
-        shift = vbm - fl
-        shift += work_function
+        shift = -(vbm - fl)
     elif reference == "vacuum":
         assert work_function != None, "Work function has not been set."
         logger.debug("Reference energy set to vacuum level.")
-        logger.warning(
-            "Setting reference energy w.r.t. to vacuum potential. This might be incorrect with SOC."
-        )
-        vacuum_level_upper = work_function + fermi_level.scalar
-        shift = -(vacuum_level_upper) - fl  # referencing to absolute vacuum
+        logger.info("Setting energy reference w.r.t. to upper vacuum potential.")
+        vacuum_level_upper = work_function.upper_work_function + fermi_level.scalar
+        shift = -(vbm - fl)  # first we shift the vbm to zero
+        # then we shift to the vbm and substract the vacuum potential to get the ionization energy
+        shift += vbm
+        shift -= vacuum_level_upper
+
     elif reference == "fermi level":
         logger.debug("Reference energy set to Fermi level.")
         # AIMS output is already shifted w.r.t to fermi-level.

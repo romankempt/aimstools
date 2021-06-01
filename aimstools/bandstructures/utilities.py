@@ -453,7 +453,7 @@ class BandStructurePlot:
         self.fermi_level = spectrum.fermi_level
         self.shift = spectrum.shift
         self.x = spectrum.kpoint_axis.copy()
-        self.y = spectrum.eigenvalues[:, self.spin, :].copy() - self.shift
+        self.y = spectrum.eigenvalues[:, self.spin, :].copy() + self.shift
         self.fermi_level = spectrum.fermi_level
         self.band_extrema = spectrum.band_extrema
 
@@ -501,8 +501,6 @@ class BandStructurePlot:
     def set_xy_axes_labels(self):
         if self.reference in ["fermi level", "VBM", "middle"]:
             ylabel = r"E - E$_{\mathrm{F}}$ [eV]"
-        elif self.reference == "work function":
-            ylabel = r"E - E$_{\mathrm{F}}$ - $\phi$ [eV]"
         elif self.reference == "vacuum":
             ylabel = r"E - E$_{\mathrm{vacuum}}$ [eV]"
         else:
@@ -517,7 +515,7 @@ class BandStructurePlot:
         if isinstance(window, (float, int)):
             lower_ylimit, upper_ylimit = (-window, window)
             if self.reference in ["work function", "user-specified", "vacuum"]:
-                lower_ylimit, upper_ylimit = (-window - self.shift, window - self.shift)
+                lower_ylimit, upper_ylimit = (-window + self.shift, window + self.shift)
         elif len(window) == 2:
             lower_ylimit, upper_ylimit = window[0], window[1]
             if self.reference in ["work function", "user-specified", "vacuum"]:
@@ -570,11 +568,10 @@ class BandStructurePlot:
     def _show_fermi_level(self):
         reference = self.spectrum.reference
         value = self.spectrum.shift
-        if reference in ["user-specified", "vacuum"]:
-            mark = -value
-        elif reference in ["work function"]:
-            vbm = self.band_extrema[0]
-            mark = -(self.fermi_level - vbm + value)
+        if reference in ["user-specified"]:
+            mark = value
+        elif reference in ["vacuum"]:
+            mark = value + (self.band_extrema[0] - self.fermi_level)
         else:
             mark = 0.00
 
@@ -614,12 +611,12 @@ class BandStructurePlot:
             mark_d = True
         if mark_i:
             x1, x2 = indirect_gap.k_axis_coords1, indirect_gap.k_axis_coords2
-            y1, y2 = indirect_gap.vbm - self.shift, indirect_gap.cbm - self.shift
+            y1, y2 = indirect_gap.vbm + self.shift, indirect_gap.cbm + self.shift
             vertices.append([(x1, x2), (y1, y2)])
         if mark_d:
             x1, x2 = direct_gap.k_axis_coords, direct_gap.k_axis_coords
-            y1 = direct_gap.vbm - self.shift
-            y2 = direct_gap.cbm - self.shift
+            y1 = direct_gap.vbm + self.shift
+            y2 = direct_gap.cbm + self.shift
             vertices.append([(x1, x2), (y1, y2)])
         return vertices
 

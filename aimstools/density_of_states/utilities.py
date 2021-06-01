@@ -377,7 +377,7 @@ class DOSPlot:
         self.reference = spectrum.reference
         self.fermi_level = spectrum.fermi_level
         self.shift = spectrum.shift
-        self.energies = (spectrum.energies[:, self.spin].copy()) - self.shift
+        self.energies = (spectrum.energies[:, self.spin].copy()) + self.shift
         self.fermi_level = spectrum.fermi_level
         self.band_extrema = spectrum.band_extrema
 
@@ -470,7 +470,7 @@ class DOSPlot:
         if isinstance(window, (float, int)):
             lower_limit, upper_limit = (-window, window)
             if self.reference in ["work function", "user-specified", "vacuum"]:
-                lower_limit, upper_limit = (-window - self.shift, window - self.shift)
+                lower_limit, upper_limit = (-window + self.shift, window + self.shift)
         elif len(window) == 2:
             lower_limit, upper_limit = window[0], window[1]
         else:
@@ -481,7 +481,7 @@ class DOSPlot:
     def set_xy_axes_labels(self):
         if self.reference in ["fermi level", "VBM", "middle"]:
             energy_label = r"E - E$_{\mathrm{F}}$ [eV]"
-        elif self.reference == "work function":
+        elif self.reference == "vacuum":
             energy_label = r"E - E$_{vacuum}$ [eV]"
         else:
             energy_label = r"E [eV]"
@@ -517,11 +517,10 @@ class DOSPlot:
     def _show_fermi_level(self):
         reference = self.spectrum.reference
         value = self.spectrum.shift
-        if reference in ["user-specified", "vacuum"]:
-            mark = -value
-        elif reference in ["work function"]:
-            vbm = self.band_extrema[0]
-            mark = -(self.fermi_level - vbm + value)
+        if reference in ["user-specified"]:
+            mark = value
+        elif reference in ["vacuum"]:
+            mark = value + (self.band_extrema[0] - self.fermi_level)
         else:
             mark = 0.00
 
