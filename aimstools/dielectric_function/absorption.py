@@ -134,13 +134,7 @@ class AbsorptionSpectrum(FHIAimsOutputReader):
             elif "Lorentzian" in name:
                 type = "Lorentzian"
             array = np.loadtxt(f)  # omega in eV, alpha as absorption
-            sp = Spectrum(
-                array,
-                direction,
-                type,
-                width,
-                "eV",
-            )
+            sp = Spectrum(array, direction, type, width, "eV",)
             spectrum[direction] = sp
         spectrum["total"] = sum(spectrum.values())
         return spectrum

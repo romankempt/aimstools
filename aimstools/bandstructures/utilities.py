@@ -838,7 +838,7 @@ class MullikenBandStructurePlot(BandStructurePlot):
         assert (
             len(self.contributions) == 2
         ), "Difference contribution is only possible for exactly two contributions."
-        con = self.contributions[0] - self.contributions[1]
+        con = self.contributions[1] - self.contributions[0]
         cmap = LinearSegmentedColormap.from_list("", self.colors)
         my_cmap = cmap(np.arange(cmap.N))
         my_cmap = ListedColormap(my_cmap)

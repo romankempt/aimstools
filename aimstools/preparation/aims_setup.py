@@ -108,7 +108,7 @@ class FHIAimsSetup:
             for sec in seg:
                 dist = np.array(points[sec[1]]) - np.array(points[sec[0]])
                 length = np.linalg.norm(kpoint_convert(atoms.cell, skpts_kc=dist))
-                npoints = np.int_(np.round(np.asarray(length) * 20))
+                npoints = 21
                 vec1 = "{:.6f} {:.6f} {:.6f}".format(*points[sec[0]])
                 vec2 = "{:.6f} {:.6f} {:.6f}".format(*points[sec[1]])
                 output_bands.append(

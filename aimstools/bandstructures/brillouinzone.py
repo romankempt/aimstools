@@ -1,3 +1,4 @@
+import aimstools
 from aimstools.misc import *
 from aimstools.structuretools import Structure
 
@@ -10,6 +11,7 @@ import matplotlib.pyplot as plt
 from ase.dft.kpoints import bandpath, resolve_kpt_path_string
 
 import ase.io
+from ase.atoms import Atoms
 from ase.dft.kpoints import BandPath
 
 
@@ -56,10 +58,18 @@ class BrillouinZone:
     def __init__(
         self, atoms, bandpathstring: str = None, special_points: dict = None
     ) -> None:
-        if isinstance(atoms, (ase.atoms.Atoms,)):
+        if isinstance(atoms, Structure):
+            self.structure = atoms
+        elif isinstance(atoms, (Atoms,)):
             self.structure = Structure(atoms)
         else:
-            self.structure = atoms
+            try:
+                atoms = ase.io.read("atoms")
+                self.structure = atoms
+            except Exception:
+                logger.critical(
+                    "Could not parse structure from file or another atoms object."
+                )
         self._special_points = special_points
         self._is_2d = self.structure.is_2d()
         self._set_bandpath(bandpathstring)

@@ -32,7 +32,7 @@ class FHIVibesPhonons(FHIVibesParser):
 
     def __repr__(self):
         return "{}(output directory={})".format(
-            self.__class__.__name__, repr(self.outpudir)
+            self.__class__.__name__, repr(self.outputdir)
         )
 
     def read_bands(self):
@@ -290,7 +290,7 @@ class FHIVibesPhonons(FHIVibesParser):
         Regarding units, see: https://gitlab.com/vibes-developers/vibes/-/issues/41
 
         Args:
-            unit (str): Either "per atom" or "per mol". "per atom" leaves the unit as given out by phonopy, "per mol" divides by the formula count.
+            unit (str): Either "per unit cell" or "per mol". "per atom" leaves the unit as given out by phonopy, "per mol" divides by the formula count.
 
         Note:
             The unit systems of free energy, heat capacity,
@@ -303,7 +303,7 @@ class FHIVibesPhonons(FHIVibesParser):
 
         """
 
-        assert unit in ["per atom", "per mol"], "Unit not recognized."
+        assert unit in ["per unit cell", "per mol"], "Unit not recognized."
 
         outputyaml = self.outputdir.joinpath("thermal_properties.yaml")
         assert outputyaml.exists(), "File thermal_properties.yaml not found."
@@ -315,13 +315,14 @@ class FHIVibesPhonons(FHIVibesParser):
 
         ZPE = data["zero_point_energy"]  # kJ/ "mol"
         tp = data["thermal_properties"]
-        temperature = np.array([k["temperature"] for k in tp], dtype=np.float32)  # K
+        temperature = np.array([k["temperature"] for k in tp], dtype=np.float64)  # K
+        energy = np.array([k["energy"] for k in tp], dtype=np.float64)  # kJ / "mol"
         free_energy = np.array(
             [k["free_energy"] for k in tp], dtype=np.float32
         )  # kJ / "mol"
-        entropy = np.array([k["entropy"] for k in tp], dtype=np.float32)  # J/K/ "mol"
+        entropy = np.array([k["entropy"] for k in tp], dtype=np.float64)  # J/K/ "mol"
         heat_capacity = np.array(
-            [k["heat_capacity"] for k in tp], dtype=np.float32
+            [k["heat_capacity"] for k in tp], dtype=np.float64
         )  # J/K/ "mol"
 
         d = namedtuple(
@@ -333,6 +334,7 @@ class FHIVibesPhonons(FHIVibesParser):
                 "entropy",
                 "heat_capacity",
                 "reference",
+                "energy",
             ],
         )
         if unit == "per mol":
@@ -344,8 +346,8 @@ class FHIVibesPhonons(FHIVibesParser):
             free_energy /= count
             entropy /= count
             heat_capacity /= count
-            return d(temperature, ZPE, free_energy, entropy, heat_capacity, ref)
-        elif unit == "per atom":
+            return d(temperature, ZPE, free_energy, entropy, heat_capacity, ref, energy)
+        elif unit == "per unit cell":
             return d(
                 temperature,
                 ZPE,
@@ -353,6 +355,7 @@ class FHIVibesPhonons(FHIVibesParser):
                 entropy,
                 heat_capacity,
                 self.structure.get_chemical_formula(),
+                energy,
             )
 
     def get_gamma_point_frequencies(self, unit=r"cm$^{-1}$"):

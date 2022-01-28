@@ -343,6 +343,11 @@ class FHIAimsOutputReader(dict):
                 pot_upper = float(value.search(l).group())
             if re.search(r"Potential vacuum level, \"lower\" slab surface", l):
                 pot_lower = float(value.search(l).group())
+            ## work function stuff with spin (short-term fix)
+            if re.search(r"Work function-spin \(\"upper\" slab surface\)", l):
+                wf_upper = float(value.search(l).group())
+            if re.search(r"Work function-spin \(\"lower\" slab surface\)", l):
+                wf_lower = float(value.search(l).group())
 
             # VBM and CBM information from bandstructure
             if 'Scalar-relativistic "band gap" of total set of bands:' in l:

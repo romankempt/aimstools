@@ -262,8 +262,12 @@ class Structure(Atoms):
         """
         if self._is_2d == None:
             pbcax = self.periodic_axes
-            if sum(list(pbcax.values())) == 2:
+            if (sum(list(pbcax.values())) == 2) and list(pbcax.values())[-1] == False:
                 return True
+            elif sum(list(pbcax.values())) == 2:
+                logger.error(
+                    "System appears 2D, but is not oriented in the xy-plane. Maybe try standardizing it?"
+                )
             else:
                 return False
         else:

@@ -2,7 +2,7 @@ from aimstools.misc import *
 
 from aimstools.bandstructures.base import BandStructureBaseClass
 from aimstools.bandstructures.regular_bandstructure import RegularBandStructure
-from aimstools.bandstructures.brillouinezone import BrillouinZone
+from aimstools.bandstructures.brillouinzone import BrillouinZone
 from aimstools.bandstructures.mulliken_bandstructure import MullikenBandStructure
 
 import matplotlib.pyplot as plt
