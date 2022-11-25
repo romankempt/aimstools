@@ -56,6 +56,7 @@ class FHIVibesParser:
                 if "Relaxation converged." in l:
                     is_converged = True
             logger.info("FHI-vibes relaxation converged: {}".format(is_converged))
+            self._relaxation_converged = True
         if "phonopy" in self.tasks:
             assert self.maindir.joinpath(
                 "log.phonopy"
@@ -64,6 +65,7 @@ class FHIVibesParser:
                 is_done = [l.strip() for l in file.readlines()][-1]
             is_done = bool(re.search(r"\[vibes\]\s+done\.", is_done))
             logger.info("FHI-vibes phonon calculation finished: {}".format(is_done))
+            self._phonons_converged = True
             if not is_done:
                 self.tasks.remove("phonopy")
 

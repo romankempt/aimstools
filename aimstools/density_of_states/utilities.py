@@ -499,7 +499,7 @@ class DOSPlot:
             values[(energies >= lower_elimit) & (energies <= upper_elimit)]
         )
         if tdos.values.shape[1] == 2:  # check if there is a second spin channel
-            self.lower_dos_limit = -min([-lower_dos_limit, lower_dos_limit]) * 1.05
+            self.lower_dos_limit = min([-lower_dos_limit, lower_dos_limit]) * 1.05
         else:
             self.lower_dos_limit = min([0, lower_dos_limit]) * 1.05
         upper_dos_limit = np.max(

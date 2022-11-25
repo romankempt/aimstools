@@ -79,16 +79,18 @@ class DOSBaseClass(FHIAimsOutputReader):
         return dosfiles
 
     def __get_atom_proj_dos_tetrahedron_files_scalar(self, spin="none"):
-        assert (
-            spin == "none"
-        ), "Tetrahedron DOS with open shell is currently not implemented in FHI-aims."
+        # outdated with new version
+        # assert (
+        #    spin == "none"
+        #), "Tetrahedron DOS with open shell is currently not implemented in FHI-aims."
+        spin = "" if spin == "none" else "spin_" + spin
         if self.control["include_spin_orbit"]:
             regex = re.compile(
                 r"atom_proj(ected)?_dos_tetrahedron_[A-Z]([a-z])?\d{4}\.dat\.no_soc"
             )
         else:
             regex = re.compile(
-                r"atom_proj(ected)?_dos_tetrahedron_[A-Z]([a-z])?\d{4}\.dat"
+                r"atom_proj(ected)?_dos_tetrahedron_" + spin + r"[A-Z]([a-z])?\d{4}\.dat"
             )
         dosfiles = list(self.outputdir.glob("*.dat*"))
         dosfiles = [j for j in dosfiles if bool(regex.match(str(j.parts[-1])))]
@@ -121,13 +123,15 @@ class DOSBaseClass(FHIAimsOutputReader):
         return dosfiles
 
     def __get_species_proj_dos_tetrahedron_files_scalar(self, spin="none"):
-        assert (
-            spin == "none"
-        ), "Tetrahedron DOS with open shell is currently not implemented in FHI-aims."
+        # outdated with new version
+        # assert (
+        #    spin == "none"
+        #), "Tetrahedron DOS with open shell is currently not implemented in FHI-aims."
+        spin = "" if spin == "none" else "_spin_" + spin
         if self.control["include_spin_orbit"]:
             regex = re.compile(r"[A-Z]([a-z])?_l_proj_dos_tetrahedron\.dat\.no_soc")
         else:
-            regex = re.compile(r"[A-Z]([a-z])?_l_proj_dos_tetrahedron\.dat$")
+            regex = re.compile(r"[A-Z]([a-z])?_l_proj_dos_tetrahedron" + spin + r"\.dat$")
         dosfiles = list(self.outputdir.glob("*.dat*"))
         dosfiles = [j for j in dosfiles if bool(regex.match(str(j.parts[-1])))]
         return dosfiles

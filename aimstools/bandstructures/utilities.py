@@ -52,6 +52,21 @@ class DirectBandGap:
             self.__class__.__name__, self.value, self.kpoint
         )
 
+    def __lt__(self, other):
+        return self.value < other
+
+    def __le__(self, other):
+        return self.value <= other
+
+    def __eq__(self, other):
+        return self.value == other
+
+    def __ge__(self, other):
+        return self.value >= other
+
+    def __gt__(self, other):
+        return self.value > other
+
 
 class IndirectBandGap:
     """Container class to store information about the indirect band gap."""
@@ -107,6 +122,21 @@ class IndirectBandGap:
         return "{}(value={}, kpoint_vbm={}, kpoint_cbm={})".format(
             self.__class__.__name__, self.value, self.kpoint1, self.kpoint2
         )
+
+    def __lt__(self, other):
+        return self.value < other
+
+    def __le__(self, other):
+        return self.value <= other
+
+    def __eq__(self, other):
+        return self.value == other
+
+    def __ge__(self, other):
+        return self.value >= other
+
+    def __gt__(self, other):
+        return self.value > other
 
 
 class BandSpectrum:
@@ -265,8 +295,14 @@ class BandSpectrum:
         ns = self.eigenvalues.shape[1]
         gaps = []
         for s in range(ns):
-            dg = self.get_direct_gap(s)
-            ig = self.get_indirect_gap(s)
+            try:
+                dg = self.get_direct_gap(s)
+            except:
+                dg = None
+            try:
+                ig = self.get_indirect_gap(s)
+            except:
+                ig = None
             gaps.append(dg)
             gaps.append(ig)
         if any(l == None for l in gaps):
@@ -433,7 +469,11 @@ class BandStructurePlot:
         self.bands_alpha = kwargs.get("bands_alpha", 1.0)
         self.bands_alpha = kwargs.get("alpha", 1.0)
 
-        self.show_bandgap_vertices = kwargs.get("show_bandgap_vertices", True)
+        self.show_bandgap_vertices = (
+            kwargs.get("show_bandgap_vertices", True)
+            if self.spectrum.bandgap >= 0.05
+            else False
+        )
 
         self.window = kwargs.get("window", 3)
         self.y_tick_locator = kwargs.get("y_tick_locator", "auto")

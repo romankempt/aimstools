@@ -1,18 +1,19 @@
 #===============================================================================
 # FHI-aims file: control.in
 # Created using the Atomic Simulation Environment (ASE)
-# Thu Nov 12 16:44:11 2020
+# Tue Feb  1 14:08:45 2022
 #===============================================================================
 xc                                 pbe
 # include_spin_orbit
+# use_dipole_correction
 ## Common choices of dispersion methods:
 # 	 vdw_correction_hirshfeld
 # 	 many_body_dispersion
 # 	 many_body_dispersion_nl
+output_level 	 	 normal
 relativistic                       atomic_zora scalar
 spin                               none
 k_grid                             15 15 1
-check_stacksize .false.
 
 ### SCF settings 
 adjust_scf 	 always 	 3 
@@ -25,16 +26,25 @@ sc_iter_limit 	 100
 
 ### Band structure section 
 ## Brillouin Zone section Nr. 1
-output band 0.000000 0.000000 0.000000 	 0.500000 0.000000 0.000000 	 31 	 G M
-output band 0.500000 0.000000 0.000000 	 0.333333 0.333333 0.000000 	 31 	 M K
-output band 0.333333 0.333333 0.000000 	 0.000000 0.000000 0.000000 	 31 	 K G
+output band 0.000000 0.000000 0.000000 	 0.500000 0.000000 0.000000 	 21 	 G M
+output band 0.500000 0.000000 0.000000 	 0.333333 0.333333 0.000000 	 21 	 M K
+output band 0.333333 0.333333 0.000000 	 0.000000 0.000000 0.000000 	 21 	 K G
 
+### Mulliken-projected band structure section 
+## Brillouin Zone section Nr. 1
+output band_mulliken 0.000000 0.000000 0.000000 	 0.500000 0.000000 0.000000 	 21 	 G M
+output band_mulliken 0.500000 0.000000 0.000000 	 0.333333 0.333333 0.000000 	 21 	 M K
+output band_mulliken 0.333333 0.333333 0.000000 	 0.000000 0.000000 0.000000 	 21 	 K G
+# band_mulliken_orbit_num 50 	 # number of orbitals to be written out, default is 50 for scalar and 100 for soc
+### DOS section 
+output dos_tetrahedron  -20 0 300
+output atom_proj_dos_tetrahedron -20 0 300
 #===============================================================================
 
 ################################################################################
 #
 #  FHI-aims code project
-# Volker Blum, Fritz Haber Institute Berlin, 2009
+#  Volker Blum, Fritz Haber Institute Berlin, 2009
 #
 #  Suggested "tight" defaults for N atom (to be pasted into control.in file)
 #
@@ -124,7 +134,7 @@ output band 0.333333 0.333333 0.000000 	 0.000000 0.000000 0.000000 	 31 	 K G
 ################################################################################
 #
 #  FHI-aims code project
-# Volker Blum, Fritz Haber Institute Berlin, 2009
+#  Volker Blum, Fritz Haber Institute Berlin, 2009
 #
 #  Suggested "tight" defaults for B atom (to be pasted into control.in file)
 #

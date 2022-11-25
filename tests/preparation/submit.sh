@@ -5,13 +5,8 @@
 #SBATCH -J BN_bs_fatbs_dos                 # job name
 #SBATCH --error=slurm.out               # stdout
 #SBATCH --output=slurm.err              # stderr
-#SBATCH --partition=romeo
-##SBATCH --gres=gpu:4
 #SBATCH --exclusive
-
-module use /home/kempt/Roman_AIMS_env/modules
-module load aims_env
 
 echo "slurm job ID: $SLURM_JOB_ID"
 
-source srun_aims > aims.out
+srun /path/to/aims/executable > aims.out

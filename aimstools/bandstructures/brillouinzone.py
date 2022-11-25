@@ -134,9 +134,9 @@ class BrillouinZone:
         points_already_plotted = set()
         for subpath_labels, subpath_coords in zip(labelseq, coords):
             subpath_coords = np.array(subpath_coords)
-            subpath_coords = np.dot(subpath_coords, icell)
+            sc = np.dot(subpath_coords, icell)
             points_already_plotted.update(subpath_labels)
-            paths.append((subpath_labels, subpath_coords))
+            paths.append((subpath_labels, sc))
 
         with AxesContext(ax=axes, projections=[["3d"]], **kwargs) as axes:
             assert axes.name == "3d", "Axes must be 3D."

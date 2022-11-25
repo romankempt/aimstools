@@ -280,7 +280,7 @@ def find_layers(asecell, factor=1.1):
     """
     Obtains all subunits of a given structure by looking at the connectivity of the bonds.
     
-    Taken from https://github.com/epfl-theos/tool-layer-raman-ir/blob/master/compute/utils/layers.py.
+    Taken and modified from https://github.com/epfl-theos/tool-layer-raman-ir/blob/master/compute/utils/layers.py.
 
     Returns a tuple with a boolean indicating if the material is layered, a list of layers in the structure (ase format),
     a list of indices of the atoms in each layer, and a rotated bulk ASE cell (with stacking axis along z).
@@ -294,9 +294,10 @@ def find_layers(asecell, factor=1.1):
     Returns:
         tuple: (is_layered -> bool, list of sublayers -> list, indices of sublayers -> list)        
     """
+
     tol = 1.0e-6
     radii = factor * covalent_radii[asecell.get_atomic_numbers()]
-    nl = NeighborList(radii, bothways=True, self_interaction=False, skin=0.0,)
+    nl = NeighborList(radii, bothways=True, self_interaction=False, skin=0.3,)
     nl.update(asecell)
     vector1, vector2, vector3 = asecell.cell
     is_layered = True
@@ -403,4 +404,3 @@ def find_layers(asecell, factor=1.1):
         final_layered_structures,
         layer_indices,
     )
-
