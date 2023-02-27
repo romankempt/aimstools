@@ -19,6 +19,7 @@ from ase.formula import Formula
 from collections import namedtuple
 import numpy as np
 import time
+import sys
 
 
 class MullikenSpectrum(BandSpectrum):
@@ -273,49 +274,79 @@ class MullikenBandStructure(BandStructureBaseClass):
         logger.debug(
             "Note: I'm forcing all l-contributions below zero to be zero, see discussion with Volker Blum."
         )
+        logger.debug("\t Employing less memory intensive routine.")
         for section, bandfile in zip(self.band_sections, self.bandfiles):
             start = time.time()
-            with open(bandfile, "r") as file:
-                lines = file.readlines()
-            kpoints = np.array(
-                [
-                    l.strip().split()[-4:-1]
-                    for l in [k for k in lines if "k point number" in k]
-                ],
-                dtype=np.float32,
-            )
-            values = [
-                k.strip().split()
-                for k in lines
-                if "k point number" not in k and "State" not in k and k != ""
-            ]
-            out = np.zeros((len(values), 12), dtype=np.float32)
-            for i, k in enumerate(values):
-                out[i][0 : len(k)] = k
-            ncons = out.shape[1] - 4 - nspins + 1  # dropping state, atom, spin indices
-            nstates = int(np.max(out[:, 0]) - np.min(out[:, 0])) + 1
-            nkpoints = len(kpoints)
-            indices = [1, 2] + list(range(-ncons, 0, 1))
-            out = out[:, indices]
-            out[:, 2:] = np.where(out[:, 2:] < 0.00, 0.00, out[:, 2:])
-            out[:, 2] = np.sum(out[:, 3:], axis=1)  # recalculating total contribution
-            logger.debug(
-                "Found: {:d} kpoints, {:d} states, {:d} spins, {:d} atoms, {:d} contributions.".format(
-                    nkpoints, nstates, nspins, natoms, ncons
-                )
-            )
-            out = out.reshape(nkpoints, nstates * natoms * nspins, ncons + 2)
-            out = out.transpose(0, 2, 1)
-            out = out.reshape(nkpoints, ncons + 2, nstates, natoms, nspins)
-            out = out.transpose(
-                3, 0, 4, 2, 1
-            )  # (natoms, nkpoints, nspins, nstates, ncons)
-            if self.soc:
-                # Removing second spin channel for soc calculations.
-                out[:, :, 0, :, 2:] += out[:, :, 1, :, 2:]
-                out[:, :, 1, :, 2:] = 0.0
+            kpoints = []
+            values = []
+            npzbandfile = Path(str(bandfile)[:-4] + ".npz")          
+            npzkpointsfile = Path(str(bandfile)[:-4] + "_kpoints.npz")                        
             pathsegment = (section.symbol1, section.symbol2)
-            bands[pathsegment] = b(kpoints, out)
+            read_from_file = False
+            if npzbandfile.exists():
+                assert npzkpointsfile.exists(), f"{npzbandfile} found, but no {npzkpointsfile}"
+                t1 = os.path.getmtime(npzbandfile)
+                t2 = os.path.getmtime(bandfile)
+                if t1 > t2:
+                    read_from_file = True
+            if read_from_file:
+                logger.info(f"\t Reading from {npzbandfile} ...")
+                with open(npzbandfile, 'rb') as f:
+                    out = np.load(f)
+                with open(npzkpointsfile, 'rb') as f:
+                    kpoints = np.load(f)                    
+                bands[pathsegment] = b(kpoints, out)
+            else:
+                with open(bandfile, "r") as file:                
+                    read = True
+                    while read:
+                        line = file.readline()
+                        if len(line) == 0:
+                            break
+                        elif "k point" in line:
+                            kp = np.asarray(line.strip().split()[-4:-1], dtype=np.float32)
+                            kpoints.append(kp)                        
+                        elif ("State" not in line): 
+                            value = line.strip().split()
+                            del value[0] # remove state index
+                            del value[2:4] # remove atom and spin indices
+                            values.append(np.asarray(value, dtype=np.float32))
+                            
+                    
+                nstates = int(len(values) / len(kpoints) / natoms / nspins)
+                kpoints = np.asarray(kpoints, dtype=np.float32)
+                out = np.zeros((len(values), 8), dtype=np.float32)
+                for i, k in enumerate(values):
+                    out[i][0 : len(k)] = k
+                ncons = out.shape[1] - 2  # 2 less because of energy and occupation
+
+                nkpoints = len(kpoints)
+                out[:, 2:] = np.where(out[:, 2:] < 0.00, 0.00, out[:, 2:])
+                out[:, 2] = np.sum(out[:, 3:], axis=1)  # recalculating total contribution
+                logger.debug(
+                    "Found: {:d} kpoints, {:d} states, {:d} spins, {:d} atoms, {:d} contributions.".format(
+                        nkpoints, nstates, nspins, natoms, ncons
+                    )
+                )
+                out = out.reshape(nkpoints, nstates * natoms * nspins, ncons + 2)            
+                out = out.transpose(0, 2, 1)
+                out = out.reshape(nkpoints, ncons + 2, nstates, natoms, nspins)
+                out = out.transpose(
+                    3, 0, 4, 2, 1
+                )  # (natoms, nkpoints, nspins, nstates, ncons)
+                if self.soc:
+                    # Removing second spin channel for soc calculations.
+                    out[:, :, 0, :, 2:] += out[:, :, 1, :, 2:]
+                    out[:, :, 1, :, 2:] = 0.0
+                
+                bands[pathsegment] = b(kpoints, out)
+                with open(npzbandfile, 'wb') as f:
+                    np.save(f, out)
+                    logger.debug(f"\tWritten bands to {npzbandfile}.")
+                with open(npzkpointsfile, 'wb') as f:
+                    np.save(f, kpoints)
+                    logger.debug(f"\tWritten kpoints to {npzkpointsfile}.")
+                
             end = time.time()
             logger.info(
                 "\t ... processed {} in {:.2f} seconds.".format(

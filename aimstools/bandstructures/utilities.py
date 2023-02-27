@@ -701,6 +701,8 @@ class MullikenBandStructurePlot(BandStructurePlot):
         self.legend_handlelength = kwargs.get(
             "legend_handlelength", plt.rcParams["legend.handlelength"]
         )
+        
+        self.base_linewidth = kwargs.get("base_linewidth", 0.0)
 
         self.show_colorbar = kwargs.get("show_colorbar", False)
 
@@ -780,7 +782,9 @@ class MullikenBandStructurePlot(BandStructurePlot):
             band_x, band_y, band_width = self.interpolate_bands_1d(
                 band_x, band_y, band_width, self.interpolation_step
             )
-        band_width = band_width[:-1]
+        color_array = band_width.copy()[:-1]
+        band_width = (band_width - np.min(band_width)) / (np.max(band_width) - np.min(band_width))
+        band_width = band_width[:-1] + self.base_linewidth # so that it does not go to 0
         points = np.array([band_x, band_y]).T.reshape(-1, 1, 2)
         segments = np.concatenate(
             [points[:-1], points[1:]], axis=1
@@ -796,7 +800,7 @@ class MullikenBandStructurePlot(BandStructurePlot):
             norm=self.norm,
             capstyle=self.capstyle,
         )
-        lc.set_array(band_width)
+        lc.set_array(color_array)
         self.ax.add_collection(lc)
 
     def plot_scatter(self, band_x, band_y, band_width, cmap):
